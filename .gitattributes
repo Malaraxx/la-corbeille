@@ -1,0 +1,3 @@
+# Fins de ligne Unix partout : sinon « npm run check » échoue sous Windows (index.html comparé octet par octet).
+* text=auto eol=lf
+*.png binary
