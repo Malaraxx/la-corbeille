@@ -294,7 +294,18 @@ details[open] summary{margin-bottom:8px}
 .tends>div{display:flex;flex-direction:column}
 .tends .src{font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);font-weight:600}
 .tends.enq{border-left:3px solid var(--accent);padding-left:12px}
-@media (max-width:760px){.gz-cols{grid-template-columns:minmax(0,1fr)}.gazette{padding:14px}}
+.gz-head{font-size:clamp(26px,4vw,38px);font-weight:800}
+.thermos{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
+.thermo{background:var(--paper);border:1px solid var(--rule);border-radius:6px;padding:8px 10px;display:flex;flex-direction:column;gap:2px;min-width:0}
+.thermo span{font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);font-weight:600}
+.thermo b{font-family:var(--f-display);font-size:18px;line-height:1.15}
+.thermo small{font-family:var(--f-mono);font-size:11.5px}
+.thermo.warn,.thermo.bad{border-color:var(--warn)} .thermo.warn b,.thermo.bad b{color:var(--warn)} .thermo.bad{border-width:2px}
+.tips{display:flex;flex-direction:column;gap:8px;margin-bottom:16px}
+.tip{border-left:3px solid var(--accent);background:var(--paper);border-radius:0 6px 6px 0;padding:10px 12px;display:flex;flex-direction:column;gap:8px;font-size:14.5px}
+.gz-pro .inds{grid-template-columns:repeat(auto-fit,minmax(150px,1fr));margin-top:6px}
+.why{font-size:15px;background:var(--paper);border-radius:6px;padding:10px 12px;border-left:3px solid var(--accent)}
+@media (max-width:760px){.gz-cols{grid-template-columns:minmax(0,1fr)}.gazette{padding:14px}.thermos{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media (prefers-reduced-motion:no-preference){ .une,.life,.bilan,.gazette{animation:rise .35s ease-out both} @keyframes rise{from{transform:translateY(6px)}to{transform:none}} }
 </style>
 
@@ -412,14 +423,14 @@ const W0={phase:'expansion',g:.9,infl:1,rate:2,r10:3.4,spread:.8,credit:3.2,livr
 
 // Vagues d'innovation : 3 par partie, à des dates et avec un destin tirés au hasard.
 const THEME_POOL=[
-  {k:'ia',n:'Intelligence artificielle',f:'Fonds IA'},
-  {k:'robot',n:'Robotique',f:'Fonds Robotique'},
-  {k:'fusion',n:'Fusion nucléaire',f:'Fonds Fusion'},
-  {k:'longevite',n:'Biotech de la longévité',f:'Fonds Longévité'},
-  {k:'spatial',n:'Économie spatiale',f:'Fonds Spatial'},
-  {k:'quantique',n:'Informatique quantique',f:'Fonds Quantique'},
-  {k:'hydrogene',n:'Hydrogène vert',f:'Fonds Hydrogène'},
-  {k:'batteries',n:'Batteries solides',f:'Fonds Batteries'},
+  {k:'ia',n:'Intelligence artificielle',f:'Fonds IA',d:'de l’intelligence artificielle'},
+  {k:'robot',n:'Robotique',f:'Fonds Robotique',d:'de la robotique'},
+  {k:'fusion',n:'Fusion nucléaire',f:'Fonds Fusion',d:'de la fusion nucléaire'},
+  {k:'longevite',n:'Biotech de la longévité',f:'Fonds Longévité',d:'de la biotech de la longévité'},
+  {k:'spatial',n:'Économie spatiale',f:'Fonds Spatial',d:'de l’économie spatiale'},
+  {k:'quantique',n:'Informatique quantique',f:'Fonds Quantique',d:'de l’informatique quantique'},
+  {k:'hydrogene',n:'Hydrogène vert',f:'Fonds Hydrogène',d:'de l’hydrogène vert'},
+  {k:'batteries',n:'Batteries solides',f:'Fonds Batteries',d:'des batteries solides'},
 ];
 // Rendement par étape [si le thème réussit, s'il échoue, écart-type]
 const TR={lancement:[.15,.05,.25],adoption:[.25,-.12,.22],bulle:[.55,0,.3],krach:[-.5,0,.12],echec:[0,-.55,.15]};
@@ -428,14 +439,14 @@ const TR={lancement:[.15,.05,.25],adoption:[.25,-.12,.22],bulle:[.55,0,.3],krach
 const PARTIS={
   liberal:{n:'Alliance libérale'},centre:{n:'Les Modérés'},gauche:{n:'Union populaire'},ecolo:{n:'Écologie solidaire'},souv:{n:'Rassemblement des territoires'},
 };
-const PRENOMS=['Hélène','Marc','Sabine','Antoine','Nadia','Thierry','Claire','Rachid','Valérie','Bertrand','Agnès','Yves','Delphine','Karim','Isabelle','Laurent'];
+const PRENOMS={f:['Hélène','Sabine','Nadia','Claire','Valérie','Agnès','Delphine','Isabelle'],m:['Marc','Antoine','Thierry','Rachid','Bertrand','Yves','Karim','Laurent']};
 const NOMS=['Marchal','Dufresne','Belkacem','Rousset','Vidal','Lemaire','Carpentier','Ferrand','Aubry','Garnier','Mazet','Lambert','Peyrac','Morel','Chevalier','Delorme'];
-const PORTRAITS={
-  liberal:['ancien patron de banque d’affaires','ex-ministre de l’Économie réputé pour sa rigueur','entrepreneur du numérique devenu député'],
-  centre:['maire d’une grande ville depuis douze ans','haut fonctionnaire au profil consensuel','ancien président de région'],
-  gauche:['syndicaliste passé par l’Assemblée','professeur d’économie qui veut taxer le capital','ancien ministre du Travail'],
-  ecolo:['agronome et militant du climat','ingénieur de l’énergie reconverti en politique','eurodéputé spécialiste de la finance verte'],
-  souv:['avocat et tribun des campagnes','ancien officier très populaire chez les ouvriers','industriel qui promet de relocaliser'],
+const PORTRAITS={ // [au masculin, au féminin]
+  liberal:[['ancien patron de banque d’affaires','ancienne patronne de banque d’affaires'],['ex-ministre de l’Économie réputé pour sa rigueur','ex-ministre de l’Économie réputée pour sa rigueur'],['entrepreneur du numérique devenu député','entrepreneuse du numérique devenue députée']],
+  centre:[['maire d’une grande ville depuis douze ans','maire d’une grande ville depuis douze ans'],['haut fonctionnaire au profil consensuel','haute fonctionnaire au profil consensuel'],['ancien président de région','ancienne présidente de région']],
+  gauche:[['syndicaliste passé par l’Assemblée','syndicaliste passée par l’Assemblée'],['professeur d’économie qui veut taxer le capital','professeure d’économie qui veut taxer le capital'],['ancien ministre du Travail','ancienne ministre du Travail']],
+  ecolo:[['agronome et militant du climat','agronome et militante du climat'],['ingénieur de l’énergie reconverti en politique','ingénieure de l’énergie reconvertie en politique'],['eurodéputé spécialiste de la finance verte','eurodéputée spécialiste de la finance verte']],
+  souv:[['avocat et tribun des campagnes','avocate, oratrice redoutée des meetings'],['ancien officier très populaire chez les ouvriers','ancienne officière très populaire chez les ouvriers'],['industriel qui promet de relocaliser','industrielle qui promet de relocaliser']],
 };
 // Niveaux visés par chaque parti (ir = impôt de la flat tax hors prélèvements sociaux, age = âge légal de la retraite),
 // plus un écart de déficit. Les plafonds du PEA et du Livret A ne baissent jamais.
@@ -456,10 +467,10 @@ const NF=new Intl.NumberFormat('fr-FR',{maximumFractionDigits:0});
 const NF2=new Intl.NumberFormat('fr-FR',{minimumFractionDigits:2,maximumFractionDigits:2});
 const fmt=n=>(n<-0.5?'−':'')+NF.format(Math.abs(Math.round(n)))+' €';
 const fmtPx=n=>(n<1000?NF2.format(n):NF.format(n))+' €';
-const pct=(x,d=1)=>(x>0.00049?'+':x<-0.00049?'−':'')+Math.abs(x*100).toFixed(d).replace('.',',')+' %';
+const pct=(x,d=1)=>{const v=Math.abs(x*100).toFixed(d);return (+v===0?'':x>0?'+':'−')+v.replace('.',',')+' %';};
 const rate=x=>x.toFixed(2).replace('.',',')+' %';
 const pc0=x=>Math.round(x*100)+' %';
-const f1=x=>x.toFixed(1).replace('.',',').replace('-','−');
+const f1=x=>{const v=x.toFixed(1);return (+v===0?'0.0':v).replace('.',',').replace('-','−');};
 const cls=x=>x>0.00049?'up':x<-0.00049?'down':'mut';
 const clamp=(x,a,b)=>Math.max(a,Math.min(b,x));
 function rnd(){S.rng=(S.rng+0x6D2B79F5)|0;let t=S.rng;t=Math.imul(t^(t>>>15),t|1);t^=t+Math.imul(t^(t>>>7),t|61);return((t^(t>>>14))>>>0)/4294967296;}
@@ -502,8 +513,9 @@ function themeStage(T,y){
   if(T.ok){if(t<T.db)return 'bulle';t-=T.db;return t===0?'krach':'mature';}
   return t===0?'echec':'zombie';
 }
+const thd=T=>T.d||'du secteur '+T.n.toLowerCase(); // « de la robotique »
 const themeOpen=i=>{const st=themeStage(S.th[i],S.year);return !!st&&st!=='rumeur';};
-function newPres(party){return {name:pick(PRENOMS)+' '+pick(NOMS),party,desc:pick(PORTRAITS[party])};}
+function newPres(party,avoid){const g=rnd()<.5?'f':'m',nom=pick(NOMS.filter(n=>n!==avoid));return {name:pick(PRENOMS[g])+' '+nom,nom,g,party,desc:pick(PORTRAITS[party])[g==='f'?1:0]};}
 function newGame(arch,goals){
   arch=ARCH[arch]?arch:'heritier';const A=ARCH[arch];
   const seed=(Date.now()^Math.floor(Math.random()*1e9))|0;
@@ -734,8 +746,8 @@ function reneg(uid){
 function shock(map){
   for(const k in map){
     const d=map[k]/100;
-    if(k==='loc'||k==='bur'||k==='rp'){for(const b in BIENS)if(BIENS[b].k===k)S.idx[b].price*=1+d;}
-    else{S.px[k]*=1+d;for(const e in S.acc){const h=S.acc[e].hold[k];if(h)h.v*=1+d;}if(k==='monde')S.bench.trk*=1+d;}
+    if(k==='loc'||k==='bur'||k==='rp'){for(const b in BIENS)if(BIENS[b].k===k){const before=S.idx[b].price;S.idx[b].price*=1+d;for(const p of S.props)if(p.type===b)S.shockEur=(S.shockEur||0)+before*d;}}
+    else{S.px[k]*=1+d;for(const e in S.acc){const h=S.acc[e].hold[k];if(h){S.shockEur=(S.shockEur||0)+h.v*d;h.v*=1+d;}}if(k==='monde')S.bench.trk*=1+d;}
     S.turnShock[k]=(S.turnShock[k]||0)+map[k];
   }
 }
@@ -864,8 +876,7 @@ function crisisRisk(w){return .04+.025*Math.max(0,w.cg-3)+(w.pe>22?.04:0)+(w.r10
 const isElection=y=>y>Y0&&(y-(Y0+1))%5===0;
 function makeElection(){
   const ks=Object.keys(PARTIS),a=pick(ks),b=pick(ks.filter(k=>k!==a));
-  const A={...newPres(a),party:a,prog:PROG[a]()},B={...newPres(b),party:b,prog:PROG[b]()};
-  if(B.name===A.name)B.name=pick(PRENOMS.filter(x=>!A.name.startsWith(x)))+' '+pick(NOMS);
+  const A={...newPres(a),prog:PROG[a]()},B={...newPres(b,A.nom),prog:PROG[b]()};
   const s=clamp(50+gauss()*4,38,62);A.poll=Math.round(s);B.poll=100-A.poll;
   const winA=rnd()<1/(1+Math.exp(-(s-50)/2.5));
   return {A,B,win:winA?'A':'B'};
@@ -1017,10 +1028,10 @@ const EVT={
   jeton:{w:()=>!S.jeton.alive?1.2:0,make(y){const n=S.usedFut.includes('jeton')?pick(JETONS.filter(x=>x!==S.jeton.name)):JETONS[0];S.jeton={name:n,alive:true,born:y};S.px.jeton=0.1;S.ph.jeton=[0.1];if(S.pxPrev)S.pxPrev.jeton=null;return {n};},
     view:p=>({kicker:'Jeton numérique',title:`Le ${p.n} s’échange entre passionnés à 0,10 €`,body:'Un développeur anonyme l’a créé. Ses fans promettent de « remplacer les banques ». Il peut aussi bien centupler que disparaître du jour au lendemain, et la plupart de ces jetons finissent à zéro.',invest:{assets:['jeton'],cta:'Acheter'},pass:'C’est une arnaque'})},
   theme:{w:(y)=>S.th.some(T=>themeStage(T,y)==='lancement')?8:0,fiche:p=>THEMES[p.i],make(y){return {i:S.th.findIndex(T=>themeStage(T,y)==='lancement')};},
-    view:p=>{const T=S.th[p.i];return {kicker:'Innovation',title:`Le ${T.f} est lancé à 100 €`,body:`Il investit dans les pionniers de ${T.n.toLowerCase()}. Les promesses sont immenses, les revenus encore modestes. Certaines révolutions enrichissent leurs premiers actionnaires, d’autres ne décollent jamais.`,invest:{assets:[THEMES[p.i]]},pass:'Je laisse passer'};}},
+    view:p=>{const T=S.th[p.i];return {kicker:'Innovation',title:`Le ${T.f} est lancé à 100 €`,body:`Il investit dans les pionniers ${thd(T)}. Les promesses sont immenses, les revenus encore modestes. Certaines révolutions enrichissent leurs premiers actionnaires, d’autres ne décollent jamais.`,invest:{assets:[THEMES[p.i]]},pass:'Je laisse passer'};}},
   themeBulle:{w:(y)=>S.th.some(T=>themeStage(T,y)==='bulle'&&themeStage(T,y-1)!=='bulle')?5:0,
     make(y){return {i:S.th.findIndex(T=>themeStage(T,y)==='bulle'&&themeStage(T,y-1)!=='bulle')};},
-    view:p=>{const T=S.th[p.i],id=THEMES[p.i],g=S.ph[id]&&S.ph[id][0]?S.px[id]/S.ph[id][0]-1:0;return {kicker:'Euphorie',title:`${T.f} : ${pct(g,0)} depuis son lancement`,body:`Les introductions en Bourse se multiplient dans ${T.n.toLowerCase()}. Les sociétés du secteur valent cinquante fois leurs ventes. Tout le monde en parle au dîner.`,invest:{assets:[id],cta:'Renforcer'},
+    view:p=>{const T=S.th[p.i],id=THEMES[p.i],g=S.ph[id]&&S.ph[id][0]?S.px[id]/S.ph[id][0]-1:0;return {kicker:'Euphorie',title:`${T.f} : ${pct(g,0)} depuis son lancement`,body:`Les introductions en Bourse se multiplient dans le secteur ${thd(T)}. Les sociétés du secteur valent cinquante fois leurs ventes. Tout le monde en parle au dîner.`,invest:{assets:[id],cta:'Renforcer'},
       choices:hv(id)>0?[{id:'vendre',label:'Tout vendre et encaisser',desc:`Ta position : ${fmt(hv(id))}`}]:[],pass:'Garder sans rien faire'};},
     act(c,p){const T=S.th[p.i],id=THEMES[p.i];if(themeStage(T,S.year+1)==='krach')unlock('sommet');const r=sellEverywhere([id]);return {msg:`Tu vends ton ${T.f} pour ${fmt(r.t)}${r.tax>0.5?` (impôt ${fmt(r.tax)})`:''}.`};}},
   offre:{w:()=>S.props.some(p=>!isRP(p))?1:0,make(){const p=pick(S.props.filter(p=>!isRP(p)));return {uid:p.uid,type:p.type,offer:Math.round(propValue(p)*1.15)};},
@@ -1124,52 +1135,120 @@ function retireOpts(){
 }
 
 /* ===================== GAZETTE ===================== */
-// Rédigée au début de chaque tour (le hasard est tiré ici, jamais dans l'affichage).
-// Les brèves décrivent le passé (vrai), les tendances annoncent l'année (vraies avec une probabilité acc).
+// Rédigée au début de chaque tour. Le hasard (choix des formulations, justesse des rumeurs) est tiré ici, jamais à l'affichage.
+// Les tendances annoncent l'année et sont vraies avec une probabilité ; les conseils, eux, ne lisent que le passé connu et ton portefeuille.
 // Comme dans la réalité, le consensus rate surtout les récessions : il annonce juste 80 % des bonnes années, 60 % des mauvaises.
 function makeSignals(y,acc){
-  const f=S.fut[y],out=[],src=x=>acc>.7?'Étude indépendante':x,study=acc>.7;
+  const f=S.fut[y],out=[],study=acc>.7,src=x=>study?'Étude indépendante':x;
   const good=GOOD.includes(f.phase),say=good?rnd()<(study?.95:.8):!(rnd()<(study?.9:.6));
-  out.push({k:'conj',good:say,src:src('Consensus des économistes'),t:say?'Croissance attendue cette année, pas de récession en vue.':'Les économistes redoutent une récession cette année.'});
+  out.push({k:'conj',good:say,src:src(pick(['Les économistes, au journal de 20 h','Le baromètre des chefs d’entreprise','La Banque de France'])),
+    t:say?pick(['« Pas de récession en vue cette année. »','« Les carnets de commandes sont pleins. »','« L’activité devrait rester solide. »'])
+      :pick(['« Nous craignons une récession cette année. »','« Les commandes s’effondrent, prudence. »','« Le ralentissement va s’aggraver. »'])});
   const cands=['monde','tracker',...STOCKS,'or','oat'],ranked=cands.slice().sort((a,b)=>peekR(b,y)-peekR(a,y));
   const tip=rnd()<acc?ranked[Math.floor(rnd()*2)]:ranked[2+Math.floor(rnd()*(ranked.length-2))];
-  out.push({k:'sect',a:tip,src:src('Les gérants de fonds'),t:`misent sur ${nm(tip)} cette année.`});
+  out.push({k:'sect',a:tip,src:src('Un gérant de fonds réputé'),t:pick([`« Cette année, je mise sur ${nm(tip)}. »`,`« Mon placement préféré pour l’année : ${nm(tip)}. »`])});
   const up=f.mac.gH>0,sh=rnd()<acc?up:!up;
-  out.push({k:'immo',src:src('Les notaires'),t:sh?'Les prix de l’immobilier devraient monter cette année.':'Les prix de l’immobilier devraient baisser cette année.'});
-  S.th.forEach(T=>{const st=themeStage(T,y);if(!['rumeur','lancement','adoption'].includes(st))return;const ok=rnd()<acc?T.ok:!T.ok;
-    out.push({k:'theme',src:src('Rumeur du secteur'),t:`${T.n} : ${ok?'les premiers clients signent, les revenus décollent.':'les promesses tardent, les premiers clients sont déçus.'}`});});
-  if(acc>.7){const r=crisisRisk(S.w);out.push({k:'risk',src:'Étude indépendante',t:`Risque de krach dans les deux ans : ${r>=.12?'élevé':r>=.07?'modéré':'faible'}. ${S.w.cg>4?'Le crédit a trop gonflé. ':''}${S.w.pe>22?'La Bourse est chère. ':''}${S.w.r10<S.w.rate?'La courbe des taux est inversée.':''}`.trim()});}
+  out.push({k:'immo',src:src('Ton notaire'),t:sh?pick(['« Les acheteurs se bousculent, les prix vont grimper. »','« Je n’ai jamais signé autant de ventes. »']):pick(['« Les acheteurs hésitent, les prix vont baisser. »','« Les biens restent des mois en vitrine. »'])});
+  S.th.forEach(T=>{const st=themeStage(T,y);if(!['lancement','adoption'].includes(st))return;const ok=rnd()<acc?T.ok:!T.ok;
+    out.push({k:'theme',src:study?`Étude indépendante · ${T.n}`:`Au salon de la tech · ${T.n}`,t:ok?'« Les premiers clients signent, les ventes décollent. »':'« Beaucoup de promesses, peu de clients. »'});});
+  if(study){const r=crisisRisk(S.w);out.push({k:'risk',src:'Étude indépendante',t:`Risque de krach dans les deux ans : ${r>=.12?'élevé':r>=.07?'modéré':'faible'}. ${S.w.cg>4?'Le crédit a trop gonflé. ':''}${S.w.pe>22?'La Bourse est chère. ':''}${S.w.r10<S.w.rate?'La courbe des taux est inversée.':''}`.trim()});}
   return out;
 }
 const enqCost=()=>Math.max(300,Math.round(.0025*Math.max(0,net())/100)*100);
+const litre=w=>1+.0115*w.oil*(1.16/w.fx); // prix du litre d'essence selon le baril et le dollar
+// Le gros titre de l'année, en langage courant.
+function headline(y){
+  const w=S.w,P0=S.wPrev,f=S.fut[y],ev=S.event&&S.event.id,c=[],H=(t,ch)=>c.push({t,c:ch});
+  const prev=S.gaz&&S.gaz.head&&S.gaz.head.t,r=S.me.raise,lag=r!=null&&r*100<w.infl-.05;
+  if(y===Y0)return {t:'Bienvenue dans la vie active',c:'Tu as 25 ans, un salaire et tout à construire. Cette Gazette paraît chaque 1er janvier : commence par « Ce que ça veut dire pour ton argent ».'};
+  if(ev==='pandemie')H('Un virus met le pays à l’arrêt','Écoles fermées, rideaux baissés, Bourse en chute libre. Personne ne sait combien de temps ça va durer.');
+  if(ev==='krach')H(pick(['Panique sur les marchés','Le grand plongeon','Lundi noir à la Bourse']),'En quelques jours, des années de gains se sont envolées. Les épargnants se ruent sur le Livret A.');
+  if(f.exo==='energie')H('Le pétrole s’envole, le plein aussi','Un détroit stratégique est bloqué. Les automobilistes font la queue aux stations et les compagnies aériennes annulent des vols.');
+  if(f.exo==='guerre')H('La guerre aux portes de l’Europe','Les marchés tremblent, l’or grimpe et le prix du gaz inquiète.');
+  if(w.phase==='crise')H('Après la tempête, on compte les dégâts',`Le chômage atteint ${f1(w.u)} %. L’État multiplie les plans de soutien et la BCE a ramené son taux à ${rate(w.rate)}.`);
+  if(w.phase==='recession')H(P0&&P0.phase==='recession'?'La récession s’installe':'La France entre en récession',`L’activité a reculé l’an dernier. Les entreprises gèlent les embauches et le chômage monte à ${f1(w.u)} %.`);
+  if(w.phase==='reprise')H(pick(['La reprise est là','Le moral revient','Ça repart']),`L’économie a rebondi de ${f1(w.g)} % l’an dernier. Les entreprises recommencent à embaucher.`);
+  if(f.elec)H(`Présidentielle : ${f.elec.A.name} contre ${f.elec.B.name}`,'Les deux finalistes promettent de changer ta fiscalité. Le scrutin a lieu en avril.');
+  if(w.infl>3.5)H(`Tout augmente : ${f1(w.infl)} % d’inflation`,`Le caddie, le plein, le loyer : tout grimpe${lag?', plus vite que les salaires':r!=null?'. Les salaires suivent, mais de justesse':''}. La BCE a relevé son taux à ${rate(w.rate)}.`);
+  if(w.pe>22)H('La Bourse bat record sur record',`Les actions n’ont jamais été aussi chères : ${f1(w.pe)} fois les bénéfices des entreprises. Tout le monde en parle à la machine à café.`);
+  if(w.cg>4&&P0&&w.cg>P0.cg)H(w.credit<4?'Crédit facile : tout le monde emprunte':'Tout le monde s’endette, malgré des taux élevés',`L’endettement des ménages et des entreprises atteint ${Math.round(130+3*w.cg)} % du PIB. Les anciens rappellent que ça finit rarement bien.`);
+  if(P0&&w.credit<=P0.credit-.4)H(w.credit<3.5?'Les taux de crédit fondent':'Le crédit baisse enfin',w.credit<3.5?`Emprunter sur 20 ans coûte ${rate(w.credit)}. Les agences immobilières sont prises d’assaut.`:`Emprunter sur 20 ans coûte ${rate(w.credit)}, ${f1(P0.credit-w.credit)} point de moins qu’il y a un an. Ça reste cher, mais les acheteurs reviennent.`);
+  if(w.r10<w.rate)H('Les taux font un drôle de signal','Emprunter à 10 ans coûte moins cher qu’à court terme. Les économistes y voient souvent l’annonce d’une récession.');
+  if(w.phase==='surchauffe')H('L’économie tourne à plein régime',`Usines pleines, chômage à ${f1(w.u)} %, mais les prix commencent à grimper.`);
+  H(pick(['Une année sans histoire','L’économie avance à petits pas','Ni crise ni euphorie'].filter(t=>t!==prev)),`Croissance de ${f1(w.g)} %, inflation à ${f1(w.infl)} %, chômage à ${f1(w.u)} %. Rien de spectaculaire.`);
+  return c.find(x=>x.t!==prev)||c[0];
+}
 function makeGazette(y){
-  const w=S.w,P0=S.wPrev,f=S.fut[y],br=[],ly=y-1;
-  br.push({expansion:`Croissance de ${f1(w.g)} % en ${ly} : les entreprises embauchent, le chômage est à ${f1(w.u)} %.`,
-    surchauffe:`L’économie tourne à plein régime (${f1(w.g)} % de croissance en ${ly}), mais l’inflation grimpe à ${f1(w.infl)} %.`,
-    recession:`Récession : le PIB a reculé de ${f1(Math.abs(w.g))} % en ${ly}. Le chômage monte à ${f1(w.u)} %.`,
-    crise:`Année noire : le PIB a plongé de ${f1(Math.abs(w.g))} % en ${ly}, ${f1(w.u)} % de chômage. Les plans de relance se multiplient.`,
-    reprise:`La reprise se confirme : ${f1(w.g)} % de croissance en ${ly}.`}[w.phase]);
-  if(P0){const d=w.rate-P0.rate;br.push(d>.1?`La BCE a relevé son taux à ${rate(w.rate)} pour freiner l’inflation.`:d<-.1?`La BCE a baissé son taux à ${rate(w.rate)} pour soutenir l’économie.`:`La BCE laisse son taux à ${rate(w.rate)}.`);}
-  else br.push(`La BCE maintient son taux à ${rate(w.rate)}. L’OAT à 10 ans rapporte ${rate(w.r10)}.`);
-  if(w.r10<w.rate)br.push('Signal d’alarme : l’OAT à 10 ans rapporte moins que le taux de la BCE. Une courbe des taux inversée précède souvent une récession.');
-  if(w.cg>4)br.push(`Les banques prêtent à tour de bras : l’endettement privé atteint ${Math.round(130+3*w.cg)} % du PIB, un niveau record.`);
-  if(w.pe>22)br.push(`La Bourse de Paris vaut ${f1(w.pe)} fois les bénéfices des entreprises, bien au-dessus de sa moyenne de 15.`);
-  else if(w.pe<11)br.push(`La Bourse est bradée : ${f1(w.pe)} fois les bénéfices, contre 15 en moyenne.`);
-  if(w.spread>1.5)br.push(`L’écart entre les taux français et allemands atteint ${f1(w.spread)} point : les marchés doutent des finances publiques (dette : ${Math.round(w.debt)} % du PIB).`);
-  if(f.elec)br.push(`Présidentielle en avril : ${f.elec.A.name} (${PARTIS[f.elec.A.party].n}) affronte ${f.elec.B.name} (${PARTIS[f.elec.B.party].n}). Sondage : ${f.elec.A.poll} % contre ${f.elec.B.poll} %.`);
-  else if(y===Y0)br.push(`À l’Élysée : ${S.pol.pres.name} (${PARTIS[S.pol.pres.party].n}), ${S.pol.pres.desc}. Prochaine présidentielle en ${Y0+1}.`);
-  S.th.forEach((T,i)=>{const st=themeStage(T,y),id=THEMES[i],pv=S.ph[id]&&S.ph[id].length>1?S.ph[id][S.ph[id].length-1]/S.ph[id][S.ph[id].length-2]-1:null;
-    if(st==='rumeur')br.push(`${T.n} : des laboratoires annoncent des avancées spectaculaires. Aucun fonds n’existe encore.`);
-    else if(st==='lancement')br.push(`Le ${T.f} ouvre à la souscription cette année.`);
+  const w=S.w,P0=S.wPrev,f=S.fut[y],br=[],head=headline(y);
+  if(P0){const d=w.rate-P0.rate;
+    if(d>.1)br.push(w.infl>2.5?`La BCE a relevé son taux à ${rate(w.rate)} pour freiner l’inflation.`:`La BCE a relevé son taux à ${rate(w.rate)} : l’économie va bien, elle retire ses aides.`);
+    else if(d<-.1)br.push(['recession','crise'].includes(w.phase)?`La BCE a baissé son taux à ${rate(w.rate)} pour soutenir l’économie.`:`La BCE a baissé son taux à ${rate(w.rate)} : l’inflation est retombée.`);}
+  if(w.r10<w.rate)br.push('Signal d’alarme : l’État emprunte moins cher à 10 ans qu’à court terme. Cette « courbe inversée » précède souvent une récession.');
+  if(w.cg>4)br.push(P0&&w.cg>P0.cg?`Les banques prêtent à tour de bras : l’endettement des ménages et des entreprises atteint ${Math.round(130+3*w.cg)} % du PIB, un record.`:`L’endettement privé reste très élevé : ${Math.round(130+3*w.cg)} % du PIB.`);
+  if(w.spread>1.5)br.push(`Les marchés doutent des finances publiques : la France emprunte ${f1(w.spread)} point plus cher que l’Allemagne (dette : ${Math.round(w.debt)} % du PIB).`);
+  if(f.elec&&!head.t.startsWith('Présidentielle'))br.push(`Présidentielle en avril : ${f.elec.A.name} (${PARTIS[f.elec.A.party].n}) affronte ${f.elec.B.name} (${PARTIS[f.elec.B.party].n}).`);
+  if(y===Y0)br.push(`À l’Élysée : ${S.pol.pres.name} (${PARTIS[S.pol.pres.party].n}). Prochaine présidentielle en ${Y0+1}.`);
+  S.th.forEach((T,i)=>{const st=themeStage(T,y),id=THEMES[i],h=S.ph[id],pv=h&&h.length>1?h[h.length-1]/h[h.length-2]-1:null;
+    if(st==='rumeur')br.push(`${T.n} : des laboratoires annoncent des avancées spectaculaires. Pas encore de fonds pour investir.`);
+    else if(st==='lancement')br.push(`Le ${T.f} ouvre cette année : enfin un moyen d’investir dans le secteur ${thd(T)}.`);
     else if((st==='adoption'||st==='bulle')&&pv!=null)br.push(`Le ${T.f} a fait ${pct(pv,0)} l’an dernier.`);});
-  if(Math.abs(w.oil/(P0?P0.oil:65)-1)>.3)br.push(`Le baril ${w.oil>(P0?P0.oil:65)?'s’envole':'s’effondre'} : ${Math.round(w.oil)} $.`);
-  return {br:br.slice(0,6),sig:makeSignals(y,.62),base:null,enq:false,cost:enqCost()};
+  if(P0&&Math.abs(w.oil/P0.oil-1)>.3)br.push(`Le baril ${w.oil>P0.oil?'s’envole':'s’effondre'} : ${Math.round(w.oil)} $.`);
+  return {head,br:br.slice(0,4),sig:makeSignals(y,.62),base:null,enq:false,cost:enqCost()};
 }
 function enquete(){
   const G=S.gaz;if(!G||G.enq)return 'Étude déjà commandée.';
   if(S.cash+S.liv<G.cost)return `Il te faut ${fmt(G.cost)} sur ton compte courant ou ton Livret A.`;
   if(S.cash<G.cost)livOut(G.cost-S.cash);
   G.base=G.sig;G.sig=makeSignals(S.year,.85);G.enq=true;ext(-G.cost);save();return null;
+}
+// Les quatre thermomètres, en mots (fonction pure de l'état connu).
+function thermos(){
+  const w=S.w;
+  return [
+    ['Les prix',w.infl>4?['flambent','bad']:w.infl>2.6?['augmentent vite','warn']:w.infl<.5?['stagnent','']:['sont sages',''],`inflation ${f1(w.infl)} %`],
+    ['L’emploi',w.phase==='crise'?['licenciements en série','bad']:w.phase==='recession'?['ça licencie','warn']:w.u<6.5?['on s’arrache les candidats','']:['on embauche',''],`chômage ${f1(w.u)} %`],
+    ['Le crédit',w.credit<2.5?['pas cher','']:w.credit<4?['dans la moyenne','']:['cher','warn'],`${rate(w.credit)} sur 20 ans`],
+    ['La Bourse',w.pe>25?['très chère','bad']:w.pe>20?['chère','warn']:w.pe<11?['bradée','']:['à un prix normal',''],`${f1(w.pe)} fois les bénéfices`],
+  ];
+}
+// Ce que l'économie change concrètement pour le joueur, en euros (fonction pure).
+function vieLines(){
+  const w=S.w,P0=S.wPrev,y=S.year,out=[],ret=retired(y),lr=curLivret();
+  if(!ret&&S.me.raise!=null){const r=S.me.raise,gain=S.revenu*r/(1+r)/12;
+    out.push(r<.0005?`Gel des salaires dans ta boîte : 0 % cette année${w.infl>.5?`, alors que les prix ont pris ${f1(w.infl)} %`:''}.`
+      :`Ton salaire augmente de ${f1(r*100)} % : +${fmt(gain)} par mois${r*100<w.infl-.05?', moins vite que les prix':''}.`);}
+  else if(ret)out.push(`Ta pension et tes besoins suivent l’inflation (${f1(w.infl)} % l’an dernier).`);
+  const dep=(ret?S.revenu+S.me.besoin:S.revenu*(1-S.tauxEp))/12,extra=dep*w.infl/(100+w.infl);
+  out.push(w.infl>1.5?`Tes dépenses du quotidien coûtent ${fmt(extra)} de plus par mois qu’il y a un an.`:'Les prix bougent à peine : ton budget du quotidien ne change pas.');
+  if(P0&&Math.abs(w.oil/P0.oil-1)>.15){const a=50*litre(w),b=50*litre(P0);out.push(`Le plein de 50 litres : ${fmt(a)} (${a>b?'+':'−'}${fmt(Math.abs(a-b))} en un an).`);}
+  const rp=S.props.find(isRP);
+  if(!rp&&!ret){const q=propQuote('maison');out.push(`Tu es locataire : une maison comme celles de Lille se loue ${fmt(q.rent/12)} par mois. L’acheter coûterait ${fmt(q.ann/12)} par mois de crédit sur 20 ans, avec ${fmt(q.apport)} d’apport.`);}
+  else if(rp&&rp.loan&&rp.loan.n>0)out.push(`Ta mensualité de crédit : ${fmt(rp.loan.ann/12)} par mois, encore ${rp.loan.n} an${rp.loan.n>1?'s':''}.`);
+  out.push(S.liv>100?`Ton Livret A va te rapporter ${fmt(S.liv*lr/100)} cette année (${rate(lr)}), sans impôt.`:`Le Livret A rapporte ${rate(lr)} cette année, sans impôt ni risque.`);
+  return out.slice(0,4);
+}
+// Conseils de bon gestionnaire, tirés de l'état connu et de ton portefeuille (jamais du futur). Fonction pure.
+function conseils(){
+  const w=S.w,P0=S.wPrev,y=S.year,a=alloc(),T=finT(a),eqs=eqShare(),out=[],add=(t,btn)=>out.push({t,btn});
+  const crash=S.event&&EVT[S.event.id].crash,risk=crisisRisk(w);
+  if(crash)add('Krach : la Bourse remonte en général avant l’économie, souvent dès l’année suivante. Vendre maintenant fige la perte ; ceux qui ont de l’argent qui dort achètent à prix cassés.',isIdle()&&S.profile!=null?{act:'place',label:'Placer l’argent qui dort'}:null);
+  if(isIdle()&&!S.lock){const idle=idleAmt();add(`${fmt(idle)} dorment sans rien rapporter.${w.infl>2?` Avec ${f1(w.infl)} % d’inflation, ils perdent environ ${fmt(idle*w.infl/100)} de pouvoir d’achat par an.`:''}`,
+    S.profile!=null?{act:'place',label:`Placer selon mon profil (${pc0(S.profile)} actions)`}:{act:'tip-prof',p:.5,label:'Choisir un profil équilibré'});}
+  if(!crash&&risk>=.1&&eqs>.65&&T>10000){const why=[w.r10<w.rate?'courbe des taux inversée':'',w.cg>4?'crédit trop gonflé':'',w.pe>22?'Bourse chère':'',w.phase==='surchauffe'?'économie en surchauffe':''].filter(Boolean).join(', ');
+    add(`Plusieurs voyants sont à l’orange (${why}) : une forte baisse devient plus probable dans les deux ans. Avec ${pc0(eqs)} d’actions, une chute de 35 % te coûterait environ ${fmt(.35*a.eq)}. Si ça t’empêche de dormir, allège.`,{act:'tip-prof',p:.5,label:'Voir les ordres pour 50 % d’actions'});}
+  if(w.pe<11&&eqs<.7&&T>5000)add(`La Bourse est bradée (${f1(w.pe)} fois les bénéfices, contre 15 en moyenne). Acheter quand c’est bon marché paie souvent sur dix ans, même si ça peut encore baisser.`,{act:'tip-prof',p:.8,label:'Voir les ordres pour 80 % d’actions'});
+  const rn=S.props.find(canReneg);
+  if(rn)add(`Les taux ont baissé : renégocier ton crédit à ${rate(curCredit())} ferait baisser tes mensualités (frais : ${fmt(rn.loan.p*.01)}).`,{act:'reneg',u:rn.uid,label:'Renégocier'});
+  if(S.acc.pea.open==null&&y<=YN-5&&!retired(y))add('Ton PEA n’est pas ouvert. Ses 5 ans avant l’exonération ne démarrent qu’au premier versement : ouvre-le tôt, même avec un petit montant.',{act:'tip-tab',tab:'pea',label:'Aller au PEA'});
+  else if(S.acc.av.open==null&&y<=YN-8&&T>20000)add('Ton assurance-vie n’est pas ouverte. Ses 8 ans de fiscalité douce ne démarrent qu’au premier versement.',{act:'tip-tab',tab:'av',label:'Aller à l’assurance-vie'});
+  if(P0&&w.rate-P0.rate>=.75&&hv('oat')>500)add('La BCE monte ses taux : tes fonds OAT perdent de la valeur quand les taux grimpent. Le Livret A et le fonds euros, eux, vont mieux rapporter.',null);
+  if(w.credit<2.5&&!S.props.some(isRP)&&!retired(y)&&age(y)<55)add(`Le crédit ne coûte que ${rate(w.credit)} : c’est quand les taux sont bas qu’acheter sa résidence principale coûte le moins cher en intérêts.`,{act:'tip-desk',label:'Voir le bureau immobilier'});
+  for(const id of [...STOCKS,...THEMES,'jeton','or']){const v=hv(id);if(T>5000&&v>.25*T){add(`${nm(id)} pèse ${pc0(v/T)} de ton épargne. Une seule mauvaise nouvelle et c’est tout ton patrimoine qui trinque.`,null);break;}}
+  S.th.forEach((Th,i)=>{if(themeStage(Th,y)==='bulle'&&hv(THEMES[i])>500)add(`Le ${Th.f} s’envole. Les bulles finissent par éclater, personne ne sait quand : encaisser une partie des gains limite la casse.`,null);});
+  if(S.liv<livretCap()-1000&&S.cash>2000&&!S.lock&&!out.some(x=>x.btn&&x.btn.act==='place'))add(`Ton Livret A n’est pas plein : ${rate(curLivret())} sans impôt ni risque, idéal pour ton épargne de précaution.`,{act:'tip-tab',tab:'liv',label:'Aller au Livret A'});
+  if(w.infl>3.5&&a.safe>.5*Math.max(1,T))add(`Avec ${f1(w.infl)} % d’inflation, l’argent garanti (Livret A, fonds euros) rapporte moins que la hausse des prix.`,null);
+  if(!out.length)add('Rien d’urgent cette année. Le meilleur réflexe : garder le cap, placer ton épargne et ne pas réagir aux gros titres.',null);
+  return out.slice(0,3);
 }
 
 /* ===================== TOURS ===================== */
@@ -1195,6 +1274,10 @@ function startTurn(y){
   S.nextY=Math.min(y+1,YN+1);
   if(!S.fut[y])S.fut[y]=genYear(y);
   const f=S.fut[y];
+  S.shockEur=0;
+  // Augmentation négociée en janvier : 80 % de l'inflation de l'an dernier + carrière + climat de l'emploi (gel en récession et en crise).
+  if(y>Y0&&!retired(y)){const A=ARCH[S.arch]||ARCH.heritier,adj={expansion:.004,surchauffe:.012,recession:-.012,crise:-.025,reprise:0}[S.w.phase];
+    S.me.raise=Math.max(0,.8*S.w.infl/100+(age(y)<45?A.g[0]:A.g[1])+adj);S.revenu*=1+S.me.raise;}else S.me.raise=null;
   THEMES.forEach((id,i)=>{if(themeStage(S.th[i],y)==='lancement'){S.px[id]=100;S.ph[id]=[100];if(S.pxPrev)S.pxPrev[id]=null;}});
   const id=pickEvent(y,f);let d=null;
   if(id){d=EVT[id];const p=d.make(y,f)||{};S.event={id,p,answered:false,result:null};S.usedFut.push(id);}else S.event=null;
@@ -1237,6 +1320,33 @@ function convertSpecial(id,b,label){
   const res=sellIn('cto',id,h.v);b.flows.impots+=res.tax;
   b.notes.push(`${label} : ${fmt(res.amt)} versés sur ton compte${res.tax>0.5?` (impôt ${fmt(res.tax)})`:''}.`);
 }
+// Explique le bilan : les deux plus gros contributeurs de l'année, leur cause, et l'épargne versée.
+const PHTXT={expansion:'une bonne année pour l’économie',surchauffe:'une économie en surchauffe',recession:'la récession',crise:'la crise',reprise:'la reprise'};
+function whyText(y,f,mac,r,b){
+  const w=S.w,c={};
+  for(const l of b.lines){if(l.id==='livret'||l.id==='euros')continue;c[l.id]=(c[l.id]||0)+(l.ev-l.sv);}
+  for(const pp of b.props){const p=S.props.find(x=>x.uid===pp.uid);if(p)c['bien:'+p.type]=(c['bien:'+p.type]||0)+(pp.ve-pp.vs);}
+  const cause=id=>{
+    if(id.startsWith('bien:')){const dc=mac.credit-w.credit;return `prix de l’immobilier en ${c[id]>=0?'hausse':'baisse'}${Math.abs(dc)>=.3?`, crédit ${dc>0?'plus cher':'moins cher'}`:''}`;}
+    const up=(r[id]||0)>=0;
+    if(id==='monde'){const fx=mac.fx/w.fx-1;return `Bourse mondiale en ${up?'hausse':'baisse'}${fx>.04?', dollar en recul':fx<-.04?', dollar en hausse':''}`;}
+    if(id==='tracker')return `Bourse de Paris en ${up?'hausse':'baisse'}, ${PHTXT[f.phase]}`;
+    if(id==='oat')return `taux longs ${mac.r10>w.r10?'en hausse':'en baisse'}, de ${rate(w.r10)} à ${rate(mac.r10)}`;
+    if(id==='or')return up?'valeur refuge recherchée':'l’or a reculé';
+    if(id==='jeton')return up?'la folie des jetons':'le jeton a chuté';
+    if(THEMES.includes(id)){const st=themeStage(S.th[thIdx(id)],y);return {bulle:'l’engouement du public',krach:'la bulle a éclaté',echec:'la technologie a déçu',lancement:'les débuts du fonds',adoption:up?'les ventes décollent':'les clients se font attendre'}[st]||(up?'le secteur progresse':'le secteur recule');}
+    if(S.pending[y]&&S.pending[y][id]!=null)return up?'le rebond après le choc de janvier':'la rechute après le choc de janvier';
+    return `${up?'en hausse':'en baisse'}, ${PHTXT[f.phase]}`;
+  };
+  const lim=Math.max(300,.01*Math.max(0,b.netStart));
+  const parts=Object.entries(c).filter(([k,v])=>Math.abs(v)>=lim).sort((x,z)=>Math.abs(z[1])-Math.abs(x[1])).slice(0,2)
+    .map(([k,v])=>`${k.startsWith('bien:')?BIENS[k.slice(5)].n:nm(k)} ${v>=0?'+':'−'}${fmt(Math.abs(v))} (${cause(k)})`);
+  if(b.flows.epargne>.5)parts.push(`ton épargne de l’année +${fmt(b.flows.epargne)}`);
+  if(b.flows.retraite<-.5)parts.push(`tes prélèvements pour vivre −${fmt(-b.flows.retraite)}`);
+  let t=parts.length?`Ce qui a fait ton année : ${parts.join(' ; ')}.`:'';
+  if(S.shockEur&&Math.abs(S.shockEur)>=lim)t+=` En janvier, le choc t’avait déjà ${S.shockEur<0?'coûté':'rapporté'} ${fmt(Math.abs(S.shockEur))}.`;
+  return t.trim();
+}
 function simulateYear(y){
   S.clk={t:y+1,y};
   const f=S.fut[y],mac=f.mac;
@@ -1267,7 +1377,7 @@ function simulateYear(y){
     if(h&&h.b>0)S.lossCarry+=h.b;S.acc.cto.hold.jeton={v:0,b:0};
   }else if(S.jeton.alive&&hv('jeton')>0&&Math.abs(r.jeton)>.6)b.notes.push(`${S.jeton.name} : ${pct(r.jeton,0)} sur l’année. Il cote ${fmtPx(S.px.jeton)}.`);
   THEMES.forEach((id,i)=>{const T=S.th[i],s=themeStage(T,y);if(hv(id)<=0)return;
-    if(s==='krach')b.notes.push(`La bulle ${T.n.toLowerCase()} éclate : le ${T.f} fait ${pct(r[id],0)}.`);
+    if(s==='krach')b.notes.push(`La bulle ${thd(T)} éclate : le ${T.f} fait ${pct(r[id],0)}.`);
     if(s==='echec')b.notes.push(`${T.n} : la technologie ne tient pas ses promesses, le ${T.f} fait ${pct(r[id],0)}.`);
     for(const e in S.acc){const h=S.acc[e].hold[id];if(h&&h.b>=2000&&h.v>=3*h.b)unlock('visionnaire');}});
   if(st&&y===st.end)convertSpecial('struct',b,'Le Fonds Rendement Sérénité arrive à échéance');
@@ -1312,7 +1422,7 @@ function simulateYear(y){
   S.bench.trk=Math.max(0,S.bench.trk*(1+r.monde)+S.yearExt);
   S.yearExt=0;
   const g=1+mac.infl/100;S.defl*=g;
-  const AG=(ARCH[S.arch]||ARCH.heritier).g;if(ret)S.me.besoin*=g;else S.revenu*=g*(1+(age(y)<45?AG[0]:AG[1]));
+  if(ret)S.me.besoin*=g;
   const ctx=raiseCash({y,retired:ret});if(ctx.ruin){S.me.humeur=clamp(S.me.humeur-15,0,100);S.me.ruined=true;}b.notes.push(...raiseNotes(ctx,ret?'Pour financer ta retraite':'Découvert'));
   b.flows.impots+=ctx.tax;
   // l'économie de l'année devient le passé connu
@@ -1321,8 +1431,9 @@ function simulateYear(y){
     if(c){S.sigRec.conj.n++;if(c.good===GOOD.includes(f.phase))S.sigRec.conj.ok++;}
     if(s){const cands=['monde','tracker',...STOCKS,'or','oat'],top=cands.slice().sort((a,b2)=>r[b2]-r[a]).slice(0,3);S.sigRec.sect.n++;if(top.includes(s.a))S.sigRec.sect.ok++;}}
   if(f.elec){const E=f.elec[f.elec.win],L=f.elec[f.elec.win==='A'?'B':'A'];
-    b.notes.push(`${E.name} (${PARTIS[E.party].n}) bat ${L.name} et devient président·e. Dès janvier ${y+1} : ${progText(E.prog)}.`);
+    b.notes.push(`${E.name} (${PARTIS[E.party].n}) bat ${L.name} et devient ${E.g==='f'?'présidente':'président'}. Dès janvier ${y+1} : ${progText(E.prog)}.`);
     applyProg(E.prog);S.pol.pres={name:E.name,party:E.party,desc:E.desc,since:y};}
+  b.why=whyText(y,f,mac,r,b);
   S.wPrev=S.w;S.w={...mac};
   b.netEnd=net();b.infl=mac.infl;b.livret=mac.livret;b.cashEnd=S.cash;b.phase=f.phase;
   let dh=0,dr=0;
@@ -1404,7 +1515,7 @@ function statusBar(){
 }
 function gazetteHtml(){
   const G=S.gaz;if(!G)return '';
-  const w=S.w,P0=S.wPrev,y=S.year,f=S.fut[y];
+  const w=S.w,P0=S.wPrev,y=S.year,f=S.fut[y],head=G.head||{t:`La Gazette de ${y}`,c:''};
   const arrow=(a,b)=>b==null||Math.abs(a-b)<1e-6?'':a>b?' ▲':' ▼';
   const ind=[
     [`Croissance ${y-1}`,`${f1(w.g)} %`,P0&&P0.g,w.g,w.g<0],
@@ -1420,15 +1531,25 @@ function gazetteHtml(){
     ['Euro / dollar',w.fx.toFixed(2).replace('.',','),P0&&P0.fx,w.fx,false],
     ['Baril de pétrole',`${Math.round(w.oil)} $`,P0&&P0.oil,w.oil,w.oil>110],
   ].map(([k,v,pv,cur,al])=>`<div class="${al?'alert':''}"><span>${k}</span><b>${v}<small class="mut">${pv==null?'':arrow(cur,pv)}</small></b></div>`).join('');
+  const th=thermos().map(([k,[v,c],sub])=>`<div class="thermo ${c}"><span>${k}</span><b>${v}</b><small class="mut">${sub}</small></div>`).join('');
+  const tips=conseils().map(x=>{const b=x.btn;
+    const btn=!b?'':b.act==='reneg'?`<button class="secondary" data-act="reneg" data-u="${b.u}" ${S.lock?'disabled':''}>${b.label}</button>`
+      :`<button class="secondary" data-act="${b.act}"${b.p!=null?` data-p="${b.p}"`:''}${b.tab?` data-tab="${b.tab}"`:''} ${S.lock&&b.act!=='tip-desk'?'disabled':''}>${b.label}</button>`;
+    return `<div class="tip"><p>${x.t}</p>${btn?`<div class="btns">${btn}</div>`:''}</div>`;}).join('');
   const rec=(R,lbl)=>R&&R.n?` <span class="small mut">${lbl} ${R.ok} fois sur ${R.n}.</span>`:'';
-  const sig=G.sig.map(s=>`<div><span class="src">${s.src}</span><span>${s.k==='sect'?`${s.src==='Étude indépendante'?'Elle mise':'Ils misent'} sur <b>${nm(s.a)}</b> cette année.`:s.t}${s.k==='conj'&&!G.enq?rec(S.sigRec.conj,'Les économistes ont vu juste'):''}${s.k==='sect'&&!G.enq?rec(S.sigRec.sect,'Leur choix a fini sur le podium'):''}</span></div>`).join('');
+  const sig=G.sig.map(s=>`<div><span class="src">${s.src}</span><span>${s.t}${s.k==='conj'&&!G.enq?rec(S.sigRec.conj,'Ont vu juste'):''}${s.k==='sect'&&!G.enq?rec(S.sigRec.sect,'Son choix a fini sur le podium'):''}</span></div>`).join('');
   const can=S.cash+S.liv>=G.cost;
   const enq=G.enq?'<p class="small mut">Étude commandée : ces signaux sont nettement plus fiables, sans être infaillibles.</p>'
-    :`<div class="btns"><button class="secondary" data-act="enquete" ${can?'':'disabled'}>Commander une étude indépendante · ${fmt(G.cost)}</button><span class="small mut">${can?`Signaux bien plus fiables pour cette année, et une estimation du risque de krach. Payée avec ton compte courant${S.cash<G.cost?', complété par ton Livret A':''}.`:`Il te faut ${fmt(G.cost)} sur ton compte courant ou ton Livret A.`}</span></div>`;
+    :`<div class="btns"><button class="secondary" data-act="enquete" ${can?'':'disabled'}>Commander une étude indépendante · ${fmt(G.cost)}</button></div><p class="small mut">${can?`Rumeurs bien plus fiables pour ${y}, et une estimation du risque de krach.`:`Il te faut ${fmt(G.cost)} sur ton compte courant ou ton Livret A.`}</p>`;
   return `<article class="gazette"><div class="une-mast"><span>La Gazette de la Corbeille</span><span>1er janvier ${y}</span></div>
-    <div class="gz-cols"><div><p class="kicker">Les brèves</p><ul class="breves">${G.br.map(t=>`<li>${t}</li>`).join('')}</ul></div>
-    <div><p class="kicker">Les chiffres</p><div class="inds">${ind}</div></div></div>
-    <div class="tends ${G.enq?'enq':''}"><p class="kicker">Tendances ${y}</p>${sig}</div>${enq}${U.gazErr?`<p class="err">${U.gazErr}</p>`:''}</article>`;
+    <h2 class="gz-head">${head.t}</h2>${head.c?`<p class="lede">${head.c}</p>`:''}
+    <div class="thermos">${th}</div>
+    <div class="gz-cols"><div>
+      <p class="kicker">Ce que ça veut dire pour ton argent</p><div class="tips">${tips}</div>
+      <p class="kicker">Dans ta vie</p><ul class="breves">${vieLines().map(t=>`<li>${t}</li>`).join('')}</ul></div>
+    <div><p class="kicker">Ce qu’on entend</p><div class="tends ${G.enq?'enq':''}">${sig}</div>${enq}${U.gazErr?`<p class="err">${U.gazErr}</p>`:''}
+      ${G.br.length?`<p class="kicker">Les autres nouvelles</p><ul class="breves small">${G.br.map(t=>`<li>${t}</li>`).join('')}</ul>`:''}</div></div>
+    <details class="gz-pro"><summary>Tous les chiffres, pour les pros</summary><div class="inds">${ind}</div></details></article>`;
 }
 function ficheHtml(f){
   return `<div class="fiche"><span class="lbl">Fiche analyste · ${nm(f.a)}</span>
@@ -1592,7 +1713,7 @@ function allocSec(){
   const plan=U.plan?`<div class="plan"><b>Ordres prévus pour viser ${pc0(U.plan.p)} d’actions</b>${U.plan.ops.length?`<ul>${U.plan.ops.map(o=>`<li>${opText(o)}</li>`).join('')}</ul>`:'<p class="mut">Ton portefeuille est déjà à la cible.</p>'}
     <p class="small mut">Part actions après : ${pc0(U.plan.after)}${U.plan.tax>0.5?` · impôt estimé ${fmt(U.plan.tax)}`:' · aucun impôt'}. Tes autres lignes (actions, Tracker, fonds thématiques) ne sont pas touchées.</p>
     <div class="btns">${U.plan.ops.length?'<button class="primary" data-act="rebal-ok">Valider ces ordres</button>':''}<button class="ghost" data-act="rebal-cancel">Annuler</button></div></div>`:'';
-  return `<section class="sec"><div class="sec-h"><h2>Ta répartition</h2><span class="mut">${fmt(tot)} d’actifs${debt>0.5?` · ${fmt(debt)} de crédit déduits de l’immobilier`:''}</span></div>
+  return `<section class="sec" id="alloc"><div class="sec-h"><h2>Ta répartition</h2><span class="mut">${fmt(tot)} d’actifs${debt>0.5?` · ${fmt(debt)} de crédit déduits de l’immobilier`:''}</span></div>
     <div class="alloc">${idle}
       <div class="abar" role="img" aria-label="Répartition du patrimoine">${segs}</div>
       <div class="alegend">${leg}</div>
@@ -1615,7 +1736,7 @@ function book(){
     if(!ENVS[tab].el.includes(id))return false;
     if(THEMES.includes(id)||id==='jeton')return tradable(id)||ev(tab,id)>0;
     return true;});
-  return `<section class="sec"><div class="sec-h"><h2>Carnet d’ordres</h2><span class="mut">Variation sur un an, krach du jour inclus · dividendes inclus</span></div>
+  return `<section class="sec" id="book"><div class="sec-h"><h2>Carnet d’ordres</h2><span class="mut">Variation sur un an, krach du jour inclus · dividendes inclus</span></div>
     ${S.lock?`<p class="locked">Ton portefeuille est bloqué cette année. Il évoluera tout seul jusqu’au prochain tour.</p>`:''}
     <div class="tabs" role="tablist">${tabs}</div>${envHead(tab)}
     <div class="book"><div class="row head"><div>Placement</div><div class="r c-px">Cours / taux</div><div>10 ans</div><div class="r c-var">Sur un an</div><div class="r c-pos">Position</div><div class="r c-pl">Latent</div><div></div></div>
@@ -1635,7 +1756,7 @@ function desk(){
     <div class="num"><small class="mut">${isRP(p)?'Loyer économisé':'Loyer'}</small><br>${fmt(S.idx[p.type].rent*p.rentMult/12)}/mois</div>
     <div class="btns">${rn}<button class="ghost ${conf?'danger':''}" data-act="prop-sell" data-u="${p.uid}" ${S.lock?'disabled':''}>${conf?`Confirmer · ${fmt(c.net)} net`:'Vendre'}</button></div></div>`;}).join('');
   const locs=Object.keys(BIENS).filter(k=>BIENS[k].k!=='rp'),rps=Object.keys(BIENS).filter(k=>BIENS[k].k==='rp');
-  return `<section class="sec"><div class="sec-h"><h2>Bureau immobilier</h2><span class="mut">Revenus du foyer ${fmt(S.revenu*(P()?1.6:1))}/an · effort max 35 % · apport 20 % + frais</span></div>
+  return `<section class="sec" id="desk"><div class="sec-h"><h2>Bureau immobilier</h2><span class="mut">Revenus du foyer ${fmt(S.revenu*(P()?1.6:1))}/an · effort max 35 % · apport 20 % + frais</span></div>
     ${owned?`<div class="owned">${owned}</div>`:''}
     ${U.deskErr?`<p class="${U.deskErr.ok?'ok':'err'}">${U.deskErr.t}</p>`:''}
     <p class="lbl">Investissement locatif</p><div class="desk">${locs.map(offer).join('')}</div>
@@ -1689,6 +1810,7 @@ function bilanView(){
       <div><span class="lbl">Sur l’année</span><div class="v ${cls(d)}">${pct(d)}</div></div>
       <div><span class="lbl">Inflation ${b.y}</span><div class="v">${f1(b.infl)} %</div></div>
       <div><span class="lbl">Humeur · couple</span><div class="v">${Math.round(b.me.humeur)} · ${b.me.relation==null?'—':Math.round(b.me.relation)}</div></div></div>
+    ${b.why?`<p class="why">${b.why}</p>`:''}
     ${b.notes.length?`<ul class="notes">${b.notes.map(n=>`<li>${n}</li>`).join('')}</ul>`:''}
     <div class="grid2"><div class="tbl-wrap"><table><thead><tr><th>Position</th><th class="n">31 déc. ${b.y}</th><th class="n">Perf.</th></tr></thead>
       <tbody>${lines||'<tr><td colspan="3" class="mut">Aucun placement financier</td></tr>'}${props}
@@ -1810,7 +1932,7 @@ function onClick(ev_){
   if(a!=='reset')U.confirmReset=false;
   if(a!=='prop-sell')U.confirmSell=null;
   if(a!=='pea-close')U.confirmClose=false;
-  if(!['rebal-preview','rebal-ok'].includes(a))U.plan=null;
+  if(!['rebal-preview','rebal-ok','tip-prof'].includes(a))U.plan=null;
   if(!['place','rebal-ok'].includes(a))U.allocMsg=null;
   if(a!=='enquete')U.gazErr='';
   const [e,id]=key?key.split(':'):[];
@@ -1822,6 +1944,9 @@ function onClick(ev_){
     case 'skip-anim':U.anim=null;U.animTok++;break;
     case 'copy':{const txt=shareText();try{navigator.clipboard.writeText(txt).then(()=>{U.copied=true;render();},()=>{U.copied='fallback';render();setTimeout(()=>{const ta=document.getElementById('share-txt');if(ta)ta.select();},0);});}catch(er){U.copied='fallback';}break;}
     case 'enquete':U.gazErr=enquete()||'';break;
+    case 'tip-prof':{const p=+t.dataset.p;S.profile=p;U.plan={p,...dry(()=>rebalance(p))};U.scroll='alloc';save();break;}
+    case 'tip-tab':U.tab=t.dataset.tab;U.open=null;U.envMsg={};U.scroll='book';break;
+    case 'tip-desk':U.scroll='desk';break;
     case 'prof':S.profile=+t.dataset.p;save();break;
     case 'place':{if(S.profile==null||S.lock)break;const ops=[];placeIdle(S.profile,ops);U.allocMsg=ops.length?`Placé : ${ops.map(opText).join(' ; ')}.`:'Rien à placer.';save();break;}
     case 'rebal-preview':if(S.profile!=null){const p=S.profile;U.plan={p,...dry(()=>rebalance(p))};}break;
@@ -1849,6 +1974,7 @@ function onClick(ev_){
     case 'next':S.achNew=[];nextBilan();U.evAmt='';U.evAsset=null;U.evEnv=null;window.scrollTo({top:0});break;
   }
   render();
+  if(U.scroll){const el=document.getElementById(U.scroll);U.scroll=null;if(el)el.scrollIntoView({behavior:canAnim()?'smooth':'auto',block:'start'});}
 }
 function onInput(e){
   const t=e.target;

@@ -1,5 +1,11 @@
 # Journal des versions
 
+## 3.1.0 — Une Gazette qui aide (7 novembre 2026)
+- **La Gazette parle comme un journal et aide à décider** : un gros titre en langage courant, quatre thermomètres en mots (prix, emploi, crédit, Bourse), « Ce que ça veut dire pour ton argent » (conseils tirés de l'état du monde et de ton portefeuille, avec un bouton pour agir : placer, voir les ordres pour alléger ou renforcer, renégocier, ouvrir son PEA…), « Dans ta vie » en euros (salaire, courses, plein, louer ou acheter, Livret A), « Ce qu'on entend » (rumeurs portées par des voix). Les chiffres détaillés sont repliés « pour les pros ».
+- **Le salaire suit la conjoncture** : augmentation chaque janvier selon l'inflation, la carrière et le climat de l'emploi, gel en récession.
+- **Le bilan explique l'année** : les deux plus gros contributeurs, leur cause, l'épargne versée, et ce que le choc de janvier avait déjà coûté.
+- Corrections : faux « record » d'endettement, raisons de la BCE incohérentes avec l'inflation, « −0 % », titres répétés, candidats homonymes, accords au féminin, tournures maladroites sur les vagues d'innovation.
+
 ## 3.0.0 — Saison 3 : un monde inventé (7 novembre 2026)
 - **Fin de l'histoire réelle.** La partie va de 2026 à 2076 et chaque partie génère son propre monde : cycle économique en cinq phases, banque centrale (règle de Taylor), taux longs liés à la dette publique, PER, endettement privé, pétrole, euro/dollar. Les crises naissent des excès (crédit, valorisations, courbe inversée) ou de chocs extérieurs (pandémie, énergie, guerre).
 - **Un tour par an**, ouvert par **la Gazette** : brèves, douze indicateurs, tendances (conjoncture, pari des gérants, immobilier, rumeurs) dont la fiabilité est suivie. **Étude indépendante** payante pour des signaux plus fiables et une estimation du risque de krach.

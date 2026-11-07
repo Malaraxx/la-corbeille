@@ -11,7 +11,7 @@ Le propriétaire du projet est Flo (GitHub : `Malaraxx`), un professionnel du ri
 La Corbeille est un simulateur de gestion de patrimoine **au tour par tour**, en français, du 1er janvier 2026 (le joueur a 25 ans) au 31 décembre 2076 (75 ans).
 
 - **Aucune histoire réelle.** Chaque partie génère **son propre monde** : cycles économiques, krachs, bulles, élections, vagues d'innovation. Tout obéit à des règles économiques réelles (les crises naissent des excès, la banque centrale réagit à l'inflation, une Bourse chère rapporte moins ensuite), mais rien n'est écrit d'avance. Connaître l'histoire ne donne aucun avantage.
-- **Un tour = une année.** Chaque tour s'ouvre sur **la Gazette** : brèves sur l'année écoulée, douze indicateurs (croissance, inflation, taux, PER, endettement…) et des **tendances** pour l'année qui commence, vraies avec une certaine probabilité. Une **étude indépendante** payante rend ces signaux plus fiables.
+- **Un tour = une année.** Chaque tour s'ouvre sur **la Gazette**, écrite en langage courant et tournée vers l'action : un gros titre, quatre thermomètres en mots (prix, emploi, crédit, Bourse), **« Ce que ça veut dire pour ton argent »** (2 ou 3 conseils de bon gestionnaire tirés de l'état connu et du portefeuille du joueur, avec un bouton pour agir), **« Dans ta vie »** (salaire, courses, plein, louer ou acheter, Livret A, en euros), **« Ce qu'on entend »** (rumeurs sur l'année, vraies avec une certaine probabilité) et les chiffres détaillés repliés « pour les pros ». Une **étude indépendante** payante rend les rumeurs plus fiables.
 - Environ deux années sur trois, **une Une** impose une **décision obligatoire** (krach, présidentielle, bulle, valeur en chute, lancement d'un fonds thématique, produit douteux…). Il y a parfois en plus **un dilemme de vie perso**, lui aussi obligatoire.
 - Le joueur gère librement son patrimoine : Livret A, compte-titres, PEA, assurance-vie et immobilier à Lille, Lyon ou Paris. Il clôt l'année, l'**animation** la fait défiler, puis vient le **bilan** de l'année.
 - **Fin de partie** : un titre (« Légende de la Corbeille »…), un score, un épilogue narratif, les meilleurs et pires coups, les succès, le récap de chaque investissement avec son TRI, et le journal des décisions. Un bouton permet de copier son résultat pour défier ses amis.
@@ -88,9 +88,9 @@ Le script est découpé en sections balisées par `/* ===== NOM ===== */`. Dans 
 | **Monde** | `drawPhase(w, exo)`, `crisisRisk(w)`, `isElection(y)`, `makeElection()`, **`genYear(y)`** : tire la phase, la macro, les chocs, l'élection et les rendements de tous les actifs pour l'année |
 | **Événements** | `EVT[id]` : `{forced?, w(y,f), make(y,f), view(p), act?, fiche?, crash?}`, `progText`/`applyProg`, `pickEvent(y,f)` |
 | **Vie perso** | `LIFE[id]` : `{view, act, can?}` + `retireOpts`. Ids : burnout, rupture, weekend, panique, licenciement, diner, promo, vacances, mariage, enfant, sport, ami, rencontre, maison, fire, retraite |
-| **Gazette** | `makeSignals(y, acc)`, `enqCost`, `makeGazette(y)`, `enquete()` |
+| **Gazette** | `makeSignals(y, acc)` (rumeurs), `headline(y)` (gros titre, jamais deux ans de suite le même), `makeGazette(y)`, `enquete()`, et trois fonctions pures appelées à l'affichage : `thermos()`, `vieLines()`, `conseils()` |
 | **Tours** | `pickLife(crash)`, `startTurn(y)` (année, événement, fiche, conseillers, Gazette, vie perso), `answerEvent`, `answerLife`, `turnReady` |
-| **Simulation** | `simulateYear(y)` (le cœur : rendements, impôts, loyers, épargne/retraite, élection, repères, ventes forcées, humeur, succès), `endTurn`, `nextBilan`, `finalScore` |
+| **Simulation** | `whyText` (explication du bilan), `simulateYear(y)` (le cœur : rendements, impôts, loyers, épargne/retraite, élection, repères, ventes forcées, humeur, succès), `endTurn`, `nextBilan`, `finalScore` |
 | **Sauvegarde** | `KEY='la-corbeille-v3'`, `save`/`load`/`wipe`, `legacyGame()` et `dropLegacy()` (clôture des parties de la version 2) |
 | **Interface** | `U` (état d'interface non sauvegardé), `statusBar`, `gazetteHtml`, `uneCard`, `ficheHtml`, `advHtml`, `lifeCard`, `allocSec`, `book`/`bookRow`/`envHead`, `spark`, `desk`, `invSec`/`invData`/`invTable`, `turnView`, `chart`, `bilanView`, `animHtml`/`runAnim`, `endView`/`epilogue`/`coups`/`shareText`, `introView`, `render` |
 | **Événements DOM** | délégation unique : `onClick` lit `data-act` (et `data-key`, `data-env`…), `onInput` pour les champs. `boot()` charge la sauvegarde ou résume l'ancienne |
@@ -112,7 +112,7 @@ w{phase,g,infl,rate,r10,spread,credit,livret,euros,u,cg,oil,fx,pe,debt,gH,gB,rg}
 wPrev (l'année d'avant), fut{année:{y,phase,exo,cause,d,shock,elec,r,mac}} (années tirées)
 pol{ir,ps,peaCap,livCap,ageLegal,deficit,irLoyer,spreadAdj,pres{name,party,desc,since}}
 th[3]{k,n,f,start,ok,dr,da,db}, drift{mkt, actions, b_ville}
-gaz{br[],sig[],base,enq,cost}
+gaz{head{t,c},br[],sig[],base,enq,cost}, shockEur (perte ou gain du choc de janvier)
 props[{uid,type (clé de BIENS),buyYear,cost,loan:{p,r,n,ann}|null,rentMult,vacantUntil,noRent,mode,flows[]}]
 idx{bien:{price,rent}}
 lossCarry, flags{rpYear,twoRent,struct,souvY,startup,lastPand,fireAsked,pretAmi,panicSold,lowMood,faillite…}, pending{année:{actif:%}}, jeton{name,alive,born}, avAb
@@ -120,7 +120,7 @@ revenu, tauxEp, defl (indice des prix), bench{liv,trk}, yearExt, extTot
 hist[{x,net,liv,trk}], bilans[], event{id,p,answered,result,fiche?,adv?}|null, life{id,v,answered,result,name?}|null, nextY
 usedFut[], usedLife[], uid, log[{y,t,r}], turnShock, lock, well{sum,n}, profile
 lg{lines{clé:{env,id,label,first,lastSell,flows[{t,y,a}]}}, env{pea[],av[]}, props[]}
-me{humeur,relation,partner,first,exes[],marie,enfants,ruptures,burnouts,retireYear,gap,besoin,pension,early,pension62,ruined,chomY}
+me{humeur,relation,partner,first,exes[],marie,enfants,ruptures,burnouts,retireYear,gap,besoin,pension,early,pension62,ruined,chomY,raise}
 ```
 
 **Tout nouveau champ de `S` exige une migration dans `boot()`.** Les amis de Flo ont des parties en cours dans leur navigateur : on ne casse jamais une sauvegarde, et on ne change pas `KEY` sans migrer. Seule exception, décidée par Flo le 7 novembre 2026 : le passage à la version 3 (monde inventé) clôt les parties de la version 2 en affichant leur patrimoine, faute de pouvoir les convertir.
@@ -205,7 +205,7 @@ Les plafonds du PEA et du Livret A ne baissent jamais. La Une d'une présidentie
 
 ### Épargne, carrière, retraite
 - **Épargne annuelle** = salaire × taux d'épargne × couple (1,15, ou 1,25 marié) × 0,82^enfants × humeur (× 0,7 sous 30, × 1,05 au-dessus de 70). Elle arrive sur le compte courant en fin d'année. Le bandeau « argent qui dort » pousse à la placer.
-- **Salaire** : suit l'inflation, plus la progression de carrière du personnage (avant et après 45 ans). Une promotion donne +25 %, le dîner d'affaires +8 %.
+- **Salaire** : augmenté chaque 1er janvier de 80 % de l'inflation de l'année écoulée, plus la progression de carrière du personnage (avant et après 45 ans), plus le climat de l'emploi (surchauffe +1,2 point, expansion +0,4, récession −1,2, crise −2,5), jamais en dessous de 0 (gel). Une promotion donne +25 %, le dîner d'affaires +8 %.
 - **Licenciement** : en crise (15 %) ou en récession (7 %), au plus une fois tous les 5 ans, sauf pour la fondatrice. Pas d'épargne cette année-là, indemnité de 50 % du salaire (ou 25 % avec une reconversion qui augmente le salaire de 10 %).
 - **Retraite** : proposée à partir de 2063 (62 ans). L'âge légal (`S.pol.ageLegal`, 64 ans au départ) dépend des élections. Prélèvement de 30 % du dernier salaire avant l'âge légal, 24 % jusqu'à 2 ans après, 18 % ensuite ; la pension vaut 60 % du salaire.
 - **Indépendance financière** (`fire`) : proposée entre 2044 et 2062 si les placements financiers valent au moins 27 × (50 % du salaire). Le prélèvement est alors de 50 % du salaire, divisé par deux à l'âge légal.
@@ -228,9 +228,15 @@ Les plafonds du PEA et du Livret A ne baissent jamais. La Une d'une présidentie
 - **Autres dilemmes** : tirés dans environ 35 % des années restantes, au plus 2 fois chacun (5 pour les enfants), avec un poids renforcé pour le mariage, les enfants et la résidence principale.
 
 ### Gazette et étude indépendante
-- **Brèves** : faits de l'année écoulée (phase, BCE, alertes : courbe inversée, crédit record, Bourse chère ou bradée, écart de taux, présidentielle, vagues d'innovation, pétrole). Au plus 6.
-- **Tendances** pour l'année : conjoncture (le consensus annonce juste 80 % des bonnes années et 60 % des mauvaises ; l'étude 95 % et 90 %), le pari des gérants (dans les 2 meilleurs placements de l'année avec une probabilité de 62 %, 85 % avec l'étude), l'immobilier, et une rumeur par vague d'innovation en cours. Leur fiabilité passée est affichée.
+- **Gros titre** : le fait marquant (krach, choc, phase du cycle, présidentielle, inflation, Bourse chère, crédit), cohérent avec les thermomètres, jamais le même deux ans de suite.
+- **Thermomètres** : prix (inflation > 4 % : « flambent »), emploi, crédit (< 2,5 % : « pas cher », ≥ 4 % : « cher »), Bourse (PER < 11 : « bradée », > 20 : « chère », > 25 : « très chère »).
+- **Conseils** (`conseils()`, au plus 3) : ils ne lisent jamais le futur, seulement l'état connu et le portefeuille. Argent qui dort (et ce que l'inflation lui coûte), krach (ne pas vendre au plus bas), voyants à l'orange (`crisisRisk` ≥ 10 % avec plus de 65 % d'actions : chiffrage d'une chute de 35 %), Bourse bradée, renégociation possible, PEA ou assurance-vie pas encore ouverts, OAT quand la BCE monte ses taux, crédit bon marché pour la résidence principale, ligne qui pèse plus de 25 %, fonds thématique en bulle, Livret A pas plein, inflation qui ronge l'épargne garantie.
+- **Dans ta vie** (`vieLines()`) : augmentation ou gel du salaire, surcoût du quotidien, plein de 50 litres, comparaison loyer / mensualité pour la maison de Lille, rendement du Livret A.
+- **Autres nouvelles** : BCE (avec une raison cohérente avec l'inflation), courbe inversée, crédit record (seulement s'il progresse), écart de taux, vagues d'innovation, pétrole. Au plus 4.
+- **Rumeurs** pour l'année : conjoncture (le consensus annonce juste 80 % des bonnes années et 60 % des mauvaises ; l'étude 95 % et 90 %), le pari des gérants (dans les 2 meilleurs placements de l'année avec une probabilité de 62 %, 85 % avec l'étude), l'immobilier, et une rumeur par vague d'innovation en cours. Leur fiabilité passée est affichée.
 - **Étude indépendante** : 0,25 % du patrimoine net, au moins 300 €, payée avec le compte courant puis le Livret A. Elle ajoute une estimation du risque de krach à deux ans (`crisisRisk`).
+- **Bilan** : `whyText` cite les deux plus gros contributeurs de l'année avec leur cause, l'épargne versée, et ce que le choc de janvier avait déjà coûté.
+- **Candidats** : prénom et portrait accordés au genre, jamais deux finalistes du même nom.
 
 ### Conseillers (`ADV`)
 Sur les événements où l'on peut investir, deux conseillers donnent leur avis si |`fwdScore`| ≥ 0,15. Pour chacun, `a` = probabilité de dire « achète » quand c'est une bonne affaire, `b` = la même probabilité quand c'est une mauvaise :
@@ -270,14 +276,14 @@ diamant (≥ 80 % d'actions et ≥ 100 000 € investis à la fin d'une année d
 | Mesure | Cible | Dernière valeur |
 |---|---|---|
 | Passif PEA / repère ETF Monde sans frottements | 0,9 – 1,02 | 0,99 |
-| Lecteur de Gazette sans étude / passif | ×0,7 – ×1,2 | ×1,15 |
-| Lecteur de Gazette avec étude / passif | ×1,05 – ×2 | ×1,32 |
+| Lecteur de Gazette sans étude / passif | ×0,7 – ×1,2 | ×1,09 |
+| Lecteur de Gazette avec étude / passif | ×1,05 – ×2 | ×1,43 |
 | Lecteur de fiches / acheteur naïf | ≥ ×1,15 | ×1,21 |
-| Score du carriériste < score de l'équilibré | vrai | 2 084 < 3 118 |
-| 10e centile du patrimoine d'un joueur passif | > 0 | 1 104 k€ |
-| Score médian de chaque personnage / héritier | 0,75 – 1,33 | 0,88 – 1,05 |
-| Objectifs visés : rp35 ≥ 80 %, famille ≥ 50 % (infirmier) et ≥ 25 % (héritier), fire 25 – 70 %, rentier ≥ 70 %, 2 millions 15 – 60 % | | 100 / 80 / 56 / 61 / 100 / 59 % |
-| Sophie ≥ 70 %, Kévin ≤ 60 % | | 78 / 57 % |
+| Score du carriériste < score de l'équilibré | vrai | 2 012 < 2 669 |
+| 10e centile du patrimoine d'un joueur passif | > 0 | 724 k€ |
+| Score médian de chaque personnage / héritier | 0,75 – 1,33 | 0,83 – 1,02 |
+| Objectifs visés : rp35 ≥ 80 %, famille ≥ 50 % (infirmier) et ≥ 25 % (héritier), fire 25 – 70 %, rentier ≥ 70 %, 2 millions 15 – 60 % | | 100 / 70 / 60 / 70 / 100 / 59 % |
+| Sophie ≥ 70 %, Kévin ≤ 60 % | | 79 / 56 % |
 
 Si tu modifies un paramètre de jeu, lance `npm run balance` avec deux graines différentes, corrige les WARN et mets à jour ce tableau.
 

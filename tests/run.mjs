@@ -36,7 +36,7 @@ const ctx = {
 vm.createContext(ctx);
 vm.runInContext(js + `;globalThis.T={get S(){return S},set S(v){S=v},newGame,startTurn,endTurn,nextBilan,buyIn,sellIn,livIn,livOut,withdraw,
   buyProp,sellProp,reneg,canReneg,answerEvent,answerLife,evDef,LIFE,EVT,net,tradable,ORDER,ENVS,META,EQUITY,STOCKS,THEMES,ARCH,GOALS,ACH,ADV,BIENS,PHASES,GOOD,Y0,YN,
-  eligEnvs,peaCap,envTotal,turnReady,finalScore,placeIdle,rebalance,dry,alloc,eqShare,irr,invData,coups,epilogue,shareText,genYear,enquete,peekR,hv,ev,
+  eligEnvs,peaCap,envTotal,turnReady,finalScore,placeIdle,rebalance,dry,alloc,eqShare,irr,invData,coups,epilogue,shareText,genYear,enquete,peekR,hv,ev,conseils,vieLines,thermos,pct,f1,
   turnView,bilanView,endView,introView,gazetteHtml,allocSec,invSec,animHtml,toastsHtml,advHtml,spark,save,load,legacyGame,U};`, ctx);
 const T = ctx.T;
 
@@ -166,6 +166,10 @@ const pc = v => (v * 100).toFixed(1).replace('.', ',') + ' %';
 // =====================================================================
 console.log(`La Corbeille · tests ${FULL ? 'complets' : 'rapides'} · graine ${seed}\n`);
 
+test('Formats : pas de « −0 % »', () => {
+  check(T.f1(-0.04) === '0,0' && T.f1(-1.25) === '−1,3' && T.pct(-0.004, 0) === '0 %' && T.pct(-0.0004) === '0,0 %' && T.pct(0.05) === '+5,0 %' && T.pct(-0.05, 0) === '−5 %', 'pct mal formaté');
+});
+
 test('TRI : cas connus', () => {
   const near = (a, b) => Math.abs(a - b) < 1e-4;
   check(near(T.irr([{ t: 2000, a: -100 }, { t: 2010, a: 200 }]), Math.pow(2, .1) - 1), 'x2 en 10 ans ≠ 7,18 %');
@@ -189,10 +193,10 @@ test('Monde généré : ordres de grandeur réalistes', () => {
   check(med(a.paris) > 0 && med(a.paris) < .06 && med(a.lille) > 0, 'immobilier irréaliste');
 });
 
-test('Gazette : signaux plus fiables avec une étude, sans hasard à l’affichage', () => {
+test('Gazette : titres, conseils et signaux (plus fiables avec une étude), sans hasard à l’affichage', () => {
   let n = 0, okBase = 0, okEnq = 0, elections = 0;
   for (let g = 0; g < (FULL ? 40 : 12); g++) {
-    T.newGame('heritier', []);
+    T.newGame('heritier', []); let prevHead = null;
     while (T.S.phase !== 'end') {
       const S = T.S;
       if (S.phase === 'turn') {
@@ -202,7 +206,14 @@ test('Gazette : signaux plus fiables avec une étude, sans hasard à l’afficha
         const c0 = S.cash; S.cash = 1e7; T.enquete(); S.cash = c0;
         check(S.gaz.enq, 'étude non appliquée');
         okEnq += S.gaz.sig.find(x => x.k === 'conj').good === good ? 1 : 0; n++;
-        const r0 = S.rng; T.gazetteHtml(); check(S.rng === r0, 'la Gazette consomme du hasard à l’affichage');
+        const r0 = S.rng, html = T.gazetteHtml(); check(S.rng === r0, 'la Gazette consomme du hasard à l’affichage');
+        check(S.gaz.head && S.gaz.head.t, `pas de gros titre en ${S.year}`);
+        check(S.gaz.head.t !== prevHead || S.year === T.Y0 + 1, `même gros titre deux ans de suite en ${S.year} : ${S.gaz.head.t}`); prevHead = S.gaz.head.t;
+        const cs = T.conseils(); check(cs.length >= 1 && cs.length <= 3, `${cs.length} conseils en ${S.year}`);
+        for (const c of cs) if (c.btn) check(['place', 'tip-prof', 'tip-tab', 'tip-desk', 'reneg'].includes(c.btn.act), `bouton de conseil inconnu : ${c.btn.act}`);
+        check(T.vieLines().length >= 2 && T.thermos().length === 4, 'rubriques de la Gazette incomplètes');
+        check(!/−0 %|−0,0 %/.test(html), `« −0 % » dans la Gazette de ${S.year}`);
+        const E = S.fut[S.year].elec; if (E) check(E.A.nom !== E.B.nom, `homonymes à la présidentielle de ${S.year}`);
         if (S.life) T.answerLife(S.life.v.choices[0].id);
         if (S.event) T.answerEvent('pass');
         T.endTurn();
