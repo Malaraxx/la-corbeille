@@ -21,13 +21,15 @@ async function step(pg) {
   const o = { timeout: 3000 };
   if (await pg.$('[data-act=skip-anim]')) return pg.click('[data-act=skip-anim]', o);
   if (await pg.$('[data-act=next]')) return pg.click('[data-act=next]', o);
-  if (await pg.$('[data-act=life]')) await pg.click('[data-act=life] >> nth=0', o);
+  { const n = (await pg.$$('[data-act=life]')).length; // une réponse peut être refusée (apport insuffisant) : on essaie les suivantes
+    for (let i = 0; i < n && (await pg.$('[data-act=life]')); i++) await pg.click(`[data-act=life] >> nth=${i}`, o); }
   if (await pg.$('[data-act=ev-pass]')) await pg.click('[data-act=ev-pass]', o);
   else { // un choix peut être refusé (pas assez d'argent) : on essaie les autres, du dernier au premier
     const n = (await pg.$$('[data-act=ev-choice]')).length;
     for (let i = n - 1; i >= 0 && (await pg.$('[data-act=ev-choice]')); i--) await pg.click(`[data-act=ev-choice] >> nth=${i}`, o);
   }
-  if (await pg.$('.idle [data-act=place]')) await pg.click('.idle [data-act=place]', o);
+  if (await pg.$('.postit [data-act=place]')) await pg.click('.postit [data-act=place]', o);
+  if (await pg.$('.achat:not([disabled])') && Math.random() < .3) await pg.click('.achat:not([disabled]) >> nth=0', o);
   await pg.click('[data-act=end]', o);
 }
 
@@ -43,11 +45,23 @@ for (const [name, viewport, colorScheme] of [['desktop', { width: 1280, height: 
   await pg.click('[data-act=arch][data-k=fondatrice]');
   await pg.screenshot({ path: join(out, `${name}-0-depart.png`), fullPage: true });
   await pg.click('[data-act=start]');
-  await pg.click('[data-act=enquete]');
-  await pg.click('[data-act=prof][data-p="0.8"]');
-  await pg.click('.idle [data-act=place]');
+  // accueil en 5 étapes
+  await pg.click('[data-act=onb-city][data-c=lille]');
+  await pg.screenshot({ path: join(out, `${name}-1a-situation.png`), fullPage: true });
+  await pg.click('[data-act=onb-next]');
+  await pg.screenshot({ path: join(out, `${name}-1b-logement.png`), fullPage: true });
+  await pg.click('.opt.reco');
+  await pg.click('[data-act=onb-next]');
+  await pg.click('[data-act=onb-cushion][data-m="3"]');
+  for (let i = 0; i < 3; i++) await pg.click(`[data-act=onb-q][data-q="${i}"][data-a="2"]`);
+  await pg.click('[data-act=onb-next]');
+  await pg.screenshot({ path: join(out, `${name}-1c-portefeuille.png`), fullPage: true });
+  await pg.click('[data-act=onb-next]');
   if (await pg.$('[data-act=ev-pass]')) await pg.click('[data-act=ev-pass]');
   await pg.screenshot({ path: join(out, `${name}-1-tour.png`), fullPage: true });
+  await pg.click('[data-act=classeur]');
+  await pg.screenshot({ path: join(out, `${name}-1d-classeur.png`), fullPage: true });
+  await pg.click('[data-act=classeur]');
   await pg.click('[data-act=end]');
   await pg.waitForTimeout(600);
   await pg.screenshot({ path: join(out, `${name}-2-animation.png`) });

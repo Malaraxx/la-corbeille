@@ -36,8 +36,9 @@ const ctx = {
 vm.createContext(ctx);
 vm.runInContext(js + `;globalThis.T={get S(){return S},set S(v){S=v},newGame,startTurn,endTurn,nextBilan,buyIn,sellIn,livIn,livOut,withdraw,
   buyProp,sellProp,reneg,canReneg,answerEvent,answerLife,evDef,LIFE,EVT,net,tradable,ORDER,ENVS,META,EQUITY,STOCKS,THEMES,ARCH,GOALS,ACH,ADV,BIENS,PHASES,GOOD,Y0,YN,
-  eligEnvs,peaCap,envTotal,turnReady,finalScore,placeIdle,rebalance,dry,alloc,eqShare,irr,invData,coups,epilogue,shareText,genYear,enquete,peekR,hv,ev,conseils,vieLines,thermos,pct,f1,
-  turnView,bilanView,endView,introView,gazetteHtml,allocSec,invSec,animHtml,toastsHtml,advHtml,spark,save,load,legacyGame,U};`, ctx);
+  eligEnvs,peaCap,envTotal,turnReady,finalScore,placeIdle,rebalance,dry,alloc,eqShare,irr,invData,coups,epilogue,shareText,genYear,peekR,hv,ev,conseils,rappels,pct,f1,
+  onbCity,homeOptions,recoHome,onbHome,onbCushion,onbProfile,onbNext,onbView,acheter,achatState,ACHATS,migrate,bestRental,bestBuy,buyHome,moveTo,propQuote,coussin,yearlySave,monthlySpend,CITIES,loanLeft,
+  turnView,bilanView,endView,introView,carnetHtml,foyerHtml,classeurHtml,logementSec,allocSec,invSec,animHtml,toastsHtml,advHtml,spark,save,load,legacyGame,U};`, ctx);
 const T = ctx.T;
 
 // ---------- mini framework
@@ -69,7 +70,9 @@ const randomPolicy = {
     return null;
   },
   port: S => {
-    if (R() < .15) T.enquete();
+    if (R() < .25) { const ids = Object.keys(T.ACHATS); T.acheter(pickR(ids)); }
+    if (R() < .04) T.moveTo(T.bestRental());
+    if (R() < .03) { const b = T.bestBuy(); if (b && b.ok) T.buyHome(b.type, b.n); }
     for (const e of STOCK_ENVS) for (const id of T.ENVS[e].el) {
       if (!T.tradable(id)) continue;
       if (R() < .05) T.buyIn(e, id, S.cash * R() * .4);
@@ -77,7 +80,7 @@ const randomPolicy = {
     }
     if (R() < .1) T.withdraw(R() < .5 ? 'pea' : 'av', S.acc.pea.cash * R());
     if (R() < .05) T.livIn(Math.min(S.cash, 5000));
-    if (R() < .05) T.buyProp(pickR(BIEN_IDS), R() < .5 ? 'cash' : 'credit');
+    if (R() < .05) T.buyProp(pickR(BIEN_IDS), R() < .5 ? 'cash' : 'credit', pickR([15, 20, 25]));
     for (const p of S.props) if (T.canReneg(p) && R() < .5) T.reneg(p.uid);
     if (R() < .03 && S.props.length) T.sellProp(S.props[0].uid);
     if (R() < .3) T.placeIdle(R(), []);
@@ -92,7 +95,7 @@ function play(arch, goals, pol, hooks = {}) {
     const S = T.S;
     if (S.phase === 'turn') {
       if (hooks.render) { const r0 = S.rng, h1 = T.turnView(); check(S.rng === r0, `l’affichage du tour ${S.year} consomme du hasard`); check(T.turnView() === h1, `affichage non déterministe en ${S.year}`); T.toastsHtml(); }
-      if (S.life) { const ch = S.life.v.choices.map(c => c.id); T.answerLife(pol.life(S.life.id, ch)); }
+      if (S.life) { const ch = S.life.v.choices.map(c => c.id); T.answerLife(pol.life(S.life.id, ch)); for (const c of ch) if (!S.life.answered) T.answerLife(c); check(S.life.answered, `vie perso ${S.life.id} sans réponse possible`); }
       if (S.event) {
         const v = T.evDef().view(S.event.p);
         let done = false;
@@ -102,7 +105,7 @@ function play(arch, goals, pol, hooks = {}) {
       }
       if (!S.lock && pol.port) pol.port(S);
       if (hooks.afterPort && !S.lock) hooks.afterPort(S);
-      if (hooks.render) { T.turnView(); T.allocSec(); T.invSec(); }
+      if (hooks.render) { T.turnView(); T.classeurHtml(); }
       check(T.turnReady(), 'tour non clôturable');
       T.endTurn();
     } else {
@@ -193,37 +196,84 @@ test('Monde généré : ordres de grandeur réalistes', () => {
   check(med(a.paris) > 0 && med(a.paris) < .06 && med(a.lille) > 0, 'immobilier irréaliste');
 });
 
-test('Gazette : titres, conseils et signaux (plus fiables avec une étude), sans hasard à l’affichage', () => {
-  let n = 0, okBase = 0, okEnq = 0, elections = 0;
+test('Carnet : notes, conseils, pense-bêtes et classeur, sans hasard à l’affichage', () => {
+  let n = 0, elections = 0;
   for (let g = 0; g < (FULL ? 40 : 12); g++) {
-    T.newGame('heritier', []); let prevHead = null;
+    T.newGame(pickR(Object.keys(T.ARCH)), []); let prevHead = null;
     while (T.S.phase !== 'end') {
       const S = T.S;
       if (S.phase === 'turn') {
-        if (S.event && S.event.id === 'election') elections++;
-        const good = T.GOOD.includes(S.fut[S.year].phase);
-        okBase += S.gaz.sig.find(x => x.k === 'conj').good === good ? 1 : 0;
-        const c0 = S.cash; S.cash = 1e7; T.enquete(); S.cash = c0;
-        check(S.gaz.enq, 'étude non appliquée');
-        okEnq += S.gaz.sig.find(x => x.k === 'conj').good === good ? 1 : 0; n++;
-        const r0 = S.rng, html = T.gazetteHtml(); check(S.rng === r0, 'la Gazette consomme du hasard à l’affichage');
-        check(S.gaz.head && S.gaz.head.t, `pas de gros titre en ${S.year}`);
-        check(S.gaz.head.t !== prevHead || S.year === T.Y0 + 1, `même gros titre deux ans de suite en ${S.year} : ${S.gaz.head.t}`); prevHead = S.gaz.head.t;
+        n++; if (S.event && S.event.id === 'election') elections++;
+        check(S.page && S.page.notes.length >= 1, `page vide en ${S.year}`);
+        check(S.page.head && S.page.head.t, `pas de gros titre en ${S.year}`);
+        check(S.page.head.t !== prevHead || S.year <= T.Y0 + 1, `même gros titre deux ans de suite en ${S.year} : ${S.page.head.t}`); prevHead = S.page.head.t;
+        const r0 = S.rng, html = T.carnetHtml() + T.foyerHtml() + T.classeurHtml(); check(S.rng === r0, 'le carnet consomme du hasard à l’affichage');
         const cs = T.conseils(); check(cs.length >= 1 && cs.length <= 3, `${cs.length} conseils en ${S.year}`);
-        for (const c of cs) if (c.btn) check(['place', 'tip-prof', 'tip-tab', 'tip-desk', 'reneg'].includes(c.btn.act), `bouton de conseil inconnu : ${c.btn.act}`);
-        check(T.vieLines().length >= 2 && T.thermos().length === 4, 'rubriques de la Gazette incomplètes');
-        check(!/−0 %|−0,0 %/.test(html), `« −0 % » dans la Gazette de ${S.year}`);
+        for (const c of cs) if (c.btn) check(['place', 'tip-prof', 'tip-tab', 'tip-home', 'reneg'].includes(c.btn.act), `bouton de conseil inconnu : ${c.btn.act}`);
+        check(!/−0 %|−0,0 %|NaN|undefined/.test(html), `valeur mal formatée dans le carnet de ${S.year}`);
         const E = S.fut[S.year].elec; if (E) check(E.A.nom !== E.B.nom, `homonymes à la présidentielle de ${S.year}`);
-        if (S.life) T.answerLife(S.life.v.choices[0].id);
+        if (S.life) for (const c of S.life.v.choices) if (!S.life.answered) T.answerLife(c.id);
         if (S.event) T.answerEvent('pass');
-        T.endTurn();
+        T.placeIdle(.6, []); T.endTurn();
       } else T.nextBilan();
     }
   }
-  console.log(`    ${n} années · consensus juste ${Math.round(okBase / n * 100)} % · étude juste ${Math.round(okEnq / n * 100)} % · ${elections} présidentielles en Une`);
-  check(okEnq / n > okBase / n + .1, 'l’étude n’améliore pas les signaux');
-  check(okBase / n > .5 && okBase / n < .8, 'consensus trop ou pas assez fiable');
+  console.log(`    ${n} pages · ${elections} présidentielles en Une`);
   check(elections > 0, 'aucune présidentielle');
+});
+
+test('Accueil : 5 étapes pour chaque personnage et chaque ville', () => {
+  let buys = 0, n = 0, explained = 0;
+  for (const a of Object.keys(T.ARCH)) for (const c of Object.keys(T.CITIES)) {
+    T.newGame(a, [], true); const S = T.S; n++;
+    check(S.onb === 1 && !T.turnReady(), 'accueil absent');
+    check(!T.onbCity(c) && S.city === c, `ville ${c} refusée`); T.onbView(); T.onbNext();
+    const opts = T.homeOptions(), reco = T.recoHome(opts);
+    check(opts.length >= 6 && reco && reco.ok, `pas d’option conseillée (${a}, ${c})`);
+    check(opts.every(o => o.ok || o.why), `option impossible sans explication (${a}, ${c})`); if (opts.some(o => !o.ok)) explained++;
+    T.onbView(); check(!T.onbHome(opts.indexOf(reco)), `option conseillée refusée (${a}, ${c})`); if (reco.kind === 'buy') buys++;
+    T.onbNext(); T.onbView(); T.onbCushion(3); S.onb = 4;
+    S.onbAns = [1, 1, 2]; S.profile = T.onbProfile(S.onbAns); check(S.profile === .5, 'profil mal calculé'); T.onbNext(); T.onbView(); T.onbNext();
+    check(S.onb === null && T.turnReady() !== undefined, 'accueil non terminé');
+    check(S.liv > 0 || S.cash < 1000, 'épargne de sécurité non placée');
+    check(cashIdentity(S) < 1 && S.cash > -0.5, 'argent créé ou perdu pendant l’accueil');
+    T.turnView();
+  }
+  console.log(`    ${n} accueils · ${buys} achats conseillés dès le départ`);
+  check(buys > 0 && buys < n && explained > 0, 'le conseil logement ne dépend pas du profil');
+});
+
+test('Logement : loyer réel, PTZ, durée du crédit, déménagements', () => {
+  T.newGame('infirmier', []); let S = T.S;
+  const q = T.propQuote('t2rp', 25); check(q.z > 0 && q.n === 25, 'PTZ absent pour un premier achat modeste');
+  check(T.propQuote('t2rp', 15).ann > T.propQuote('t2rp', 25).ann, 'un crédit plus court devrait coûter plus par mois');
+  check(!T.buyProp('t2rp', 'credit', 25), 'achat avec PTZ refusé');
+  const rp = S.props[0]; check(rp.loan.z && rp.loan.z.p > 0 && T.loanLeft(rp) > rp.loan.p, 'PTZ non enregistré');
+  check(S.home.own && S.home.type === 't2rp', 'résidence principale non habitée');
+  T.sellProp(rp.uid); check(!S.home.own && T.BIENS[S.home.type], 'pas relogé après la vente');
+  T.newGame('ingenieure', []); S = T.S; S.cash += 1e6; S.start += 1e6;
+  check(T.moveTo('coloc') === null && S.home.type === 'coloc', 'colocation refusée à une célibataire');
+  check(T.moveTo('rpparis') !== null, 'loyer parisien accepté sans revenus suffisants');
+  const before = T.yearlySave(); T.moveTo('studio'); check(T.yearlySave() !== before, 'le loyer ne change pas l’épargne');
+  check(cashIdentity(S) < 1, 'argent créé ou perdu en déménageant');
+});
+
+test('Se faire du bien : coût réel, effet sur le moral, effet émoussé', () => {
+  T.newGame('heritier', []); const S = T.S; S.cash += 50000; S.start += 50000; S.me.humeur = 50; S.me.relation = 50;
+  const c = T.achatState('vacances').c, cash = S.cash;
+  check(!T.acheter('vacances') && Math.abs(S.cash - (cash - c)) < 1 && S.me.humeur > 50 && S.me.relation > 50, 'vacances mal comptées');
+  check(T.acheter('vacances'), 'deux fois les mêmes vacances la même année');
+  check(!T.achatState('famille'), 'sortie en famille proposée sans enfant');
+  S.year++; check(T.achatState('vacances').f < 1, 'effet non émoussé l’année suivante');
+  check(cashIdentity(S) < 1, 'argent créé ou perdu par les achats');
+});
+
+test('Migration : une partie de la version 3.1 se recharge avec un logement', () => {
+  T.newGame('heritier', []); const o = JSON.parse(JSON.stringify(T.S));
+  delete o.home; delete o.city; delete o.buyHist; delete o.page; delete o.me.kids; delete o.me.car; delete o.idx.t2rp; delete o.drift.b_t2rp; o.gaz = { head: { t: 'Ancien titre', c: '' } }; o.me.enfants = 2;
+  T.S = T.migrate(o); const S = T.S;
+  check(S.home && S.city === 'lille' && S.idx.t2rp && S.me.kids.length === 2 && S.page.head.t === 'Ancien titre', 'migration incomplète');
+  T.turnView(); T.endTurn(); T.nextBilan(); scanNumbers(T.S);
 });
 
 test('Parties aléatoires : invariants, rendu et identité de caisse', () => {
@@ -296,23 +346,22 @@ if (BALANCE) {
   console.log('\nRapport d’équilibrage (avertissements seulement)\n');
   const warn = (ok, label, val, target) => console.log(`${ok ? '  OK  ' : ' WARN '} ${label.padEnd(52)} ${String(val).padStart(10)}   cible ${target}`);
   const choose = map => (id, ch) => { const w = map[id]; return w && ch.includes(w) ? w : (id === 'retraite' ? ch[Math.min(1, ch.length - 1)] : ch[0]); };
-  const BAL = { diner: 'rdv', promo: 'oui', vacances: 'oui', mariage: 'oui', enfant: 'non', sport: 'oui', ami: 'non', weekend: 'partir', burnout: 'arret', rupture: 'ok', panique: 'tenir', rencontre: 'oui', maison: 'non', fire: 'non', licenciement: 'chercher' };
+  const BAL = { diner: 'rdv', promo: 'oui', vacances: 'oui', mariage: 'oui', enfant: 'non', sport: 'oui', ami: 'non', weekend: 'partir', burnout: 'arret', rupture: 'ok', panique: 'tenir', rencontre: 'oui', logement: 'louer', panne: 'reparer', fire: 'non', licenciement: 'chercher' };
   const MONEY = { ...BAL, diner: 'diner', vacances: 'non', mariage: 'non', sport: 'non', weekend: 'ecrans', rencontre: 'non' };
   const peaMonde = S => { const room = T.peaCap() - S.acc.pea.vers, a = Math.min(S.cash + S.acc.pea.cash, Math.max(0, room) + S.acc.pea.cash); if (a > 1) T.buyIn('pea', 'monde', a); if (S.cash > 1) T.buyIn('cto', 'monde', S.cash); };
   const run = (arch, pol, n = 100) => { const r = []; for (let i = 0; i < n; i++) { const S = play(arch, [], pol); r.push({ real: T.finalScore().real, score: T.finalScore().score, ratio: S.bench.trk > 1000 ? T.net() / S.bench.trk : 1 }); } return r; };
 
   const passive = run('heritier', { life: choose(BAL), port: peaMonde });
   const career = run('heritier', { life: choose(MONEY), port: peaMonde });
-  // Lecteur de Gazette : suit le consensus (90 % ou 30 % d'actions) et met 30 % de son patrimoine sur le pari des gérants.
-  const reader = enq => ({ life: choose(BAL), port: S => {
-    if (enq) T.enquete();
-    const sig = S.gaz.sig, conj = sig.find(x => x.k === 'conj'), sect = sig.find(x => x.k === 'sect');
-    for (const id of [...T.STOCKS, 'or', 'oat', 'tracker']) if (T.ev('cto', id) > 0) T.sellIn('cto', id, T.ev('cto', id));
-    const crash = S.event && T.EVT[S.event.id].crash; // après un krach, la Bourse rebondit avant l'économie
-    T.rebalance(conj.good || crash ? .9 : .3);
-    if (sect && T.eligEnvs(sect.a).includes('cto')) { if (S.cash < .3 * T.net() && T.ev('cto', 'monde') > 0) T.sellIn('cto', 'monde', Math.min(T.ev('cto', 'monde'), .3 * T.net() - S.cash)); const amt = Math.floor(Math.min(S.cash, .3 * T.net())); if (amt > 100) T.buyIn('cto', sect.a, amt); }
-  } });
-  const r0 = run('heritier', reader(false)), r1 = run('heritier', reader(true));
+  // Joueur qui suit les conseils de Sophie (boutons des post-it), sinon place selon un profil équilibré.
+  const sophie = { life: choose(BAL), port: S => {
+    if (S.profile == null) S.profile = .6;
+    for (const c of T.conseils()) { const b = c.btn; if (!b) continue;
+      if (b.act === 'tip-prof') { S.profile = b.p; T.rebalance(b.p); }
+      else if (b.act === 'reneg') T.reneg(b.u);
+      else if (b.act === 'tip-tab' && b.tab === 'liv') T.livIn(Math.min(S.cash, 4 * T.monthlySpend())); }
+    T.placeIdle(S.profile, []); } };
+  const r0 = run('heritier', sophie), calm = run('heritier', { life: choose(BAL), port: S => T.placeIdle(.6, []) });
   const greens = f => f.rows.slice(0, 4).filter(r => { if (r.v === 'en pertes') return false; const x = parseFloat(String(r.v).replace(',', '.').replace('−', '-')), th = parseFloat(r.r.slice(2).replace(',', '.').replace(' ', '')); return r.r.startsWith('<') ? x < th : x > th; }).length;
   const dip = useFiche => (S, v) => { const f = S.event && S.event.fiche; if (!f) return null;
     if (['bulle', 'themeBulle'].includes(S.event.id)) return (!useFiche || greens(f) <= 1) && v.choices && v.choices.length ? ['choice', 'vendre'] : null;
@@ -324,10 +373,9 @@ if (BALANCE) {
   const fiche = run('heritier', { life: choose(BAL), event: dip(true), port: ctoPassive });
 
   const pr = med(passive.map(x => x.ratio));
-  warn(pr >= .9 && pr <= 1.02, 'Passif PEA / repère ETF Monde sans frictions', pr.toFixed(2), '0,9 – 1,02');
-  const g0 = med(r0.map(x => x.real)) / med(passive.map(x => x.real)), g1 = med(r1.map(x => x.real)) / med(passive.map(x => x.real));
-  warn(g0 >= .7 && g0 <= 1.2, 'Lecteur de Gazette sans étude / passif', '×' + g0.toFixed(2), '×0,7 – ×1,2');
-  warn(g1 >= 1.05 && g1 <= 2, 'Lecteur de Gazette avec étude / passif', '×' + g1.toFixed(2), '×1,05 – ×2');
+  warn(pr >= .85 && pr <= 1, 'Passif PEA / repère ETF Monde sans frais', pr.toFixed(2), '0,85 – 1');
+  const g0 = med(r0.map(x => x.real)) / med(calm.map(x => x.real));
+  warn(g0 >= .95 && g0 <= 1.4, 'Élève de Sophie / passif à 60 % d’actions', '×' + g0.toFixed(2), '×0,95 – ×1,4');
   const fr = med(fiche.map(x => x.real)) / med(naive.map(x => x.real));
   warn(fr >= 1.15, 'Lecteur de fiches / acheteur naïf de paniques', '×' + fr.toFixed(2), '≥ ×1,15');
   warn(med(career.map(x => x.score)) < med(passive.map(x => x.score)), 'Score carriériste < score équilibré', `${med(career.map(x => x.score))} < ${med(passive.map(x => x.score))}`, 'vrai');
@@ -335,12 +383,12 @@ if (BALANCE) {
   warn(p10 > 0, `Patrimoine au 10e centile, joueur passif (€ de ${T.Y0})`, Math.round(p10 / 1000) + ' k€', '> 0');
 
   const S0 = {};
-  for (const a of Object.keys(T.ARCH)) S0[a] = med(run(a, { life: choose({ ...BAL, maison: 'maison' }), port: S => T.placeIdle(.6, []) }, 100).map(x => x.score));
+  for (const a of Object.keys(T.ARCH)) S0[a] = med(run(a, { life: choose({ ...BAL, logement: 'acheter' }), port: S => T.placeIdle(.6, []) }, 100).map(x => x.score));
   for (const a of Object.keys(T.ARCH)) { const q = S0[a] / S0.heritier; warn(q >= .75 && q <= 1.33, `Score médian ${a} / héritier`, q.toFixed(2), '0,75 – 1,33'); }
 
   const goalRate = (arch, goal, lifeMap, port, n = 80) => { let hit = 0; for (let i = 0; i < n; i++) { play(arch, [goal], { life: choose(lifeMap), port }); if (T.finalScore().gl[0].st === 1) hit++; } return hit / n; };
-  const LOVE = { ...BAL, enfant: 'oui', maison: 'maison', vacances: 'oui', promo: 'non' };
-  const rpSmart = S => { if (!S.props.some(p => T.BIENS[p.type].k === 'rp')) { if (S.liv > 0) T.livOut(S.liv); if (T.buyProp('maison', 'credit')) { T.livIn(Math.min(S.cash, S.pol.livCap)); return; } } T.placeIdle(.6, []); };
+  const LOVE = { ...BAL, enfant: 'oui', logement: 'acheter', vacances: 'oui', promo: 'non' };
+  const rpSmart = S => { if (!S.props.some(p => T.BIENS[p.type].k === 'rp')) { const b = T.bestBuy(); if (b && b.ok) T.buyHome(b.type, b.n); } T.placeIdle(.6, []); };
   const g1r = goalRate('heritier', 'rp35', LOVE, rpSmart); warn(g1r >= .8, 'Objectif « propriétaire avant 35 ans » (héritier)', Math.round(g1r * 100) + ' %', '≥ 80 %');
   const g2 = goalRate('infirmier', 'famille', LOVE, S => T.placeIdle(.6, [])); warn(g2 >= .5, 'Objectif « fonder une famille » (infirmier)', Math.round(g2 * 100) + ' %', '≥ 50 %');
   const g3 = goalRate('heritier', 'famille', LOVE, S => T.placeIdle(.6, [])); warn(g3 >= .25, 'Objectif « fonder une famille » (héritier)', Math.round(g3 * 100) + ' %', '≥ 25 %');

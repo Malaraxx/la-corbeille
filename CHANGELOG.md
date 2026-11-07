@@ -1,5 +1,15 @@
 # Journal des versions
 
+## 3.2.0 — Le carnet familial (8 novembre 2026)
+- **Un carnet remplace la Gazette.** Chaque année est une page : les notes de la famille écrites à la première personne (enfants avec leur prénom, couple, salaire, courses, logement, imprévus, le gros titre du journal), les décisions à cocher, les conseils de Sophie sur des post-it avec un bouton pour agir, un pense-bête. En haut, le foyer en petits dessins avec l'état de chacun, et l'argent du foyer.
+- **Un accueil en 5 étapes** : ta ville (Lille, Lyon, Paris), ton logement (louer, rester chez tes parents, colocation ou acheter, selon ton profil et tes moyens, avec l'avis de Sophie), ton épargne de sécurité, ton profil d'investisseur en 3 questions, ton premier portefeuille.
+- **Un budget réel** : loyer ou mensualités, voiture, enfants, imprévus (dentiste, chaudière…), frais des placements. Un coussin de sécurité sous 3 mois stresse. Un logement trop petit pèse sur le moral et le couple.
+- **Se loger** : louer (revenus de 3 fois le loyer exigés), acheter avec un PTZ pour un premier achat, crédit sur 15, 20 ou 25 ans, comparateur louer / acheter, déménager, revendre. Un événement propose de s'agrandir quand la famille grandit.
+- **Se faire du bien** : sorties, week-end à deux, vacances, sport, cadeau, sortie en famille, voiture neuve. Ça coûte, ça remonte l'humeur et le couple, et l'effet s'émousse si on répète.
+- Le **classeur** range placements, logement et investissement locatif, replié par défaut.
+- Équilibrage : infirmier ×2,3, indépendance financière à partir de 30 ans de dépenses, succès « Chez soi avant 30 ans ».
+- Les parties en cours de la version 3.1 continuent, complétées automatiquement.
+
 ## 3.1.0 — Une Gazette qui aide (7 novembre 2026)
 - **La Gazette parle comme un journal et aide à décider** : un gros titre en langage courant, quatre thermomètres en mots (prix, emploi, crédit, Bourse), « Ce que ça veut dire pour ton argent » (conseils tirés de l'état du monde et de ton portefeuille, avec un bouton pour agir : placer, voir les ordres pour alléger ou renforcer, renégocier, ouvrir son PEA…), « Dans ta vie » en euros (salaire, courses, plein, louer ou acheter, Livret A), « Ce qu'on entend » (rumeurs portées par des voix). Les chiffres détaillés sont repliés « pour les pros ».
 - **Le salaire suit la conjoncture** : augmentation chaque janvier selon l'inflation, la carrière et le climat de l'emploi, gel en récession.
