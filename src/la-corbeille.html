@@ -448,16 +448,23 @@ const PARTNERS=['Léa','Camille','Hugo','Inès','Sacha','Nora','Jules','Alix'];
 // Profils tout faits (tests et parties rapides).
 const PRESETS={heritier:{city:'lille',sal:2,cap:2,couple:true},ingenieure:{city:'lille',sal:4,cap:1,couple:false},infirmier:{city:'lille',sal:1,cap:1,couple:true},fondatrice:{city:'lille',sal:2,cap:1,couple:false}};
 // Coefficient de score : plus le départ est facile (salaire, épargne, couple), plus il est bas. Référence (×1) : 3 000 €/mois, 25 000 € d’épargne, célibataire.
-// Potentiel = épargne de départ + 60 ans d’épargne annuelle (le salaire s’épargne et se capitalise pendant toute la carrière), étalonné par « npm run balance ».
-const potential=pp=>{const s=SALAIRES[pp.sal];return EPARGNES[pp.cap].v+60*s.m*12*s.tx*(pp.couple?1.15:1);};
-const coefOf=pp=>Math.round(clamp(Math.pow(370600/potential(pp),1.15),.2,5)*100)/100;
+// Ce qu'un profil peut mettre de côté par an au départ, en louant le logement adapté de sa ville (même calcul que le jeu).
+function startSave(pp){
+  const s=SALAIRES[pp.sal],c=CITIES[pp.city]||CITIES.lille,I=s.m*12*(pp.couple?1.6:1),ref=BIENS.t2rp.rent+.5*(BIENS[c.t2].rent-BIENS.t2rp.rent),car=c.car?2400:0;
+  const first=pp.couple?c.t2:Object.keys(BIENS).find(k=>BIENS[k].k==='rp'&&BIENS[k].v===(pp.city||'lille')&&BIENS[k].cap===1);
+  return Math.min(I*(s.tx+(pp.couple?.06:0)),I-(pp.couple?1350:900)*12-ref-car)+ref-BIENS[first].rent;
+}
+// Potentiel = épargne de départ + 60 années de cette épargne (elle se capitalise toute la carrière), étalonné par « npm run balance ».
+// À deux, l'épargne ne compte que pour 60 % : vie de famille plus chère et risque de divorce, qui partage le patrimoine.
+const potential=pp=>EPARGNES[pp.cap].v+60*Math.max(600,startSave(pp)*(pp.couple?.6:1));
+const coefOf=pp=>Math.round(clamp(Math.pow(536000/potential(pp),1.15),.2,5)*100)/100;
 const levelOf=c=>c<.75?'Facile':c<1.35?'Normale':c<2.4?'Difficile':'Très difficile';
 const prof=()=>{const pp=S.p||PRESETS.heritier,s=SALAIRES[pp.sal];return {...pp,rev:s.m*12,tx:s.tx,g:s.g};};
 const profLabel=()=>{const pp=prof();return `${CITIES[pp.city].n} · ${SALAIRES[pp.sal].n} par mois`;};
 const GOALS={
   rp35:{bonus:.2,n:'Propriétaire avant 35 ans',d:`Acheter ta résidence principale au plus tard en ${Y0+10}.`,st:end=>S.flags.rpYear!=null&&S.flags.rpYear<=Y0+10?1:(S.year>Y0+10||end)?-1:0},
   fire:{bonus:.4,n:'Libre à 55 ans',d:`Arrêter de travailler au plus tard en ${Y0+30}, sans jamais manquer d’argent.`,st:end=>S.me.ruined?-1:S.me.retireYear!=null&&S.me.retireYear<=Y0+30?(end?1:0):(S.year>Y0+30||end)?-1:0},
-  million:{bonus:.4,n:'Transmettre 2 millions',d:`Finir avec au moins 2 000 000 € en euros de ${Y0}.`,st:end=>end?(net()/S.defl>=2e6?1:-1):0},
+  million:{bonus:.4,n:'Transmettre 2,5 millions',d:`Finir avec au moins 2 500 000 € en euros de ${Y0}.`,st:end=>end?(net()/S.defl>=2.5e6?1:-1):0},
   famille:{bonus:.3,n:'Fonder une famille',d:'Finir en couple, avec au moins deux enfants.',st:end=>end?(P()&&S.me.enfants>=2?1:-1):0},
   serein:{bonus:.1,n:'Investisseur serein',d:'Ne jamais vendre dans la panique, ni faire de burn-out, ni finir une année avec une humeur sous 40.',st:end=>(S.flags.panicSold||S.me.burnouts||S.flags.lowMood)?-1:end?1:0},
   rentier:{bonus:.25,n:'Rentier immobilier',d:'Posséder deux biens locatifs en même temps.',st:end=>S.flags.twoRent?1:end?-1:0},
@@ -639,9 +646,15 @@ const curCredit=()=>S.w.credit;
 const curLivret=()=>S.fut[S.year]?S.fut[S.year].mac.livret:S.w.livret;
 const curEuros=()=>S.w.euros;
 const humeurMult=()=>S.me.humeur<30?0.7:S.me.humeur>70?1.05:1;
-const coupleMult=()=>P()?(S.me.marie?1.25:1.15):1;
+const coupleBonus=()=>P()?(S.me.marie?.08:.06):0; // part d'épargne en plus quand on vit à deux
 const retired=y=>S.me.retireYear!=null&&y>=S.me.retireYear;
-const epargneYear=()=>retired(S.year)||S.me.chomY===S.year?0:S.revenu*S.tauxEp*coupleMult()*Math.pow(.82,S.me.enfants)*humeurMult();
+// Épargne de base du foyer, avant logement, voiture et enfants (le taux suppose un T2 loué et une voiture en province).
+// Les dépenses courantes (hors logement, voiture, enfants) ne descendent jamais sous 900 € par mois seul, 1 350 € à deux.
+const depMin=()=>(P()?1350:900)*12*S.defl;
+const epargneYear=()=>{if(retired(S.year)||S.me.chomY===S.year)return 0;const I=foyerRev();return Math.min(I*(S.tauxEp+coupleBonus())*humeurMult(),I-depMin()-refRent()-carRef());};
+// Un enfant coûte 300 € par mois, allocations déduites, jusqu'à ses 22 ans.
+const KIDCOST=3600;
+const kidsCost=()=>(S.me.kids||[]).filter(k=>S.year-k.born<22).length*KIDCOST*S.defl;
 // ----- logement et budget du foyer -----
 // Le taux d'épargne du personnage suppose un T2 loué (loyer de référence) et une voiture en province.
 // Chaque année : revenus moins dépenses courantes = épargne de base + loyer de référence + voiture de référence,
@@ -649,8 +662,9 @@ const epargneYear=()=>retired(S.year)||S.me.chomY===S.year?0:S.revenu*S.tauxEp*c
 const foyerRev=()=>S.revenu*(P()?1.6:1); // revenus nets du foyer (le conjoint gagne 60 % de ton salaire)
 const cityOf=()=>CITIES[S.city]||CITIES.lille;
 const refRent=()=>{const a=S.idx.t2rp.rent,b=S.idx[cityOf().t2].rent;return a+.5*(b-a);};
-const COLOC=5400; // loyer annuel d'une chambre en colocation, en euros de 2026
-const homeCost=()=>{const h=S.home;if(!h||h.type==='parents')return 0;if(h.type==='coloc')return COLOC*S.defl;return S.idx[h.type].rent;};
+const COLOCS={lille:5400,lyon:6240,paris:9600}; // loyer annuel d'une chambre en colocation, en euros de 2026
+const colocCost=()=>(COLOCS[S.city]||5400)*S.defl;
+const homeCost=()=>{const h=S.home;if(!h||h.type==='parents')return 0;if(h.type==='coloc')return colocCost();return S.idx[h.type].rent;};
 const homeCap=()=>{const h=S.home;if(!h||h.type==='parents')return 9;if(h.type==='coloc')return 1;return BIENS[h.type].cap;};
 const homeName=()=>{const h=S.home;if(!h)return '';if(h.type==='parents')return 'Chez tes parents';if(h.type==='coloc')return 'En colocation';return BIENS[h.type].n;};
 const need=()=>1+(P()?1:0)+S.me.enfants;
@@ -662,8 +676,11 @@ const rpOf=()=>S.props.find(isRP);
 // Ce que coûte vraiment le logement chaque année : loyer, ou mensualités + charges pour un propriétaire.
 const housingOut=()=>{const rp=rpOf();if(rp)return S.idx[rp.type].rent*.15+loanAnn(rp);return homeCost();};
 // Ce qu'il reste à mettre de côté chaque année (négatif : on puise dans le patrimoine).
-const yearlySave=()=>{const base=retired(S.year)?-S.me.besoin:epargneYear();return base+refRent()+carRef()-housingOut()-carCost();};
-const monthlySpend=()=>Math.max(500*S.defl,(retired(S.year)?S.revenu+S.me.besoin:foyerRev()-epargneYear())/12-(refRent()+carRef())/12+(housingOut()+carCost())/12);
+// Ce qu'un retraité puise cette année, en anticipant le premier départ et l'arrivée de la pension après une retraite anticipée.
+const besoinYear=()=>{if(!retired(S.year))return 0;let b=S.me.pension?S.me.besoin:S.revenu*S.me.gap;if(S.me.early&&age(S.year)>=S.pol.ageLegal&&!S.me.pension62)b*=.5;return b;};
+const pensionYear=()=>S.me.pension?S.revenu:S.revenu*.6;
+const yearlySave=()=>{const base=retired(S.year)?-besoinYear():epargneYear();return base+refRent()+carRef()-housingOut()-carCost()-kidsCost();};
+const monthlySpend=()=>Math.max(500*S.defl,(retired(S.year)?pensionYear()+besoinYear():foyerRev()-epargneYear())/12-(refRent()+carRef())/12+(housingOut()+carCost()+kidsCost())/12);
 const coussin=()=>(Math.max(0,S.cash)+S.liv)/monthlySpend();
 function mood(dh,dr){S.me.humeur=clamp(S.me.humeur+(dh||0),0,100);if(P())S.me.relation=clamp(S.me.relation+(dr||0),0,100);}
 function unlock(id){if(!S.ach)S.ach={};if(S.ach[id]||!ACHM[id])return;S.ach[id]=S.clk?S.clk.y:S.year;(S.achNew||(S.achNew=[])).push(id);}
@@ -1271,8 +1288,8 @@ const LIFE={
   mariage:{can:()=>P()&&!S.me.marie&&S.me.relation>=60&&S.year<Y0+40,view:()=>({kicker:'Couple',title:`${P()} te demande en mariage`,body:`La fête coûterait ${fmt(20000*S.defl)}. Marié·e, vous épargnez davantage ensemble, mais un divorce se termine par un partage du patrimoine.`,
     choices:[{id:'oui',label:'Dire oui',desc:'Épargne du foyer +25 % au lieu de +15 %, couple et humeur en forte hausse'},{id:'non',label:'Pas maintenant',desc:'Couple en forte baisse'}]}),
     act(c){if(c==='oui'){S.me.marie=true;mood(15,20);return {msg:'Vous êtes mariés.'+spend(20000*S.defl,true)};}mood(-5,-28);return {msg:`${P()} est blessé·e.`};}},
-  enfant:{can:()=>S.me.marie&&S.me.enfants<3&&S.year<Y0+35,view:()=>({kicker:'Famille',title:'Agrandir la famille ?',body:`${P()} aimerait un ${S.me.enfants?'autre ':''}enfant. Ta capacité d’épargne baisserait de près d’un cinquième.`,
-    choices:[{id:'oui',label:'Oui',desc:'Épargne −18 %, humeur et couple en hausse'},{id:'non',label:'Non',desc:'Couple en baisse'}]}),
+  enfant:{can:()=>S.me.marie&&S.me.enfants<3&&S.year<Y0+35,view:()=>({kicker:'Famille',title:'Agrandir la famille ?',body:`${P()} aimerait un ${S.me.enfants?'autre ':''}enfant. Un enfant coûte environ ${fmt(KIDCOST*S.defl/12)} par mois, allocations déduites, jusqu’à ses 22 ans.`,
+    choices:[{id:'oui',label:'Oui',desc:`${fmt(KIDCOST*S.defl/12)} de dépenses en plus par mois, humeur et couple en hausse`},{id:'non',label:'Non',desc:'Couple en baisse'}]}),
     act(c){if(c==='oui'){S.me.enfants++;const used=(S.me.kids||[]).map(k=>k.n),n=pick(KIDS.filter(x=>!used.includes(x)));(S.me.kids||(S.me.kids=[])).push({n,born:S.year});mood(15,10);return {msg:`Bientôt un bébé : ce sera ${n}.`};}mood(0,-15);return {msg:'Le sujet reviendra sur la table.'};}},
   sport:{can:()=>S.me.humeur<50,view:()=>({kicker:'Santé',title:'Tu dors mal et tu ne fais plus de sport',body:`Un coach propose un programme d’un an. Coût : ${fmt(3000*S.defl)}.`,
     choices:[{id:'oui',label:'S’inscrire',desc:'Humeur en forte hausse'},{id:'non',label:'Pas le temps',desc:'Humeur en baisse'}]}),
@@ -1288,7 +1305,7 @@ const LIFE={
     const title=why==='small'?`${homeName()} devient trop petit`:why==='parents'?'Il est temps de prendre ton envol':`${P()} rêve d’être propriétaire`;
     const body=why==='small'?`Vous êtes ${need()} à la maison. On se marche dessus et les nerfs lâchent.`:why==='parents'?'Tu as 30 ans. Tes parents aimeraient retrouver leur salon.':`Fini le loyer qui part chaque mois : ${P()} voudrait un chez-vous.`;
     const ch=[];
-    if(!own&&t!==S.home.type)ch.push({id:'louer',label:`Louer : ${BIENS[t]?BIENS[t].n:'une colocation'}`,desc:`${fmt((BIENS[t]?S.idx[t].rent:COLOC*S.defl)/12)} par mois, déménagement ${fmt(moveCost())}`});
+    if(!own&&t!==S.home.type)ch.push({id:'louer',label:`Louer : ${BIENS[t]?BIENS[t].n:'une colocation'}`,desc:`${fmt((BIENS[t]?S.idx[t].rent:colocCost())/12)} par mois, déménagement ${fmt(moveCost())}`});
     if(b&&!retired(S.year))ch.push({id:'acheter',label:`Acheter : ${BIENS[b.type].n}`,desc:b.ok?`Apport ${fmt(b.q.apport)}, ${fmt(b.q.ann/12)} par mois sur ${b.n} ans${b.q.z?' avec un PTZ':''}${own?', en vendant l’actuel':''}`:`Pas encore possible : il faut ${fmt(b.q.apport)} d’apport et un taux d’effort sous 35 %`});
     ch.push({id:'rester',label:'Rester comme on est',desc:why==='small'?'Humeur et couple en baisse tant que c’est trop petit':why==='parents'?'Le couple et l’humeur en souffrent':'Couple en légère baisse'});
     return {kicker:'Logement',title,body,choices:ch};},
@@ -1446,7 +1463,7 @@ function homeOptions(){
   const out=[],ep=epargneYear()+refRent()+carRef()-carCost(),cash=Math.max(0,S.cash)+S.liv;
   const add=o=>{o.reste=(ep-o.cost)/12;if(o.ok&&!o.warn&&o.reste<0)o.warn='Ton budget serait dans le rouge chaque mois.';out.push(o);};
   if(age(S.year)<30)add({kind:'rent',type:'parents',n:P()?`Chez les parents de ${P()}`:'Rester chez tes parents',d:'Le temps de mettre de côté.',cost:0,ok:true,warn:P()?'Le couple en souffre chaque année.':'Ton humeur en pâtit un peu.'});
-  if(!P())add({kind:'rent',type:'coloc',n:'Colocation',d:'Une chambre, une cuisine partagée.',cost:COLOC*S.defl,ok:true});
+  if(!P())add({kind:'rent',type:'coloc',n:'Colocation',d:'Une chambre, une cuisine partagée.',cost:colocCost(),ok:true});
   for(const t of cityRP()){const B=BIENS[t],small=B.cap<need();
     add({kind:'rent',type:t,n:`Louer : ${B.n}`,d:'Sans apport, tu restes libre.',cost:S.idx[t].rent,ok:canRent(t),why:canRent(t)?'':`Le propriétaire veut des revenus d’au moins ${fmt(3*S.idx[t].rent/12)} par mois.`,warn:small?'Trop petit pour vous.':''});
     const n=bestDur(t),q=propQuote(t,n,'rp'),ok=q.eff<=.35&&cash>=q.apport;
@@ -1493,7 +1510,7 @@ function pickLife(crash){
   if(S.me.humeur<=18)return 'burnout';
   if(P()&&S.me.relation<=10)return 'rupture';
   if(y>=Y0+37&&S.me.retireYear==null)return 'retraite';
-  if(S.me.retireYear==null&&y>=Y0+18&&y<Y0+37&&(!S.flags.fireAsked||y-S.flags.fireAsked>=5)&&finLiquid()>=30*S.revenu*.5){S.flags.fireAsked=y;return 'fire';}
+  if(S.me.retireYear==null&&y>=Y0+18&&y<Y0+37&&(!S.flags.fireAsked||y-S.flags.fireAsked>=5)&&finLiquid()>=30*foyerRev()*.5){S.flags.fireAsked=y;return 'fire';}
   if(crash){if(S.me.humeur<35)return 'panique';if(P()&&rnd()<.7)return 'weekend';}
   if(['crise','recession'].includes(f.phase)&&!retired(y)&&y-(S.me.chomY||0)>5&&rnd()<(f.phase==='crise'?.15:.07))return 'licenciement';
   if(y===Y0)return null;
@@ -1590,7 +1607,7 @@ function whyText(y,f,mac,r,b){
 function simulateYear(y){
   S.clk={t:y+1,y};
   const f=S.fut[y],mac=f.mac;
-  const b={y,lines:[],props:[],notes:[],flows:{epargne:0,retraite:0,logement:0,voiture:0,loyers:0,rp:0,charges:0,credit:0,frais:0,impots:0,plaisir:0,imprevu:0},netStart:net()};
+  const b={y,lines:[],props:[],notes:[],flows:{epargne:0,retraite:0,logement:0,voiture:0,enfants:0,loyers:0,rp:0,charges:0,credit:0,frais:0,impots:0,plaisir:0,imprevu:0},netStart:net()};
   const r={};for(const k of ['monde','tracker',...STOCKS,'or','oat',...THEMES])r[k]=peekR(k,y)??0;
   const st=S.flags.struct;
   r.struct=0;if(st&&y>=st.y&&y<=st.end&&!st.hit){r.struct=f.phase==='crise'?-.45:f.phase==='recession'?-.12:.05;if(f.phase==='crise'){st.hit=true;if(hv('struct')>0)b.notes.push('Le Fonds Rendement Sérénité est gelé : ses crédits ne valent plus rien, impossible de récupérer ton argent.');}}
@@ -1624,7 +1641,7 @@ function simulateYear(y){
   if(st&&y===st.end)convertSpecial('struct',b,'Le Fonds Rendement Sérénité arrive à échéance');
   if(y===S.flags.souvY)convertSpecial('souv',b,r.souv<0?'Méridia restructure sa dette, ton remboursement':'L’Europe sauve Méridia, ton remboursement');
   if(S.flags.startup&&y===S.flags.startup.end){const g=r.startup,n=S.flags.startup.name;if(g>5&&hv('startup')>0)unlock('angel');convertSpecial('startup',b,g>5?`${n} est rachetée par un géant américain`:g>0?`${n} est revendue`:`${n} fait faillite`);}
-  const ref=refRent(),cref=carRef(),hc=homeCost(),cc=carCost();let rpFlow=0; // budget calculé avec les loyers de l'année
+  const ref=refRent(),cref=carRef(),hc=homeCost(),cc=carCost(),kc=kidsCost(),ep0=epargneYear();let rpFlow=0; // tout le budget est calculé avec les prix du début d'année // budget calculé avec les loyers de l'année
   for(const p of S.props){
     const B=BIENS[p.type],ix=S.idx[p.type];let months=12;
     if(isRP(p)){
@@ -1655,12 +1672,14 @@ function simulateYear(y){
     if(S.me.early&&age(y)>=S.pol.ageLegal&&!S.me.pension62){S.me.pension62=true;S.me.besoin*=.5;b.notes.push(`Tu as ${age(y)} ans : ta pension arrive. Tu puises désormais ${fmt(S.me.besoin)} par an.`);}
     const v=-S.me.besoin+ref+cref;ext(v);b.flows.retraite=v;
   }else{
-    const ep=epargneYear();
+    const ep=ep0;
     ext(ep+ref+cref);b.flows.epargne=ep+ref+cref;
     if(humeurMult()<1&&ep>0)b.notes.push('Moral en berne : dépenses compulsives, ton épargne de l’année baisse de 30 %.');
   }
-  ext(-hc);b.flows.logement=-hc;if(cc){ext(-cc);b.flows.voiture=-cc;}
-  b.save=b.flows.epargne+b.flows.retraite+b.flows.logement+b.flows.voiture+rpFlow;
+  ext(-hc);b.flows.logement=-hc;if(cc){ext(-cc);b.flows.voiture=-cc;}if(kc){ext(-kc);b.flows.enfants=-kc;}
+  b.save=b.flows.epargne+b.flows.retraite+b.flows.logement+b.flows.voiture+b.flows.enfants+rpFlow;
+  // Affichage : un propriétaire ne paie pas de loyer. La valeur locative (débitée côté vie, recréditée côté bien pour le TRI) s'annule, on ne la montre pas.
+  if(b.flows.rp>0){b.flows.logement+=b.flows.rp;b.flows.rp=0;}
   if(S.page){b.flows.plaisir=-(S.page.spent||0);b.flows.imprevu=-(S.page.imp?S.page.imp.c:0);}
   S.bench.liv=Math.max(0,S.bench.liv*(1+mac.livret/100)+S.yearExt);
   S.bench.trk=Math.max(0,S.bench.trk*(1+r.monde)+S.yearExt);
@@ -1754,7 +1773,7 @@ function figure(kind){
 function moneyBar(){
   if(!S)return '';
   const end=S.phase==='end',bil=S.phase==='bilan',y=bil?S.bilans[0].y:S.year,fin=envTotal('cto')+envTotal('pea')+envTotal('av'),immo=propsValue()-debtTotal();
-  const date=end?`31 décembre ${YN}`:bil?`31 décembre ${y}`:`Janvier ${y}`,ag=end?75:age(bil?y+1:y);
+  const date=end?`31 déc. ${YN}`:bil?`31 déc. ${y}`:`Janvier ${y}`,ag=end?75:age(bil?y+1:y);
   const c=(l,v,cl='')=>`<div class="${cl}"><span>${l}</span><b class="num">${fmt(v)}</b></div>`;
   return `<div class="topbar" role="region" aria-label="Ton argent"><div class="tb-in">
     <div class="tb-date"><b>${date}</b><span>${ag} ans</span></div>
@@ -1775,14 +1794,15 @@ function foyerList(){
   return `<ul class="foyer">${out.join('')}</ul>`;
 }
 function budgetTable(){
-  const ret=retired(S.year),ep=ret?-S.me.besoin:epargneYear(),ref=refRent(),cref=carRef(),inc=ret?S.revenu:foyerRev(),dep=inc-(ep+ref+cref);
-  const hs=housingOut(),car=carCost(),sv=yearlySave(),cs=coussin(),rp=rpOf();
+  const ret=retired(S.year),ep=ret?-besoinYear():epargneYear(),ref=refRent(),cref=carRef(),inc=ret?pensionYear():foyerRev(),dep=inc-(ep+ref+cref);
+  const hs=housingOut(),car=carCost(),kc=kidsCost(),nk=(S.me.kids||[]).filter(k=>S.year-k.born<22).length,sv=yearlySave(),cs=coussin(),rp=rpOf();
   const r=(l,v,sub)=>`<tr><td>${l}${sub?`<small>${sub}</small>`:''}</td><td class="n">${v<0?'−':''}${fmt(Math.abs(v)/12)}</td></tr>`;
   return `<table class="budget"><tbody>
     ${r(ret?'Ta pension':'Revenus du foyer',inc,ret?'':P()?`toi et ${P()}`:'ton salaire net')}
-    ${r('Dépenses courantes',-dep,'courses, transports, enfants, loisirs')}
+    ${r('Dépenses courantes',-dep,'courses, transports, loisirs')}
     ${r(rp?'Crédit et charges du logement':'Loyer',-hs,homeName())}
     ${car?r('Voiture',-car,'assurance, entretien, essence'):''}
+    ${kc?r(nk>1?`Enfants (${nk})`:'Enfant',-kc,'300 € par mois chacun, allocations déduites'):''}
     <tr class="tot"><td>${sv>=0?'Ce que tu mets de côté':'Ce que tu dois puiser'}</td><td class="n ${sv<0?'down':''}">${sv<0?'−':''}${fmt(Math.abs(sv)/12)}</td></tr></tbody></table>
     <p class="small ${cs<3?'warn':'mut'}">Ton épargne de sécurité (compte courant + Livret A) couvre <b>${f1(Math.min(cs,99))} mois</b> de dépenses. ${cs<3?'C’est trop peu : vise au moins 3 mois.':'Au-delà de 6 mois, l’argent dort.'}</p>`;
 }
@@ -1852,7 +1872,7 @@ function immoTab(){
   const owned=S.props.map(p=>{const v=propValue(p),c=propSaleCalc(p,v*.95,y),conf=U.confirmSell===p.uid,rn=canReneg(p)?`<button class="ghost" data-act="reneg" data-u="${p.uid}" ${S.lock?'disabled':''}>Renégocier à ${rate(curCredit())}</button>`:'';
     return `<tr><td><b>${pnameP(p)}</b><small>acheté en ${p.buyYear} · ${p.mode}</small></td><td class="n">${fmt(v)}</td><td class="n">${loanLeft(p)>0?fmt(loanLeft(p)):'—'}</td><td class="n">${fmt(S.idx[p.type].rent*p.rentMult/12)}</td>
       <td class="act">${rn}<button class="ghost ${conf?'danger':''}" data-act="prop-sell" data-u="${p.uid}" ${S.lock?'disabled':''}>${conf?`Confirmer · ${fmt(c.net)} net`:'Vendre'}</button></td></tr>`;}).join('');
-  const alt=[age(y)<30&&!rp&&h.type!=='parents'?`<button class="ghost" data-act="home-rent" data-t="parents">Retourner chez mes parents</button>`:'',!P()&&!rp&&h.type!=='coloc'?`<button class="ghost" data-act="home-rent" data-t="coloc">Colocation · ${fmt(COLOC*S.defl/12)}/mois</button>`:''].join('');
+  const alt=[age(y)<30&&!rp&&h.type!=='parents'?`<button class="ghost" data-act="home-rent" data-t="parents">Retourner chez mes parents</button>`:'',!P()&&!rp&&h.type!=='coloc'?`<button class="ghost" data-act="home-rent" data-t="coloc">Colocation · ${fmt(colocCost()/12)}/mois</button>`:''].join('');
   const types=Object.keys(BIENS).filter(k=>!BIENS[k].hide&&BIENS[k].v===city);
   const cards=types.map(t=>{const B=BIENS[t],ix=S.idx[t],sel=U.dossier&&U.dossier.t===t;
     return `<button class="bien ${sel?'sel':''}" data-act="dossier" data-t="${t}" aria-pressed="${sel}"><b>${B.n}</b><small>${B.k==='bur'?'Bureaux · à louer à une entreprise':`Pour ${B.cap} personne${B.cap>1?'s':''}`}</small>
@@ -2123,7 +2143,7 @@ function bilanView(){
   const lines=b.lines.map(l=>`<tr><td>${lineName(l)}</td><td class="n">${fmt(l.ev)}</td><td class="n ${cls(l.r)}">${pct(l.r)}</td></tr>`).join('');
   const props=S.props.map(p=>{const f=b.props.find(x=>x.uid===p.uid);const g=f?propValue(p)/f.vs-1:0;return `<tr><td>${pnameP(p)}</td><td class="n">${fmt(propValue(p))}</td><td class="n ${cls(g)}">${f?pct(g):'—'}</td></tr>`;}).join('');
   const F=b.flows;
-  const flows=[['Revenus moins dépenses courantes',F.epargne],['Prélèvements pour vivre (hors logement)',F.retraite],['Logement (loyer ou valeur locative)',F.logement||0],['Voiture',F.voiture||0],['Loyers encaissés',F.loyers],['Loyer économisé (résidence principale)',F.rp],['Charges et taxe foncière',-F.charges],['Mensualités de crédit',-F.credit],['Frais des placements',-(F.frais||0)],['Impôts et prélèvements',-F.impots],['Plaisirs et imprévus, payés en janvier',(F.plaisir||0)+(F.imprevu||0)]].filter(x=>Math.abs(x[1])>0.5)
+  const flows=[['Revenus moins dépenses courantes',F.epargne],['Prélèvements pour vivre (hors logement)',F.retraite],['Loyer',F.logement||0],['Voiture',F.voiture||0],['Enfants',F.enfants||0],['Loyers encaissés',F.loyers],['Loyer économisé (résidence principale)',F.rp],['Charges et taxe foncière',-F.charges],['Mensualités de crédit',-F.credit],['Frais des placements',-(F.frais||0)],['Impôts et prélèvements',-F.impots],['Plaisirs et imprévus, payés en janvier',(F.plaisir||0)+(F.imprevu||0)]].filter(x=>Math.abs(x[1])>0.5)
     .map(x=>`<tr><td>${x[0]}</td><td class="n ${x[1]<0?'down':''}">${x[1]<0?'−':'+'}${fmt(Math.abs(x[1]))}</td></tr>`).join('');
   return `${moneyBar()}${toastsHtml()}<section class="bilan" aria-live="polite">
     <div class="une-mast"><span>Le Courrier de la Corbeille · Bilan</span><span>${PHASES[b.phase].n} en ${b.y}</span></div>
@@ -2195,8 +2215,7 @@ function endView(){
 function introView(){
   const st=U.setup,pp={city:st.city,sal:st.sal,cap:st.cap,couple:st.couple},s=SALAIRES[st.sal],c=coefOf(pp);
   const first=st.couple?CITIES[st.city].t2:Object.keys(BIENS).find(k=>BIENS[k].k==='rp'&&BIENS[k].v===st.city&&BIENS[k].cap===1);
-  const t2=BIENS[CITIES[st.city].t2].rent,ref=BIENS.t2rp.rent+.5*(t2-BIENS.t2rp.rent),rentFirst=BIENS[first].rent;
-  const reste=(s.m*12*s.tx*(st.couple?1.15:1)+ref-rentFirst)/12;
+  const rentFirst=BIENS[first].rent,reste=startSave(pp)/12;
   const opt=(k,v,lbl,d)=>`<button class="opt" data-act="set" data-k="${k}" data-v="${v}" aria-pressed="${String(st[k])===String(v)}"><b>${lbl}</b>${d?`<span class="small mut">${d}</span>`:''}</button>`;
   const goals=Object.entries(GOALS).map(([k,g])=>`<button class="pchip" aria-pressed="${st.goals.includes(k)}" data-act="goal" data-k="${k}" title="${g.d}">${g.n} · +${pc0(g.bonus)}</button>`).join('');
   const L=U.legacy;

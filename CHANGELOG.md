@@ -1,5 +1,13 @@
 # Journal des versions
 
+## 3.3.1 — Audit du budget (8 novembre 2026)
+- **Un propriétaire ne voit plus de loyer** dans son bilan : seulement ses mensualités et ses charges. Le calcul était juste, mais l'affichage montrait un loyer et un « loyer économisé » qui donnaient l'impression de payer deux fois.
+- **Couple** : le foyer épargne sur ses deux revenus (le conjoint gagne 60 % de ton salaire), avec 6 points d'épargne en plus à deux.
+- **Enfants** : une vraie ligne du budget, 300 € par mois chacun, allocations déduites, jusqu'à 22 ans. Plus de mention d'enfants quand tu n'en as pas.
+- **Plancher de dépenses courantes** (900 € par mois seul, 1 350 € à deux) et colocation au prix de la ville (450 € à Lille, 520 € à Lyon, 800 € à Paris).
+- Ce que le jeu annonce est exactement ce qui arrive sur ton compte, y compris l'année où tu pars à la retraite et l'année où ta pension arrive. Un test le vérifie sur des centaines d'années.
+- Difficulté recalculée sur le budget réel de départ ; objectif « Transmettre 2,5 millions » ; indépendance financière comparée aux revenus du foyer.
+
 ## 3.3.0 — Un écran clair, un profil sur mesure (8 novembre 2026)
 - **Création du profil** au lieu de 4 personnages : ville (Lille, Lyon, Paris), fourchette de salaire net, épargne de départ, célibataire ou en couple, deux objectifs. Un encadré résume le point de départ et la difficulté, calculée pour que tous les profils aient leurs chances.
 - **Une barre d'argent toujours visible** : compte courant, Livret A, placements, immobilier net, patrimoine net.

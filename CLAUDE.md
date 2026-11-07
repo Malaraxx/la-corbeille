@@ -142,10 +142,10 @@ me{humeur,relation,partner,first,exes[],marie,enfants,kids[{n,born}],ruptures,bu
 
 Épargne de départ (`EPARGNES`) : presque rien (5 000 €), quelques économies (25 000 €), un héritage (120 000 €). En couple, le conjoint (prénom tiré dans `PARTNERS`) gagne 60 % de ton salaire. Humeur de départ 65, couple 60.
 
-La difficulté (`coefOf`) égalise les scores : potentiel = épargne de départ + 60 × épargne annuelle (salaire × taux, × 1,15 en couple) ; coefficient = (370 600 / potentiel)^1,15, borné entre 0,2 et 5. Référence ×1 : 3 000 €/mois, 25 000 €, célibataire. De « Facile » (< 0,75) à « Très difficile » (≥ 2,4). Contrôle : `npm run balance` (rapport entre 0,75 et 1,33 pour les profils tout faits `PRESETS`).
+La difficulté (`coefOf`) égalise les scores : potentiel = épargne de départ + 60 × ce que le profil peut mettre de côté par an au départ (`startSave`, même calcul que le jeu, compté à 60 % en couple : vie de famille plus chère et risque de divorce) ; coefficient = (536 000 / potentiel)^1,15, borné entre 0,2 et 5. Référence ×1 : 3 000 €/mois, 25 000 €, célibataire. De « Facile » (< 0,75) à « Très difficile » (≥ 2,4). Contrôle : `npm run balance` (rapport entre 0,75 et 1,33 pour les profils tout faits `PRESETS`).
 
 ### Objectifs de vie (`GOALS`, 2 au choix, bonus additifs)
-rp35 : résidence principale achetée au plus tard en 2036 (+20 %) · fire : plus de travail au plus tard en 2056 et jamais ruiné (+40 %) · million : ≥ 2 M€ en euros de 2026 en 2076 (+40 %) · famille : finir en couple avec au moins 2 enfants (+30 %) · serein : aucune vente panique, aucun burn-out, jamais une humeur sous 40 en fin d'année (+10 %) · rentier : deux biens locatifs en même temps (+25 %). Chaque objectif a une fonction `st(fin)` qui renvoie 1 (atteint), 0 (en cours) ou −1 (raté).
+rp35 : résidence principale achetée au plus tard en 2036 (+20 %) · fire : plus de travail au plus tard en 2056 et jamais ruiné (+40 %) · million : ≥ 2,5 M€ en euros de 2026 en 2076 (+40 %) · famille : finir en couple avec au moins 2 enfants (+30 %) · serein : aucune vente panique, aucun burn-out, jamais une humeur sous 40 en fin d'année (+10 %) · rentier : deux biens locatifs en même temps (+25 %). Chaque objectif a une fonction `st(fin)` qui renvoie 1 (atteint), 0 (en cours) ou −1 (raté).
 
 ### Score
 `score = patrimoine net en k€ de 2026 × (0,4 + 1,2 × bien-être/100) × (1 + Σ bonus des objectifs atteints) × coefficient du profil`
@@ -215,15 +215,17 @@ Les plafonds du PEA et du Livret A ne baissent jamais. La Une d'une présidentie
 - **Revente** : 5 % de frais, indemnité de remboursement anticipé de 3 %. Renégociation du crédit possible si les taux baissent d'au moins 0,7 point (frais : 1 % du capital restant).
 
 ### Épargne, carrière, retraite
-- **Épargne de base** = salaire × taux d'épargne × couple (1,15, ou 1,25 marié) × 0,82^enfants × humeur (× 0,7 sous 30, × 1,05 au-dessus de 70). Elle suppose un T2 loué et une voiture en province.
-- **Budget réel de l'année** (`yearlySave`) : épargne de base + loyer de référence (`refRent` : T2 à Lille, plus la moitié de l'écart avec le T2 de ta ville) + voiture de référence (sauf à Paris) − vrai coût du logement (`housingOut` : loyer, ou mensualités + 15 % de charges, ou 0 chez les parents, 5 400 € en colocation) − vraie voiture (`carCost` : 1 800 € + essence selon le baril). Louer petit, vivre chez ses parents ou avoir fini son crédit fait épargner plus. Un retraité puise son besoin, ajusté de la même façon.
+- **Épargne de base** (`epargneYear`) = revenus du foyer (salaire, + 60 % pour le conjoint) × (taux d'épargne de la fourchette + 6 points en couple, 8 si marié) × humeur (× 0,7 sous 30, × 1,05 au-dessus de 70). Elle suppose un T2 loué et une voiture en province. Plancher : les dépenses courantes (hors logement, voiture, enfants) ne descendent jamais sous 900 € par mois seul, 1 350 € à deux (`depMin`).
+- **Enfants** (`kidsCost`) : 300 € par mois chacun, allocations déduites, jusqu'à 22 ans. Ligne à part dans le budget.
+- **Budget réel de l'année** (`yearlySave`) : épargne de base + loyer de référence (`refRent` : T2 à Lille, plus la moitié de l'écart avec le T2 de ta ville) + voiture de référence (sauf à Paris) − vrai coût du logement (`housingOut` : loyer, ou mensualités + 15 % de charges, ou 0 chez les parents, colocation 450 / 520 / 800 € par mois à Lille / Lyon / Paris) − vraie voiture (`carCost` : 1 800 € + essence selon le baril) − enfants. Un propriétaire ne paie **jamais** de loyer : seulement ses mensualités et ses charges (la valeur locative, débitée côté vie et recréditée côté bien pour le TRI, s'annule et n'est pas affichée). Un retraité puise son besoin (`besoinYear`, qui anticipe le premier départ et l'arrivée de la pension). Tout le budget de l'année est calculé avec les prix de janvier.
+- **Invariant** : ce que le jeu annonce (« Ce que tu mets de côté ») est exactement ce qui arrive sur le compte (test « Budget : ce qui est annoncé est ce qui arrive »).
 - **Coussin de sécurité** (`coussin`) = (compte courant + Livret A) / dépenses mensuelles du foyer. Sous 3 mois : humeur −4 dans l'année.
 - **Frais des placements** (`FEES`) : ETF Monde 0,2 %, Tracker et OAT 0,3 %, or 0,4 %, fonds thématiques 0,8 % par an, plus 0,6 % sur l'assurance-vie (hors fonds euros). Les actions en direct n'en ont pas.
 - **Inconfort** : chez les parents (humeur −3, couple −8 par an), logement trop petit (humeur −3, couple −5), pas de voiture hors Paris (humeur −1).
 - **Salaire** : augmenté chaque 1er janvier de 80 % de l'inflation de l'année écoulée, plus la progression de carrière de la fourchette (avant et après 45 ans, +0,5 point à Paris), plus le climat de l'emploi (surchauffe +1,2 point, expansion +0,4, récession −1,2, crise −2,5), jamais en dessous de 0 (gel). Une promotion donne +25 %, le dîner d'affaires +8 %.
 - **Licenciement** : en crise (15 %) ou en récession (7 %), au plus une fois tous les 5 ans, sauf pour la fondatrice. Pas d'épargne cette année-là, indemnité de 50 % du salaire (ou 25 % avec une reconversion qui augmente le salaire de 10 %).
 - **Retraite** : proposée à partir de 2063 (62 ans). L'âge légal (`S.pol.ageLegal`, 64 ans au départ) dépend des élections. Prélèvement de 30 % du dernier salaire avant l'âge légal, 24 % jusqu'à 2 ans après, 18 % ensuite ; la pension vaut 60 % du salaire.
-- **Indépendance financière** (`fire`) : proposée entre 2044 et 2062 si les placements financiers valent au moins 30 × (50 % du salaire). Le prélèvement est alors de 50 % du salaire, divisé par deux à l'âge légal.
+- **Indépendance financière** (`fire`) : proposée entre 2044 et 2062 si les placements financiers valent au moins 30 × (50 % des revenus du foyer). Le prélèvement est alors de 50 % du salaire, divisé par deux à l'âge légal.
 - **Ruine** : si le patrimoine ne suffit plus à la retraite, ce n'est pas une faillite (pas de dette). Le joueur se serre la ceinture (humeur −15) et `S.me.ruined` passe à vrai.
 - **Faillite** : uniquement si le compte est dans le rouge **avant** la retraite et qu'il ne reste rien à vendre.
 
@@ -303,13 +305,13 @@ diamant (≥ 80 % d'actions et ≥ 100 000 € investis à la fin d'une année d
 | Mesure | Cible | Dernière valeur |
 |---|---|---|
 | Passif PEA / repère ETF Monde sans frais | 0,85 – 1 | 0,90 |
-| Élève de Sophie (suit les liens des conseils) / passif à 60 % d'actions | ×0,95 – ×1,4 | ×1,11 |
-| Lecteur de fiches / acheteur naïf | ≥ ×1,15 | ×1,82 |
-| Score du carriériste < score de l'équilibré | vrai | 672 < 1 065 |
-| 10e centile du patrimoine d'un joueur passif | > 0 | 719 k€ |
-| Score médian de chaque profil tout fait / héritier | 0,75 – 1,33 | 0,81 – 1,02 |
-| Objectifs visés : rp35 ≥ 80 %, famille ≥ 50 % (infirmier) et ≥ 25 % (héritier), fire 25 – 70 %, rentier ≥ 70 %, 2 millions 15 – 60 % | | 100 / 55 / 48 / 45 / 100 / 28 % |
-| Sophie ≥ 70 %, Kévin ≤ 60 % | | 81 / 57 % |
+| Élève de Sophie (suit les liens des conseils) / passif à 60 % d'actions | ×0,95 – ×1,4 | ×1,07 |
+| Lecteur de fiches / acheteur naïf | ≥ ×1,15 | ×1,30 |
+| Score du carriériste < score de l'équilibré | vrai | 1 555 < 3 548 |
+| 10e centile du patrimoine d'un joueur passif | > 0 | 987 k€ |
+| Score médian de chaque profil tout fait / héritier | 0,75 – 1,33 | 0,90 – 1,19 |
+| Objectifs visés : rp35 ≥ 80 %, famille ≥ 40 % (infirmier) et ≥ 25 % (héritier), fire 25 – 70 %, rentier ≥ 70 %, 2,5 millions 15 – 60 % | | 100 / 46 / 45 / 34 / 100 / 51 % |
+| Sophie ≥ 70 %, Kévin ≤ 60 % | | 79 / 55 % |
 
 Si tu modifies un paramètre de jeu, lance `npm run balance` avec deux graines différentes, corrige les WARN et mets à jour ce tableau.
 

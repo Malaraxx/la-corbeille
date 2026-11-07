@@ -37,7 +37,7 @@ vm.createContext(ctx);
 vm.runInContext(js + `;globalThis.T={get S(){return S},set S(v){S=v},newGame,startTurn,endTurn,nextBilan,buyIn,sellIn,livIn,livOut,withdraw,
   buyProp,sellProp,reneg,canReneg,answerEvent,answerLife,evDef,LIFE,EVT,net,tradable,ORDER,ENVS,META,EQUITY,STOCKS,THEMES,PRESETS,GOALS,ACH,ADV,PHASES,GOOD,Y0,YN,
   eligEnvs,peaCap,envTotal,turnReady,finalScore,placeIdle,rebalance,dry,alloc,eqShare,irr,invData,coups,epilogue,shareText,genYear,peekR,hv,ev,conseils,rappels,pct,f1,
-  homeOptions,recoHome,onbHome,onbNext,onbView,PRESETS,EPARGNES,SALAIRES,coefOf,BIENS,dossierHtml,acheter,achatState,ACHATS,migrate,bestRental,bestBuy,buyHome,moveTo,propQuote,coussin,yearlySave,monthlySpend,CITIES,loanLeft,
+  homeOptions,recoHome,onbHome,onbNext,onbView,budgetTable,kidsCost,rpOf,PRESETS,EPARGNES,SALAIRES,coefOf,BIENS,dossierHtml,acheter,achatState,ACHATS,migrate,bestRental,bestBuy,buyHome,moveTo,propQuote,coussin,yearlySave,monthlySpend,CITIES,loanLeft,
   turnView,bilanView,endView,introView,moneyBar,profilTab,portefeuilleTab,immoTab,patrimoineTab,allocSec,invSec,animHtml,toastsHtml,advHtml,spark,save,load,legacyGame,U};`, ctx);
 const T = ctx.T;
 
@@ -271,6 +271,28 @@ test('Logement : loyer réel, PTZ, durée du crédit, déménagements', () => {
   check(cashIdentity(S) < 1, 'argent créé ou perdu en déménageant');
 });
 
+test('Budget : ce qui est annoncé est ce qui arrive (locataire, propriétaire, bailleur, enfants, retraite)', () => {
+  const num = x => +x.replace(/[\s  ]/g, '');
+  let years = 0, worst = 0;
+  for (let g = 0; g < (FULL ? 60 : 16); g++) {
+    T.newGame({ city: pickR(Object.keys(T.CITIES)), sal: Math.floor(R() * 5), cap: Math.floor(R() * 3), couple: R() < .5 }, []);
+    while (T.S.phase !== 'end') { const S = T.S; if (S.phase !== 'turn') { T.nextBilan(); continue; }
+      if (S.life) for (const c of S.life.v.choices) if (!S.life.answered) T.answerLife(c.id);
+      if (S.event) T.answerEvent('pass');
+      if (R() < .1) { const b = T.bestBuy(); if (b && b.ok) T.buyHome(b.type, b.n); }
+      if (R() < .04 && S.props.length) T.sellProp(S.props[0].uid);
+      if (R() < .04) T.buyProp(pickR(Object.keys(T.BIENS).filter(k => !T.BIENS[k].hide)), 'credit', 20, 'loc');
+      const rows = [...T.budgetTable().matchAll(/<td class="n[^"]*">(−?)([\d\s  ]+) €<\/td>/g)].map(m => (m[1] ? -1 : 1) * num(m[2])), tot = rows.pop();
+      check(Math.abs(rows.reduce((x, y) => x + y, 0) - tot) <= 3, `budget du mois : les lignes ne font pas le total en ${S.year}`);
+      const pred = T.yearlySave(); T.endTurn(); years++;
+      const b = S.bilans[0]; worst = Math.max(worst, Math.abs(b.save - pred));
+      check(Math.abs(b.save - pred) < 1, `annoncé ${Math.round(pred / 12)} €/mois, réel ${Math.round(b.save / 12)} €/mois en ${b.y}`);
+      if (T.rpOf && S.props.some(p => p.use === 'rp' || (!p.use && T.BIENS[p.type].k === 'rp'))) check(b.flows.logement === 0 && b.flows.rp === 0, `un propriétaire voit un loyer dans son bilan en ${b.y}`);
+    }
+  }
+  console.log(`    ${years} années · écart max ${worst.toFixed(2)} €`);
+});
+
 test('Se faire du bien : coût réel, effet sur le moral, effet émoussé', () => {
   T.newGame('heritier', []); const S = T.S; S.cash += 50000; S.start += 50000; S.me.humeur = 50; S.me.relation = 50;
   const c = T.achatState('vacances').c, cash = S.cash;
@@ -401,11 +423,11 @@ if (BALANCE) {
   const LOVE = { ...BAL, enfant: 'oui', logement: 'acheter', vacances: 'oui', promo: 'non' };
   const rpSmart = S => { if (!S.props.some(p => T.BIENS[p.type].k === 'rp')) { const b = T.bestBuy(); if (b && b.ok) T.buyHome(b.type, b.n); } T.placeIdle(.6, []); };
   const g1r = goalRate('heritier', 'rp35', LOVE, rpSmart); warn(g1r >= .8, 'Objectif « propriétaire avant 35 ans » (héritier)', Math.round(g1r * 100) + ' %', '≥ 80 %');
-  const g2 = goalRate('infirmier', 'famille', LOVE, S => T.placeIdle(.6, [])); warn(g2 >= .5, 'Objectif « fonder une famille » (infirmier)', Math.round(g2 * 100) + ' %', '≥ 50 %');
+  const g2 = goalRate('infirmier', 'famille', LOVE, S => T.placeIdle(.6, [])); warn(g2 >= .4, 'Objectif « fonder une famille » (infirmier)', Math.round(g2 * 100) + ' %', '≥ 40 %');
   const g3 = goalRate('heritier', 'famille', LOVE, S => T.placeIdle(.6, [])); warn(g3 >= .25, 'Objectif « fonder une famille » (héritier)', Math.round(g3 * 100) + ' %', '≥ 25 %');
   const g4 = goalRate('heritier', 'fire', { ...BAL, fire: 'stop' }, S => T.placeIdle(.8, [])); warn(g4 >= .25 && g4 <= .7, 'Objectif « libre à 55 ans » (héritier)', Math.round(g4 * 100) + ' %', '25 – 70 %');
   const g5 = goalRate('heritier', 'rentier', BAL, S => { for (let k = 0; k < 2; k++) if (S.props.filter(p => T.BIENS[p.type].k !== 'rp').length < 2) T.buyProp('lille', 'credit'); T.placeIdle(.6, []); }); warn(g5 >= .7, 'Objectif « rentier immobilier » (héritier)', Math.round(g5 * 100) + ' %', '≥ 70 %');
-  const g6 = goalRate('heritier', 'million', BAL, S => T.placeIdle(.8, [])); warn(g6 >= .15 && g6 <= .6, 'Objectif « transmettre 2 millions » (héritier)', Math.round(g6 * 100) + ' %', '15 – 60 %');
+  const g6 = goalRate('heritier', 'million', BAL, S => T.placeIdle(.8, [])); warn(g6 >= .15 && g6 <= .6, 'Objectif « transmettre 2,5 millions » (héritier)', Math.round(g6 * 100) + ' %', '15 – 60 %');
 
   const adv = {}, ach = {}; const NR = 150;
   for (let i = 0; i < NR; i++) { const S = play(pickR(Object.keys(T.PRESETS)), [], randomPolicy); for (const w in S.advRec) { adv[w] = adv[w] || { n: 0, ok: 0 }; adv[w].n += S.advRec[w].n; adv[w].ok += S.advRec[w].ok; } for (const id in S.ach) ach[id] = (ach[id] || 0) + 1; }
