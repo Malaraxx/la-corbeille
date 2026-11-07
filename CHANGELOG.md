@@ -1,5 +1,13 @@
 # Journal des versions
 
+## 3.3.0 — Un écran clair, un profil sur mesure (8 novembre 2026)
+- **Création du profil** au lieu de 4 personnages : ville (Lille, Lyon, Paris), fourchette de salaire net, épargne de départ, célibataire ou en couple, deux objectifs. Un encadré résume le point de départ et la difficulté, calculée pour que tous les profils aient leurs chances.
+- **Une barre d'argent toujours visible** : compte courant, Livret A, placements, immobilier net, patrimoine net.
+- **Quatre onglets** : Profil (l'année, les décisions, les conseils de Sophie, le foyer, le budget du mois), Portefeuille (liquidités et où investir), Immobilier (catalogue par ville avec dossier de crédit complet et réponse de la banque), Patrimoine (le résumé chiffré).
+- **Acheter pour y vivre ou pour louer** n'importe quel logement, et des bureaux dans chaque ville.
+- **Rien n'est placé à ta place** : plus de questionnaire d'investisseur ni de portefeuille automatique au départ.
+- Style sobre : plus de papier ligné ni de post-it penchés.
+
 ## 3.2.0 — Le carnet familial (8 novembre 2026)
 - **Un carnet remplace la Gazette.** Chaque année est une page : les notes de la famille écrites à la première personne (enfants avec leur prénom, couple, salaire, courses, logement, imprévus, le gros titre du journal), les décisions à cocher, les conseils de Sophie sur des post-it avec un bouton pour agir, un pense-bête. En haut, le foyer en petits dessins avec l'état de chacun, et l'argent du foyer.
 - **Un accueil en 5 étapes** : ta ville (Lille, Lyon, Paris), ton logement (louer, rester chez tes parents, colocation ou acheter, selon ton profil et tes moyens, avec l'avis de Sophie), ton épargne de sécurité, ton profil d'investisseur en 3 questions, ton premier portefeuille.

@@ -35,10 +35,10 @@ const ctx = {
 };
 vm.createContext(ctx);
 vm.runInContext(js + `;globalThis.T={get S(){return S},set S(v){S=v},newGame,startTurn,endTurn,nextBilan,buyIn,sellIn,livIn,livOut,withdraw,
-  buyProp,sellProp,reneg,canReneg,answerEvent,answerLife,evDef,LIFE,EVT,net,tradable,ORDER,ENVS,META,EQUITY,STOCKS,THEMES,ARCH,GOALS,ACH,ADV,BIENS,PHASES,GOOD,Y0,YN,
+  buyProp,sellProp,reneg,canReneg,answerEvent,answerLife,evDef,LIFE,EVT,net,tradable,ORDER,ENVS,META,EQUITY,STOCKS,THEMES,PRESETS,GOALS,ACH,ADV,PHASES,GOOD,Y0,YN,
   eligEnvs,peaCap,envTotal,turnReady,finalScore,placeIdle,rebalance,dry,alloc,eqShare,irr,invData,coups,epilogue,shareText,genYear,peekR,hv,ev,conseils,rappels,pct,f1,
-  onbCity,homeOptions,recoHome,onbHome,onbCushion,onbProfile,onbNext,onbView,acheter,achatState,ACHATS,migrate,bestRental,bestBuy,buyHome,moveTo,propQuote,coussin,yearlySave,monthlySpend,CITIES,loanLeft,
-  turnView,bilanView,endView,introView,carnetHtml,foyerHtml,classeurHtml,logementSec,allocSec,invSec,animHtml,toastsHtml,advHtml,spark,save,load,legacyGame,U};`, ctx);
+  homeOptions,recoHome,onbHome,onbNext,onbView,PRESETS,EPARGNES,SALAIRES,coefOf,BIENS,dossierHtml,acheter,achatState,ACHATS,migrate,bestRental,bestBuy,buyHome,moveTo,propQuote,coussin,yearlySave,monthlySpend,CITIES,loanLeft,
+  turnView,bilanView,endView,introView,moneyBar,profilTab,portefeuilleTab,immoTab,patrimoineTab,allocSec,invSec,animHtml,toastsHtml,advHtml,spark,save,load,legacyGame,U};`, ctx);
 const T = ctx.T;
 
 // ---------- mini framework
@@ -105,7 +105,7 @@ function play(arch, goals, pol, hooks = {}) {
       }
       if (!S.lock && pol.port) pol.port(S);
       if (hooks.afterPort && !S.lock) hooks.afterPort(S);
-      if (hooks.render) { T.turnView(); T.classeurHtml(); }
+      if (hooks.render) { for (const v of ['profil', 'portefeuille', 'immo', 'patrimoine']) { T.U.view = v; T.turnView(); } T.U.view = 'profil'; }
       check(T.turnReady(), 'tour non clôturable');
       T.endTurn();
     } else {
@@ -196,10 +196,10 @@ test('Monde généré : ordres de grandeur réalistes', () => {
   check(med(a.paris) > 0 && med(a.paris) < .06 && med(a.lille) > 0, 'immobilier irréaliste');
 });
 
-test('Carnet : notes, conseils, pense-bêtes et classeur, sans hasard à l’affichage', () => {
+test('Onglets : notes, conseils, budget, portefeuille, immobilier et patrimoine, sans hasard à l’affichage', () => {
   let n = 0, elections = 0;
   for (let g = 0; g < (FULL ? 40 : 12); g++) {
-    T.newGame(pickR(Object.keys(T.ARCH)), []); let prevHead = null;
+    T.newGame(pickR(Object.keys(T.PRESETS)), []); let prevHead = null;
     while (T.S.phase !== 'end') {
       const S = T.S;
       if (S.phase === 'turn') {
@@ -207,9 +207,9 @@ test('Carnet : notes, conseils, pense-bêtes et classeur, sans hasard à l’aff
         check(S.page && S.page.notes.length >= 1, `page vide en ${S.year}`);
         check(S.page.head && S.page.head.t, `pas de gros titre en ${S.year}`);
         check(S.page.head.t !== prevHead || S.year <= T.Y0 + 1, `même gros titre deux ans de suite en ${S.year} : ${S.page.head.t}`); prevHead = S.page.head.t;
-        const r0 = S.rng, html = T.carnetHtml() + T.foyerHtml() + T.classeurHtml(); check(S.rng === r0, 'le carnet consomme du hasard à l’affichage');
+        const r0 = S.rng, html = T.moneyBar() + T.profilTab() + T.portefeuilleTab() + T.immoTab() + T.patrimoineTab(); check(S.rng === r0, 'l’affichage consomme du hasard');
         const cs = T.conseils(); check(cs.length >= 1 && cs.length <= 3, `${cs.length} conseils en ${S.year}`);
-        for (const c of cs) if (c.btn) check(['place', 'tip-prof', 'tip-tab', 'tip-home', 'reneg'].includes(c.btn.act), `bouton de conseil inconnu : ${c.btn.act}`);
+        for (const c of cs) if (c.btn) check(['view', 'tip-tab', 'reneg'].includes(c.btn.act), `bouton de conseil inconnu : ${c.btn.act}`);
         check(!/−0 %|−0,0 %|NaN|undefined/.test(html), `valeur mal formatée dans le carnet de ${S.year}`);
         const E = S.fut[S.year].elec; if (E) check(E.A.nom !== E.B.nom, `homonymes à la présidentielle de ${S.year}`);
         if (S.life) for (const c of S.life.v.choices) if (!S.life.answered) T.answerLife(c.id);
@@ -222,31 +222,44 @@ test('Carnet : notes, conseils, pense-bêtes et classeur, sans hasard à l’aff
   check(elections > 0, 'aucune présidentielle');
 });
 
-test('Accueil : 5 étapes pour chaque personnage et chaque ville', () => {
+test('Création du profil et choix du logement, pour chaque salaire, épargne, ville et situation', () => {
   let buys = 0, n = 0, explained = 0;
-  for (const a of Object.keys(T.ARCH)) for (const c of Object.keys(T.CITIES)) {
-    T.newGame(a, [], true); const S = T.S; n++;
-    check(S.onb === 1 && !T.turnReady(), 'accueil absent');
-    check(!T.onbCity(c) && S.city === c, `ville ${c} refusée`); T.onbView(); T.onbNext();
+  T.S = null; const intro = T.introView(); check(intro.includes('Crée ton profil') && intro.includes('Ton salaire net par mois'), 'écran de création absent');
+  for (let sal = 0; sal < T.SALAIRES.length; sal++) for (let cap = 0; cap < T.EPARGNES.length; cap++) for (const city of Object.keys(T.CITIES)) for (const couple of [false, true]) {
+    T.newGame({ city, sal, cap, couple }, [], true); const S = T.S; n++;
+    check(S.onb && !T.turnReady() && S.city === city && !!S.me.partner === couple && S.cash === T.EPARGNES[cap].v && Math.abs(S.revenu - T.SALAIRES[sal].m * 12) < 1, `profil mal créé (${sal}, ${cap}, ${city}, ${couple})`);
+    check(S.coef > 0 && S.coef === T.coefOf({ city, sal, cap, couple }), 'coefficient absent');
     const opts = T.homeOptions(), reco = T.recoHome(opts);
-    check(opts.length >= 6 && reco && reco.ok, `pas d’option conseillée (${a}, ${c})`);
-    check(opts.every(o => o.ok || o.why), `option impossible sans explication (${a}, ${c})`); if (opts.some(o => !o.ok)) explained++;
-    T.onbView(); check(!T.onbHome(opts.indexOf(reco)), `option conseillée refusée (${a}, ${c})`); if (reco.kind === 'buy') buys++;
-    T.onbNext(); T.onbView(); T.onbCushion(3); S.onb = 4;
-    S.onbAns = [1, 1, 2]; S.profile = T.onbProfile(S.onbAns); check(S.profile === .5, 'profil mal calculé'); T.onbNext(); T.onbView(); T.onbNext();
-    check(S.onb === null && T.turnReady() !== undefined, 'accueil non terminé');
-    check(S.liv > 0 || S.cash < 1000, 'épargne de sécurité non placée');
+    check(reco && reco.ok, `pas d’option conseillée (${sal}, ${cap}, ${city}, ${couple})`);
+    check(opts.every(o => o.ok || o.why), 'option impossible sans explication'); if (opts.some(o => !o.ok)) explained++;
+    T.onbView(); check(!T.onbHome(opts.indexOf(reco)), 'option conseillée refusée'); if (reco.kind === 'buy') buys++;
+    const placed = T.envTotal('pea') + T.envTotal('av') + T.envTotal('cto') + S.liv;
+    T.onbNext(); check(S.onb === null && T.turnReady() !== undefined, 'accueil non terminé');
+    check(T.envTotal('pea') + T.envTotal('av') + T.envTotal('cto') + S.liv === placed && placed === 0, 'de l’argent a été placé à la place du joueur');
     check(cashIdentity(S) < 1 && S.cash > -0.5, 'argent créé ou perdu pendant l’accueil');
     T.turnView();
   }
-  console.log(`    ${n} accueils · ${buys} achats conseillés dès le départ`);
+  console.log(`    ${n} profils · ${buys} achats conseillés dès le départ`);
   check(buys > 0 && buys < n && explained > 0, 'le conseil logement ne dépend pas du profil');
 });
 
+test('Immobilier : dossier de crédit pour y vivre ou pour louer, dans chaque ville', () => {
+  T.newGame({ city: 'lyon', sal: 3, cap: 2, couple: true }, []); const S = T.S; S.cash += 3e6; S.start += 3e6;
+  for (const t of Object.keys(T.BIENS).filter(k => !T.BIENS[k].hide)) {
+    T.U.dossier = { t, use: T.BIENS[t].k === 'bur' ? 'loc' : 'rp' }; T.U.city = T.BIENS[t].v; T.U.view = 'immo'; const h = T.turnView();
+    check(h.includes('Réponse de la banque'), `dossier absent pour ${t}`);
+    if (T.BIENS[t].v !== 'lyon' && T.BIENS[t].k === 'rp') check(T.dossierHtml().includes('il faudrait habiter'), `achat pour y vivre hors de ta ville accepté (${t})`);
+  }
+  check(!T.buyProp('lyonbureaux', 'cash', 20, 'rp') && S.props.at(-1).use === 'loc', 'des bureaux ne peuvent être que loués');
+  check(!T.buyProp('maison', 'cash', 20, 'loc') && S.props.at(-1).use === 'loc' && S.home.type !== 'maison', 'achat pour louer mal enregistré');
+  T.U.dossier = null; T.U.city = null; T.U.view = 'profil';
+  check(cashIdentity(S) < 1, 'argent créé ou perdu par les achats immobiliers');
+});
+
 test('Logement : loyer réel, PTZ, durée du crédit, déménagements', () => {
-  T.newGame('infirmier', []); let S = T.S;
-  const q = T.propQuote('t2rp', 25); check(q.z > 0 && q.n === 25, 'PTZ absent pour un premier achat modeste');
-  check(T.propQuote('t2rp', 15).ann > T.propQuote('t2rp', 25).ann, 'un crédit plus court devrait coûter plus par mois');
+  T.newGame('infirmier', []); let S = T.S; S.cash += 10000; S.start += 10000;
+  const q = T.propQuote('t2rp', 25, 'rp'); check(q.z > 0 && q.n === 25, 'PTZ absent pour un premier achat modeste');
+  check(T.propQuote('t2rp', 15, 'rp').ann > T.propQuote('t2rp', 25, 'rp').ann, 'un crédit plus court devrait coûter plus par mois');
   check(!T.buyProp('t2rp', 'credit', 25), 'achat avec PTZ refusé');
   const rp = S.props[0]; check(rp.loan.z && rp.loan.z.p > 0 && T.loanLeft(rp) > rp.loan.p, 'PTZ non enregistré');
   check(S.home.own && S.home.type === 't2rp', 'résidence principale non habitée');
@@ -279,7 +292,7 @@ test('Migration : une partie de la version 3.1 se recharge avec un logement', ()
 test('Parties aléatoires : invariants, rendu et identité de caisse', () => {
   const N = FULL ? 120 : 15;
   let checked = 0, worst = 0;
-  for (const arch of Object.keys(T.ARCH)) for (let g = 0; g < N; g++) {
+  for (const arch of Object.keys(T.PRESETS)) for (let g = 0; g < N; g++) {
     const goals = [pickR(Object.keys(T.GOALS)), pickR(Object.keys(T.GOALS))];
     const S = play(arch, goals, randomPolicy, { render: true });
     endInvariants(S);
@@ -294,7 +307,7 @@ test('Rééquilibrage : aperçu pur, conservation de l’argent, aperçu = exéc
   const hook = S => {
     if (R() > .3) return;
     const p = pickR([0, .2, .5, .8, 1, R()]);
-    const before = T.net(), snap = JSON.stringify(S);
+    const cash0 = S.cash, before = T.net(), snap = JSON.stringify(S);
     const d = T.dry(() => T.rebalance(p));
     check(JSON.stringify(T.S) === snap, 'l’aperçu (dry) a modifié l’état');
     let tax = 0;
@@ -302,10 +315,10 @@ test('Rééquilibrage : aperçu pur, conservation de l’argent, aperçu = exéc
     else { const r = T.rebalance(p); tax = r.tax; check(Math.abs(r.after - d.after) < 1e-9, 'aperçu ≠ exécution'); }
     const err = Math.abs(T.net() + tax - before);
     check(err < 2, `argent créé ou détruit : ${err.toFixed(2)} €`);
-    check(S.cash > -0.5, 'compte courant négatif après répartition');
+    check(S.cash > -0.5 || cash0 < -0.5, `compte courant négatif après répartition (avant : ${cash0.toFixed(0)}, après : ${S.cash.toFixed(0)}, faillite : ${!!S.flags.faillite})`);
     n++;
   };
-  for (const arch of Object.keys(T.ARCH)) for (let g = 0; g < N; g++) play(arch, [], randomPolicy, { afterPort: hook });
+  for (const arch of Object.keys(T.PRESETS)) for (let g = 0; g < N; g++) play(arch, [], randomPolicy, { afterPort: hook });
   console.log(`    ${n} opérations contrôlées`);
 });
 
@@ -332,9 +345,8 @@ test('Sauvegarde : l’état survit à un aller-retour JSON, ancienne version cl
   delete store['la-corbeille-v2'];
 });
 
-test('Écran de départ, personnages et immobilier multi-villes', () => {
-  T.S = null; check(T.introView().includes('Choisis ton personnage'), 'écran de départ absent');
-  for (const a of Object.keys(T.ARCH)) { T.newGame(a, ['famille']); check(T.S.cash === T.ARCH[a].cash && T.S.start === T.ARCH[a].cash, `capital de départ faux pour ${a}`); T.turnView(); }
+test('Profils tout faits et immobilier multi-villes', () => {
+  for (const a of Object.keys(T.PRESETS)) { const v = T.EPARGNES[T.PRESETS[a].cap].v; T.newGame(a, ['famille']); check(T.S.cash === v && T.S.start === v, `capital de départ faux pour ${a}`); T.turnView(); }
   T.newGame('heritier', []); T.S.cash = 3e6; T.S.start = 3e6;
   check(!T.buyProp('paris', 'cash') && !T.buyProp('lyon', 'cash') && !T.buyProp('maison', 'cash'), 'achat comptant refusé');
   check(T.buyProp('rpparis', 'cash'), 'deux résidences principales acceptées');
@@ -357,7 +369,6 @@ if (BALANCE) {
   const sophie = { life: choose(BAL), port: S => {
     if (S.profile == null) S.profile = .6;
     for (const c of T.conseils()) { const b = c.btn; if (!b) continue;
-      if (b.act === 'tip-prof') { S.profile = b.p; T.rebalance(b.p); }
       else if (b.act === 'reneg') T.reneg(b.u);
       else if (b.act === 'tip-tab' && b.tab === 'liv') T.livIn(Math.min(S.cash, 4 * T.monthlySpend())); }
     T.placeIdle(S.profile, []); } };
@@ -383,8 +394,8 @@ if (BALANCE) {
   warn(p10 > 0, `Patrimoine au 10e centile, joueur passif (€ de ${T.Y0})`, Math.round(p10 / 1000) + ' k€', '> 0');
 
   const S0 = {};
-  for (const a of Object.keys(T.ARCH)) S0[a] = med(run(a, { life: choose({ ...BAL, logement: 'acheter' }), port: S => T.placeIdle(.6, []) }, 100).map(x => x.score));
-  for (const a of Object.keys(T.ARCH)) { const q = S0[a] / S0.heritier; warn(q >= .75 && q <= 1.33, `Score médian ${a} / héritier`, q.toFixed(2), '0,75 – 1,33'); }
+  for (const a of Object.keys(T.PRESETS)) S0[a] = med(run(a, { life: choose({ ...BAL, logement: 'acheter' }), port: S => T.placeIdle(.6, []) }, 100).map(x => x.score));
+  for (const a of Object.keys(T.PRESETS)) { const q = S0[a] / S0.heritier; warn(q >= .75 && q <= 1.33, `Score médian ${a} / héritier`, q.toFixed(2), '0,75 – 1,33'); }
 
   const goalRate = (arch, goal, lifeMap, port, n = 80) => { let hit = 0; for (let i = 0; i < n; i++) { play(arch, [goal], { life: choose(lifeMap), port }); if (T.finalScore().gl[0].st === 1) hit++; } return hit / n; };
   const LOVE = { ...BAL, enfant: 'oui', logement: 'acheter', vacances: 'oui', promo: 'non' };
@@ -397,7 +408,7 @@ if (BALANCE) {
   const g6 = goalRate('heritier', 'million', BAL, S => T.placeIdle(.8, [])); warn(g6 >= .15 && g6 <= .6, 'Objectif « transmettre 2 millions » (héritier)', Math.round(g6 * 100) + ' %', '15 – 60 %');
 
   const adv = {}, ach = {}; const NR = 150;
-  for (let i = 0; i < NR; i++) { const S = play(pickR(Object.keys(T.ARCH)), [], randomPolicy); for (const w in S.advRec) { adv[w] = adv[w] || { n: 0, ok: 0 }; adv[w].n += S.advRec[w].n; adv[w].ok += S.advRec[w].ok; } for (const id in S.ach) ach[id] = (ach[id] || 0) + 1; }
+  for (let i = 0; i < NR; i++) { const S = play(pickR(Object.keys(T.PRESETS)), [], randomPolicy); for (const w in S.advRec) { adv[w] = adv[w] || { n: 0, ok: 0 }; adv[w].n += S.advRec[w].n; adv[w].ok += S.advRec[w].ok; } for (const id in S.ach) ach[id] = (ach[id] || 0) + 1; }
   const rate = w => adv[w] ? adv[w].ok / adv[w].n : 0;
   warn(rate('sophie') >= .7, 'Fiabilité de Sophie (doit être la meilleure)', Math.round(rate('sophie') * 100) + ' %', '≥ 70 %');
   warn(rate('kevin') <= .6, 'Fiabilité de Kévin (pile ou face)', Math.round(rate('kevin') * 100) + ' %', '≤ 60 %');

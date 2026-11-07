@@ -40,30 +40,9 @@ button:focus-visible,input:focus-visible,select:focus-visible,summary:focus-visi
 .ghost.danger{border-color:var(--down);color:var(--down)}
 .ghost:disabled{opacity:.4;cursor:not-allowed}
 
-.status{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:1px;background:var(--rule);border:1px solid var(--rule);border-radius:6px;overflow:hidden}
-.status>div{background:var(--sheet);padding:10px 12px;display:flex;flex-direction:column;gap:2px;min-width:0}
-.status strong{font-family:var(--f-mono);font-size:18px;font-weight:500;font-variant-numeric:tabular-nums;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.status .date strong{font-family:var(--f-display);font-size:20px;font-weight:700}
-.status small{font-family:var(--f-mono);font-size:12px}
-.status small.who{font-family:var(--f-body)}
-.gauges{display:grid;grid-template-columns:1fr 1fr;gap:12px;align-items:center}
-.gauge{display:flex;flex-direction:column;gap:4px}
-.gauge .top{display:flex;justify-content:space-between;font-size:12px;gap:4px}
-.gauge .bar-g{height:6px;background:var(--rule);border-radius:3px;overflow:hidden}
-.gauge .bar-g i{display:block;height:100%;background:var(--life)}
-.gauge.low .bar-g i{background:var(--down)}
-.timeline{position:relative;height:22px}
-.timeline .track{position:absolute;left:0;right:0;top:4px;height:4px;background:var(--rule);border-radius:2px}
-.timeline .fill{position:absolute;left:0;top:4px;height:4px;background:var(--ink);border-radius:2px}
-.timeline span{position:absolute;top:10px;font-size:10px;color:var(--muted);transform:translateX(-50%);font-family:var(--f-mono)}
-.timeline span:first-of-type{transform:none} .timeline span:last-of-type{transform:translateX(-100%)}
 
-.cards{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(0,1fr);gap:18px;align-items:start}
-.cards.single{grid-template-columns:minmax(0,1fr)}
-.une{background:var(--sheet);border:1px solid var(--rule);border-radius:4px;padding:18px 20px 20px;display:flex;flex-direction:column;gap:10px;box-shadow:0 1px 0 var(--rule)}
 .une-mast{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;border-bottom:1px solid var(--ink);padding-bottom:6px;font-family:var(--f-display);font-style:italic;font-size:14px}
 .kicker{font-size:11px;letter-spacing:.12em;text-transform:uppercase;font-weight:600;color:var(--down)}
-.une h2{font-size:clamp(24px,3.6vw,34px);font-weight:700}
 .lede{font-size:15.5px;max-width:62ch}
 .shocks{display:flex;flex-wrap:wrap;gap:6px}
 .chip{font-family:var(--f-mono);font-size:12px;padding:2px 8px;border-radius:999px;border:1px solid currentColor;white-space:nowrap}
@@ -71,9 +50,6 @@ button:focus-visible,input:focus-visible,select:focus-visible,summary:focus-visi
 .fiche table{font-size:13.5px}
 .fiche td{padding:4px 6px}
 .fiche td:first-child{padding-left:0}
-.life{background:var(--sheet);border:1px solid var(--rule);border-top:4px solid var(--life);border-radius:4px;padding:16px 18px 18px;display:flex;flex-direction:column;gap:10px}
-.life .kicker{color:var(--life)}
-.life h3{font-size:22px;font-weight:700}
 .decision{border-top:1px dashed var(--rule);padding-top:12px;display:flex;flex-direction:column;gap:10px}
 .must{font-size:11px;letter-spacing:.1em;text-transform:uppercase;font-weight:600;color:var(--warn)}
 .choices{display:flex;flex-direction:column;gap:8px}
@@ -164,13 +140,6 @@ table.inv td{vertical-align:top}
   table.inv td[data-l]::before{content:attr(data-l);display:block;color:var(--muted);font-size:11px;font-family:var(--f-body);letter-spacing:.04em}
   table.inv td.n{text-align:left;white-space:nowrap}
 }
-.archs{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
-.archc{text-align:left;background:var(--sheet);border:1px solid var(--rule);border-radius:6px;padding:12px 14px;display:flex;flex-direction:column;gap:6px}
-.archc:hover{border-color:var(--ink)}
-.archc[aria-pressed="true"]{border-color:var(--accent);box-shadow:inset 0 0 0 1px var(--accent)}
-.archc b{font-family:var(--f-display);font-size:19px}
-.archc .kv{font-size:12.5px}
-.setup{display:flex;flex-direction:column;gap:16px}
 .goals{display:flex;flex-wrap:wrap;gap:6px}
 .goal{font-size:12.5px;border:1px solid var(--rule);border-radius:999px;padding:3px 10px;background:var(--sheet)}
 .goal.ok{border-color:var(--up);color:var(--up);font-weight:600}
@@ -206,19 +175,13 @@ table.inv td{vertical-align:top}
 .ach.off b::before{content:"🔒 ";font-size:11px}
 .share{display:flex;flex-direction:column;gap:8px}
 .share textarea{font:inherit;font-size:13px;width:100%;min-height:70px;background:var(--paper);color:var(--ink);border:1px solid var(--rule);border-radius:4px;padding:8px}
-@media (max-width:760px){.archs,.coups{grid-template-columns:minmax(0,1fr)}}
+@media (max-width:760px){.coups{grid-template-columns:minmax(0,1fr)}}
 .order{background:var(--sheet);border-bottom:1px solid var(--rule);padding:10px 12px 14px;display:flex;flex-wrap:wrap;gap:10px;align-items:center}
 .order .note{flex-basis:100%;font-size:12.5px;color:var(--muted)}
 .order label{font-size:13px}
 
-.desk{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:14px}
-.offer{border:1px solid var(--rule);border-radius:6px;padding:14px;display:flex;flex-direction:column;gap:8px;background:var(--sheet)}
-.offer h3{font-size:19px;font-weight:700}
 .kv{display:grid;grid-template-columns:1fr auto;gap:2px 12px;font-size:13.5px}
 .kv span:nth-child(even){font-family:var(--f-mono);text-align:right;font-variant-numeric:tabular-nums}
-.owned{display:flex;flex-direction:column}
-.prop{display:grid;grid-template-columns:minmax(0,1.6fr) repeat(3,minmax(0,1fr)) auto;gap:10px;align-items:center;padding:8px 4px;border-bottom:1px solid var(--rule);font-size:14px}
-.prop .btns{justify-content:flex-end}
 
 .bar{position:fixed;left:0;right:0;bottom:0;background:var(--ink);color:var(--paper);padding-bottom:env(safe-area-inset-bottom,0px);z-index:5}
 .bar-in{max-width:980px;margin:0 auto;padding:10px max(16px,env(safe-area-inset-right,0px)) 10px max(16px,env(safe-area-inset-left,0px));display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
@@ -247,11 +210,6 @@ details[open] summary{margin-bottom:8px}
 .legend i{display:inline-block;width:18px;height:0;border-top:2.5px solid var(--accent);vertical-align:middle;margin-right:6px}
 .legend i.t{border-top:2px dashed var(--muted)} .legend i.l{border-top:2px dotted var(--muted)}
 
-.intro{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(0,1fr);gap:24px;align-items:start}
-.intro .setup>h2{font-size:clamp(30px,5vw,48px);font-weight:800}
-.intro .lede{font-size:17px}
-.rules{background:var(--sheet);border:1px solid var(--rule);border-radius:6px;padding:16px 18px;display:flex;flex-direction:column;gap:8px;font-size:14px}
-.rules ul{margin:0;padding-left:18px;display:flex;flex-direction:column;gap:6px}
 .rank{font-family:var(--f-display);font-style:italic;font-size:clamp(28px,5vw,44px);font-weight:700;line-height:1.1}
 .journal{display:flex;flex-direction:column}
 .journal div{display:grid;grid-template-columns:60px minmax(0,1fr);gap:10px;padding:7px 0;border-bottom:1px solid var(--rule);font-size:14px}
@@ -259,8 +217,7 @@ details[open] summary{margin-bottom:8px}
 .journal strong{font-weight:600}
 
 @media (max-width:760px){
-  .status{grid-template-columns:repeat(2,minmax(0,1fr))}
-  .cards,.intro,.grid2,.desk{grid-template-columns:minmax(0,1fr)}
+  .grid2{grid-template-columns:minmax(0,1fr)}
   .row{grid-template-columns:minmax(0,1fr) 84px 70px;row-gap:2px}
   .row .aname{grid-column:1;grid-row:1}
   .row .c-sp{grid-column:2;grid-row:1}
@@ -273,105 +230,139 @@ details[open] summary{margin-bottom:8px}
   .row .c-pos::before{content:"Position : ";color:var(--muted);font-size:11px;font-family:var(--f-body)}
   .row .c-pl{grid-column:1/4;text-align:left}
   .row .c-pl::before{content:"Latent : ";color:var(--muted);font-size:11px;font-family:var(--f-body)}
-  .prop{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}
-  .prop>div:first-child{grid-column:1/3}
-  .prop .btns{grid-column:1/3;justify-content:flex-start}
   .tab{padding:6px 8px 4px;font-size:13px}
 }
 .pourquoi{font-size:15px;background:var(--paper);border-radius:6px;padding:10px 12px;border-left:3px solid var(--accent)}
-/* ----- foyer, carnet, classeur, accueil ----- */
-:root{--line:#e3cfc2}
-@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){--line:#2c2734} }
-:root[data-theme="dark"]{--line:#2c2734}
+/* ----- mise en page : barre d'argent, onglets, panneaux ----- */
 svg.dw{display:block;color:var(--ink);flex:none}
-.foyer{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px}
-.pers{background:var(--sheet);border:1px solid var(--rule);border-radius:8px;padding:10px;display:flex;gap:10px;align-items:center;min-width:0}
-.pers b{display:block;font-family:var(--f-display);font-size:17px;line-height:1.1}
-.pers small{color:var(--muted);font-size:12.5px}
-.etat{display:inline-block;font-size:11.5px;font-weight:600;padding:1px 8px;border-radius:999px;border:1px solid currentColor;margin-top:3px;color:var(--muted)}
-.etat.bien{color:var(--accent)} .etat.fatigue{color:var(--warn)} .etat.stress{color:var(--down)}
-.argent{background:var(--sheet);border:1px solid var(--rule);border-radius:8px;padding:10px 12px;display:flex;flex-direction:column;gap:5px;font-size:13.5px;grid-column:span 2;min-width:0}
-.argent .ln{display:flex;justify-content:space-between;gap:10px;align-items:baseline}
-.argent b{font-weight:500}
-.argent .warn{color:var(--warn)}
-.jauge{height:7px;background:var(--rule);border-radius:4px;overflow:hidden}
-.jauge i{display:block;height:100%;background:var(--accent)}
-.carnet{position:relative;background-color:var(--sheet);border:1px solid var(--rule);border-radius:4px 10px 10px 4px;box-shadow:0 2px 0 var(--rule),0 8px 24px rgba(0,0,0,.08);padding:24px 24px 20px 68px;
-  background-image:repeating-linear-gradient(to bottom,transparent 0,transparent 31px,var(--line) 31px,var(--line) 32px);background-position:0 70px;display:flex;flex-direction:column;gap:16px}
-.carnet::before{content:"";position:absolute;left:46px;top:0;bottom:0;width:2px;background:var(--down);opacity:.4}
-.spirale{position:absolute;left:10px;top:18px;bottom:18px;display:flex;flex-direction:column;justify-content:space-between}
-.spirale i{width:18px;height:18px;border-radius:50%;border:2px solid var(--muted);background:var(--paper)}
-.page-h{display:flex;justify-content:space-between;align-items:baseline;gap:10px;flex-wrap:wrap}
-.page-h h2{font-size:clamp(28px,4vw,36px);font-style:italic}
-.carnet .cols{display:grid;grid-template-columns:minmax(0,1.6fr) minmax(0,1fr);gap:22px}
-.cnotes{list-style:none;margin:0;padding:0;display:flex;flex-direction:column}
-.cnotes li{font-family:var(--f-display);font-style:italic;font-size:18px;line-height:32px;display:flex;gap:10px;align-items:flex-start}
-.cnotes li svg{flex:none;margin-top:5px;color:var(--muted)}
-.choix{margin-top:14px;display:flex;flex-direction:column;gap:12px}
-.q{border:1px dashed var(--rule);border-radius:8px;padding:12px 14px;background:var(--paper);display:flex;flex-direction:column;gap:8px}
-.q.life{border-color:var(--life)}
-.q.life .lbl{color:var(--life)}
-.q .qt{font-family:var(--f-display);font-style:italic;font-size:20px;line-height:1.25}
-.q .qb{font-size:14.5px}
-.qd summary{font-size:13px}
-.marge{display:flex;flex-direction:column;gap:12px}
-.postit{background:color-mix(in srgb,var(--accent) 12%,var(--sheet));border:1px solid color-mix(in srgb,var(--accent) 35%,transparent);border-radius:4px;padding:10px 12px;transform:rotate(-1deg);font-size:14px;display:flex;flex-direction:column;gap:6px}
-.postit.r{transform:rotate(.8deg)}
-.postit.pb{background:color-mix(in srgb,var(--warn) 10%,var(--sheet));border-color:color-mix(in srgb,var(--warn) 35%,transparent);transform:rotate(1deg)}
-.postit b{font-family:var(--f-display);font-size:15px}
-.postit .secondary{padding:6px 12px;font-size:13px}
-.plaisirs h3{font-size:20px;font-style:italic;margin-bottom:8px}
-.achats{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:8px}
-.achat{border:1px solid var(--rule);border-radius:8px;padding:10px;background:var(--paper);display:flex;flex-direction:column;gap:3px;font-size:13px;text-align:left;color:var(--ink)}
-.achat:hover:not(:disabled){border-color:var(--ink)}
-.achat b{font-size:14.5px}
-.achat .eff{color:var(--life);font-weight:600;font-size:12.5px}
-.achat:disabled{opacity:.5;cursor:not-allowed}
-.bilan-page{border-top:2px solid var(--ink);padding-top:10px;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;font-size:13.5px}
-.bilan-page>div{display:flex;flex-direction:column;gap:2px}
-.bilan-page b{font-family:var(--f-mono);font-weight:500;font-size:17px}
-.bilan-page small{color:var(--muted)}
-.pied{display:flex;justify-content:flex-start;gap:10px;flex-wrap:wrap}
-.classeur{display:flex;flex-direction:column;gap:22px;border-top:3px double var(--ink);padding-top:12px}
-.offer.here{border-color:var(--accent);box-shadow:inset 0 0 0 1px var(--accent)}
+.topbar{position:sticky;top:0;z-index:6;background:var(--paper);border-bottom:1px solid var(--rule);margin:0 calc(-1 * max(16px,env(safe-area-inset-left,0px)));padding:8px max(16px,env(safe-area-inset-left,0px))}
+.tb-in{max-width:980px;margin:0 auto;display:grid;grid-template-columns:minmax(0,1.1fr) repeat(5,minmax(0,1fr));gap:12px;align-items:end}
+.tb-in>div{display:flex;flex-direction:column;min-width:0}
+.tb-in span{font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);font-weight:600}
+.tb-in b{font-size:17px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tb-date b{font-family:var(--f-display);font-size:19px;font-weight:700}
+.tb-date span{text-transform:none;letter-spacing:0;font-weight:400;font-size:12.5px}
+.tb-net b{color:var(--accent);font-weight:600}
+.topbar .neg b{color:var(--down)}
+.vtabs{display:flex;gap:4px;border-bottom:1px solid var(--rule);overflow-x:auto}
+.vtabs button{background:none;border:0;border-bottom:3px solid transparent;padding:10px 14px 8px;font-weight:600;font-size:15px;color:var(--muted);white-space:nowrap;display:flex;gap:6px;align-items:center;margin-bottom:-1px}
+.vtabs button:hover{color:var(--ink)}
+.vtabs button[aria-selected="true"]{color:var(--ink);border-bottom-color:var(--accent)}
+.badge{background:var(--down);color:var(--sheet);border-radius:999px;font-size:11px;min-width:18px;height:18px;display:inline-flex;align-items:center;justify-content:center;padding:0 5px}
+.tabpanel{display:flex;flex-direction:column;gap:18px}
+.panel{background:var(--sheet);border:1px solid var(--rule);border-radius:8px;padding:16px 18px;display:flex;flex-direction:column;gap:12px;min-width:0}
+.panel h2{font-size:24px;font-weight:700}
+.panel h3,.decs h3{font-size:19px;font-weight:700}
+.ph{display:flex;justify-content:space-between;align-items:baseline;gap:6px 14px;flex-wrap:wrap}
+.pgrid{display:grid;grid-template-columns:minmax(0,1.7fr) minmax(0,1fr);gap:18px;align-items:start}
+.pmain,.pside{display:flex;flex-direction:column;gap:18px;min-width:0}
+.year .ph h2{font-size:32px}
+.news{margin:0;padding:0;list-style:none;display:flex;flex-direction:column}
+.news li{padding:8px 0;border-top:1px solid var(--rule);font-size:15px}
+.news li:first-child{border-top:0;padding-top:0}
+.decs{display:flex;flex-direction:column;gap:12px}
+.dec{background:var(--sheet);border:1px solid var(--rule);border-left:4px solid var(--warn);border-radius:8px;padding:14px 16px;display:flex;flex-direction:column;gap:8px}
+.dec.life{border-left-color:var(--life)}
+.dec.done{border-left-color:var(--rule)}
+.dec h3{font-size:21px}
+.dec .lbl{color:var(--warn)}
+.dec.life .lbl{color:var(--life)}
+.advice{margin:0;padding:0;list-style:none;display:flex;flex-direction:column}
+.advice li{padding:10px 0 10px 16px;border-top:1px solid var(--rule);position:relative;display:flex;flex-direction:column;gap:4px;font-size:14.5px}
+.advice li:first-child{border-top:0;padding-top:0}
+.advice li::before{content:"";position:absolute;left:0;top:17px;width:6px;height:6px;border-radius:50%;background:var(--accent)}
+.advice li:first-child::before{top:7px}
+.link{background:none;border:0;padding:0;color:var(--accent);font-weight:600;font-size:14px;align-self:flex-start}
+.link:hover{text-decoration:underline}
+.link:disabled{opacity:.4;cursor:not-allowed}
+.remind{border-top:1px dashed var(--rule);padding-top:8px}
+table.shop td,table.owned2 td,table.sheet td{vertical-align:middle}
+table.shop small,table.budget small,table.owned2 small,.foyer small,.goals2 small{display:block;color:var(--muted);font-size:12.5px}
+table.shop .eff{color:var(--life);font-size:13px;font-weight:600;white-space:nowrap}
+table.shop .act,table.owned2 .act{text-align:right;white-space:nowrap}
+table.shop .secondary{padding:5px 12px;font-size:13.5px}
+.foyer{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:10px}
+.foyer li{display:grid;grid-template-columns:32px minmax(0,1fr) auto;gap:10px;align-items:center}
+.foyer b{font-weight:600}
+.etat{font-size:12px;font-weight:600;padding:2px 9px;border-radius:999px;border:1px solid var(--rule);color:var(--muted);white-space:nowrap}
+.etat.ok{color:var(--accent);border-color:currentColor}
+.etat.warn{color:var(--warn);border-color:currentColor}
+.etat.bad{color:var(--down);border-color:currentColor}
+table.budget td{padding:7px 0}
+table.budget tr.tot td{border-top:2px solid var(--ink);border-bottom:0;font-weight:600}
+.warn{color:var(--warn)}
+.goals2{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:8px;font-size:14px}
+.goals2 .ok b{color:var(--up)} .goals2 .ko b{text-decoration:line-through;color:var(--muted)}
+.liqs{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px}
+.liq{background:var(--paper);border:1px solid var(--rule);border-radius:6px;padding:10px 12px;display:flex;flex-direction:column;gap:2px}
+.liq b{font-size:22px;font-weight:500}
+.liq small{color:var(--muted);font-size:12.5px}
+.kv.wide{max-width:560px}
+.seg{display:inline-flex;border:1px solid var(--rule);border-radius:999px;padding:2px;gap:2px;flex-wrap:wrap;align-self:flex-start}
+.seg button{background:none;border:0;border-radius:999px;padding:5px 14px;font-size:14px;color:var(--muted)}
+.seg button[aria-pressed="true"]{background:var(--accent);color:var(--accent-ink);font-weight:600}
+.biens{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px}
+.bien{text-align:left;background:var(--paper);border:1px solid var(--rule);border-radius:8px;padding:12px;display:flex;flex-direction:column;gap:6px;color:var(--ink);font:inherit}
+.bien:hover{border-color:var(--ink)}
+.bien.sel{border:2px solid var(--accent);padding:11px}
+.bien b{font-family:var(--f-display);font-size:17px}
+.bien small{color:var(--muted);font-size:12.5px}
+.bien .kv{font-size:13px}
+.bien .go{color:var(--accent);font-weight:600;font-size:13.5px}
+.dossier{border-top:2px solid var(--ink);padding-top:14px;display:flex;flex-direction:column;gap:12px}
+.dgrid{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(0,1fr);gap:18px;align-items:start}
+.dossier tr.strong td{font-weight:600}
+.verdict{border-radius:8px;padding:14px;display:flex;flex-direction:column;gap:8px;border:1px solid var(--rule);background:var(--paper)}
+.verdict b{font-family:var(--f-display);font-size:24px}
+.verdict.yes b{color:var(--up)} .verdict.no b{color:var(--down)}
+table.sheet tr.sec td{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:600;padding-top:14px;border-bottom:1px solid var(--ink)}
+table.sheet tr.sub td{font-weight:600}
+table.sheet tr.tot td{border-top:2px solid var(--ink);border-bottom:0;font-weight:700;font-size:16px}
+.pgrid2{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(0,1fr);gap:18px;align-items:start}
+/* ----- création du profil et choix du logement ----- */
+.setup2{display:flex;flex-direction:column;gap:18px}
+.intro-h{display:flex;flex-direction:column;gap:8px}
+.intro-h h2{font-size:clamp(30px,5vw,46px);font-weight:800}
+.intro-h .lede{max-width:64ch}
+.build{display:grid;grid-template-columns:minmax(0,1.6fr) minmax(0,1fr);gap:22px;align-items:start}
+.build-main{display:flex;flex-direction:column;gap:20px}
+.build fieldset{border:0;padding:0;margin:0;display:flex;flex-direction:column;gap:8px;min-width:0}
+.build legend{font-family:var(--f-display);font-size:19px;font-weight:700;margin-bottom:8px;padding:0}
+.opts3{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:8px}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.build-side{position:sticky;top:12px}
+.big{padding:12px 18px;font-size:16px}
+.rules2{margin:0;padding-left:18px;font-size:13.5px;color:var(--muted);display:flex;flex-direction:column;gap:4px}
 .modal{background:var(--sheet);border:1px solid var(--rule);border-radius:10px;box-shadow:0 10px 30px rgba(0,0,0,.12);padding:22px;display:flex;flex-direction:column;gap:16px}
 .modal h2{font-size:clamp(26px,4vw,34px)}
-.steps{display:flex;gap:6px;flex-wrap:wrap}
-.steps span{font-size:12px;padding:3px 10px;border-radius:999px;border:1px solid var(--rule);color:var(--muted)}
-.steps span.on{border-color:var(--accent);color:var(--accent);font-weight:600}
-.steps span.done{color:var(--ink)}
-.steps span.done::before{content:"✓ ";color:var(--up)}
-.budget{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:1px;background:var(--rule);border:1px solid var(--rule);border-radius:6px;overflow:hidden}
-.budget>div{background:var(--paper);padding:8px 12px;display:flex;flex-direction:column;min-width:0}
-.budget b{font-family:var(--f-mono);font-weight:500;font-size:17px}
-.budget small{color:var(--muted);font-size:12px}
 .opts{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px}
-.opt{border:1px solid var(--rule);border-radius:8px;padding:14px;display:flex;flex-direction:column;gap:6px;background:var(--paper);text-align:left;color:var(--ink);font:inherit}
+.opt{border:1px solid var(--rule);border-radius:8px;padding:12px 14px;display:flex;flex-direction:column;gap:6px;background:var(--paper);text-align:left;color:var(--ink);font:inherit}
 .opt:hover:not(:disabled){border-color:var(--ink)}
 .opt b{font-family:var(--f-display);font-size:18px}
-.opt[aria-pressed="true"]{border:2px solid var(--accent)}
+.opt[aria-pressed="true"]{border:2px solid var(--accent);padding:11px 13px}
 .opt.reco{box-shadow:inset 0 0 0 1px var(--accent)}
 .opt:disabled{cursor:not-allowed}
 .opt.off{opacity:.55}
 .opt .kv{font-size:13px;width:100%}
 .tag{align-self:flex-start;font-size:11.5px;font-weight:600;padding:2px 8px;border-radius:999px;background:var(--accent);color:var(--accent-ink)}
 .why{font-size:12.5px;color:var(--warn)}
-.sophie{display:grid;grid-template-columns:44px minmax(0,1fr);gap:12px;align-items:start;background:var(--paper);border-left:3px solid var(--accent);border-radius:0 8px 8px 0;padding:12px}
+.sophie{display:grid;grid-template-columns:34px minmax(0,1fr);gap:12px;align-items:start;background:var(--paper);border-left:3px solid var(--accent);border-radius:0 8px 8px 0;padding:12px}
 .sophie p{font-style:italic}
 .row-btns{display:flex;gap:8px;flex-wrap:wrap;justify-content:space-between;align-items:center}
-ul.plan{margin:0;padding:10px 14px 10px 30px}
 @media (max-width:760px){
-  .budget,.carnet .cols,.bilan-page{grid-template-columns:minmax(0,1fr)}
-  .foyer{grid-template-columns:repeat(2,minmax(0,1fr))}
-  .argent{grid-column:1/-1}
-  .carnet{padding:18px 14px 16px 44px}
-  .carnet::before{left:34px}
-  .spirale{left:6px}
-  .spirale i{width:14px;height:14px}
-  .cnotes li{font-size:16.5px;line-height:30px}
+  .tb-in{grid-template-columns:repeat(3,minmax(0,1fr));gap:6px 10px}
+  .tb-in b{font-size:14.5px}
+  .tb-date b{font-size:16px}
+  .tb-in span{font-size:10px}
+  .pgrid,.pgrid2,.dgrid,.build{grid-template-columns:minmax(0,1fr)}
+  .panel{padding:14px}
+  .build-side{position:static}
+  .vtabs{gap:0}
+  .vtabs button{padding:8px 7px 6px;font-size:13.5px;gap:4px}
   .modal{padding:16px}
+  table.shop .eff{white-space:normal}
 }
-@media (prefers-reduced-motion:no-preference){ .une,.life,.bilan,.carnet,.modal{animation:rise .35s ease-out both} @keyframes rise{from{transform:translateY(6px)}to{transform:none}} }
+@media (prefers-reduced-motion:no-preference){ .bilan,.modal,.tabpanel{animation:rise .35s ease-out both} @keyframes rise{from{transform:translateY(6px)}to{transform:none}} }
 </style>
 
 <div class="wrap" id="app"></div>
@@ -417,36 +408,52 @@ const PX0={oat:100,monde:100,tracker:80,telecom:15,luxe:600,banque:70,petro:55,a
 // Immobilier : k = loc (locatif), bur (bureaux), rp (résidence principale, à louer ou à acheter). beta = sensibilité au cycle immobilier national.
 // Pour les résidences principales : v = ville, cap = nombre de personnes qu'on y loge confortablement, rent = loyer annuel de marché.
 const BIENS={
-  lille:{n:'T2 à Lille',k:'loc',price:160000,rent:8000,vac:.12,beta:1,rentG:0,d:'Ville étudiante : bon rendement, prix calmes.'},
-  lyon:{n:'T3 à Lyon',k:'loc',price:280000,rent:13200,vac:.09,beta:1.1,rentG:0,d:'Marché solide, rendement moyen.'},
-  paris:{n:'Studio à Paris',k:'loc',price:300000,rent:12000,vac:.04,beta:1.3,rentG:-.003,d:'Loyers encadrés et rendement faible, mais il se loue toujours. Prix très sensibles aux taux.'},
-  bureaux:{n:'Bureaux à Euralille',k:'bur',price:600000,rent:45000,vac:.2,beta:1.2,rentG:-.005,d:'Gros rendement, gros risque de locaux vides.'},
-  studio:{n:'Studio à Lille',k:'rp',v:'lille',cap:1,price:110000,rent:6600,beta:1,rentG:0},
-  t2rp:{n:'T2 à Lille',k:'rp',v:'lille',cap:2,price:160000,rent:9360,beta:1,rentG:0},
-  maison:{n:'Maison à Lille',k:'rp',v:'lille',cap:5,price:300000,rent:14400,beta:1,rentG:0},
-  lyonstudio:{n:'Studio à Lyon',k:'rp',v:'lyon',cap:1,price:140000,rent:7440,beta:1.1,rentG:0},
-  lyont2:{n:'T2 à Lyon',k:'rp',v:'lyon',cap:2,price:220000,rent:10800,beta:1.1,rentG:0},
-  lyonmaison:{n:'Maison près de Lyon',k:'rp',v:'lyon',cap:5,price:420000,rent:18000,beta:1.1,rentG:0},
-  parisstudio:{n:'Studio à Paris',k:'rp',v:'paris',cap:1,price:300000,rent:12000,beta:1.3,rentG:-.003},
-  parist2:{n:'Deux-pièces à Paris',k:'rp',v:'paris',cap:2,price:450000,rent:18000,beta:1.3,rentG:-.003},
-  rpparis:{n:'Appartement familial à Paris',k:'rp',v:'paris',cap:4,price:620000,rent:27600,beta:1.3,rentG:-.003},
+  lille:{n:'T2 à Lille',k:'loc',hide:1,price:160000,rent:8000,vac:.12,beta:1,rentG:0,d:'Ville étudiante : bon rendement, prix calmes.'},
+  lyon:{n:'T3 à Lyon',k:'loc',hide:1,price:280000,rent:13200,vac:.09,beta:1.1,rentG:0,d:'Marché solide, rendement moyen.'},
+  paris:{n:'Studio à Paris',k:'loc',hide:1,price:300000,rent:12000,vac:.04,beta:1.3,rentG:-.003,d:'Loyers encadrés et rendement faible, mais il se loue toujours. Prix très sensibles aux taux.'},
+  bureaux:{n:'Bureaux à Euralille',k:'bur',v:'lille',price:600000,rent:45000,vac:.2,beta:1.2,rentG:-.005,d:'Gros rendement, gros risque de locaux vides.'},
+  studio:{n:'Studio à Lille',k:'rp',v:'lille',cap:1,vac:.1,price:110000,rent:6600,beta:1,rentG:0},
+  t2rp:{n:'T2 à Lille',k:'rp',v:'lille',cap:2,vac:.1,price:160000,rent:9360,beta:1,rentG:0},
+  maison:{n:'Maison à Lille',k:'rp',v:'lille',cap:5,vac:.08,price:300000,rent:14400,beta:1,rentG:0},
+  lyonstudio:{n:'Studio à Lyon',k:'rp',v:'lyon',cap:1,vac:.08,price:140000,rent:7440,beta:1.1,rentG:0},
+  lyont2:{n:'T2 à Lyon',k:'rp',v:'lyon',cap:2,vac:.08,price:220000,rent:10800,beta:1.1,rentG:0},
+  lyonmaison:{n:'Maison près de Lyon',k:'rp',v:'lyon',cap:5,vac:.08,price:420000,rent:18000,beta:1.1,rentG:0},
+  parisstudio:{n:'Studio à Paris',k:'rp',v:'paris',cap:1,vac:.04,price:300000,rent:12000,beta:1.3,rentG:-.003},
+  parist2:{n:'Deux-pièces à Paris',k:'rp',v:'paris',cap:2,vac:.04,price:450000,rent:18000,beta:1.3,rentG:-.003},
+  rpparis:{n:'Appartement familial à Paris',k:'rp',v:'paris',cap:4,vac:.05,price:620000,rent:27600,beta:1.3,rentG:-.003},
+  lyonbureaux:{n:'Bureaux à Lyon Part-Dieu',k:'bur',v:'lyon',price:500000,rent:35000,vac:.18,beta:1.15,rentG:-.005,d:'Quartier d’affaires actif, risque de locaux vides.'},
+  parisbureaux:{n:'Bureaux dans Paris',k:'bur',v:'paris',price:900000,rent:54000,vac:.12,beta:1.3,rentG:-.005,d:'Locataires solides, prix très élevés.'},
 };
 const CITIES={
-  lille:{n:'Lille',sal:1,car:true,t2:'t2rp',d:'Loyers abordables. La voiture est utile.'},
-  lyon:{n:'Lyon',sal:1.08,car:true,t2:'lyont2',d:'Salaires 8 % plus hauts, logement plus cher.'},
-  paris:{n:'Paris',sal:1.2,car:false,t2:'parist2',g:.005,d:'Salaires 20 % plus hauts et carrière plus rapide, mais un logement hors de prix. Pas besoin de voiture.'},
+  lille:{n:'Lille',car:true,t2:'t2rp',d:'Loyers abordables. La voiture reste utile.'},
+  lyon:{n:'Lyon',car:true,t2:'lyont2',d:'Logement un peu plus cher. La voiture reste utile.'},
+  paris:{n:'Paris',car:false,t2:'parist2',g:.005,d:'Logement hors de prix, mais carrière plus rapide. Pas besoin de voiture.'},
 };
-const pname=t=>BIENS[t].n+(BIENS[t].k==='rp'?' (résidence principale)':'');
-const isRP=p=>BIENS[p.type].k==='rp';
+const isRP=p=>p.use?p.use==='rp':BIENS[p.type].k==='rp';
+const pname=(t,use)=>BIENS[t].n+((use||(BIENS[t].k==='rp'?'rp':'loc'))==='rp'?' (résidence principale)':BIENS[t].k==='rp'?' (en location)':'');
+const pnameP=p=>pname(p.type,isRP(p)?'rp':'loc');
 const KIDS=['Jules','Lina','Gabriel','Jade','Louis','Rose','Arthur','Mia','Nathan','Chloé','Paul','Zoé'];
 // Frais annuels des placements (ETF, fonds) ; l'assurance-vie prélève en plus 0,6 % sur les unités de compte.
 const FEES={monde:.002,tracker:.003,oat:.003,or:.004,th1:.008,th2:.008,th3:.008};
-const ARCH={
-  heritier:{n:'L’héritier',d:'Ta grand-mère t’a laissé 150 000 €. Salaire modeste, gros capital de départ. En couple avec Camille.',cash:150000,rev:40000,tx:.20,partner:'Camille',hum:65,rel:60,g:[.015,.005],coef:1,lvl:'Normale'},
-  ingenieure:{n:'L’ingénieure',d:'Seulement 20 000 € de côté, mais un bon salaire qui grimpe vite. Célibataire et ambitieuse.',cash:20000,rev:55000,tx:.25,partner:null,hum:60,rel:0,g:[.025,.008],coef:.66,lvl:'Facile'},
-  infirmier:{n:'L’infirmier',d:'35 000 € et un métier qui a du sens. Salaire modeste et stable, moral solide. En couple avec Léa.',cash:35000,rev:30000,tx:.15,partner:'Léa',hum:75,rel:70,g:[.008,.004],trait:'zen',coef:2.3,lvl:'Difficile'},
-  fondatrice:{n:'La fondatrice',d:'75 000 € pour lancer ta boîte. Revenus en montagnes russes d’une année sur l’autre. Célibataire.',cash:75000,rev:42000,tx:.20,partner:null,hum:65,rel:0,g:[.015,.005],trait:'volatile',coef:1.1,lvl:'Normale'},
-};
+// Profil choisi au départ : salaire (fourchette nette par mois), épargne de départ, ville, couple. Tout le monde a 25 ans.
+const SALAIRES=[
+  {n:'1 500 à 2 000 €',m:1750,tx:.10,g:[.010,.004]},
+  {n:'2 000 à 2 600 €',m:2300,tx:.13,g:[.013,.005]},
+  {n:'2 600 à 3 400 €',m:3000,tx:.16,g:[.016,.006]},
+  {n:'3 400 à 4 500 €',m:3900,tx:.20,g:[.020,.007]},
+  {n:'4 500 à 6 000 €',m:5200,tx:.24,g:[.024,.008]},
+];
+const EPARGNES=[{n:'Presque rien',v:5000,d:'5 000 € sur ton compte'},{n:'Quelques économies',v:25000,d:'25 000 € mis de côté'},{n:'Un héritage',v:120000,d:'120 000 € de ta grand-mère'}];
+const PARTNERS=['Léa','Camille','Hugo','Inès','Sacha','Nora','Jules','Alix'];
+// Profils tout faits (tests et parties rapides).
+const PRESETS={heritier:{city:'lille',sal:2,cap:2,couple:true},ingenieure:{city:'lille',sal:4,cap:1,couple:false},infirmier:{city:'lille',sal:1,cap:1,couple:true},fondatrice:{city:'lille',sal:2,cap:1,couple:false}};
+// Coefficient de score : plus le départ est facile (salaire, épargne, couple), plus il est bas. Référence (×1) : 3 000 €/mois, 25 000 € d’épargne, célibataire.
+// Potentiel = épargne de départ + 60 ans d’épargne annuelle (le salaire s’épargne et se capitalise pendant toute la carrière), étalonné par « npm run balance ».
+const potential=pp=>{const s=SALAIRES[pp.sal];return EPARGNES[pp.cap].v+60*s.m*12*s.tx*(pp.couple?1.15:1);};
+const coefOf=pp=>Math.round(clamp(Math.pow(370600/potential(pp),1.15),.2,5)*100)/100;
+const levelOf=c=>c<.75?'Facile':c<1.35?'Normale':c<2.4?'Difficile':'Très difficile';
+const prof=()=>{const pp=S.p||PRESETS.heritier,s=SALAIRES[pp.sal];return {...pp,rev:s.m*12,tx:s.tx,g:s.g};};
+const profLabel=()=>{const pp=prof();return `${CITIES[pp.city].n} · ${SALAIRES[pp.sal].n} par mois`;};
 const GOALS={
   rp35:{bonus:.2,n:'Propriétaire avant 35 ans',d:`Acheter ta résidence principale au plus tard en ${Y0+10}.`,st:end=>S.flags.rpYear!=null&&S.flags.rpYear<=Y0+10?1:(S.year>Y0+10||end)?-1:0},
   fire:{bonus:.4,n:'Libre à 55 ans',d:`Arrêter de travailler au plus tard en ${Y0+30}, sans jamais manquer d’argent.`,st:end=>S.me.ruined?-1:S.me.retireYear!=null&&S.me.retireYear<=Y0+30?(end?1:0):(S.year>Y0+30||end)?-1:0},
@@ -597,22 +604,24 @@ function themeStage(T,y){
 const thd=T=>T.d||'du secteur '+T.n.toLowerCase(); // « de la robotique »
 const themeOpen=i=>{const st=themeStage(S.th[i],S.year);return !!st&&st!=='rumeur';};
 function newPres(party,avoid){const g=rnd()<.5?'f':'m',nom=pick(NOMS.filter(n=>n!==avoid));return {name:pick(PRENOMS[g])+' '+nom,nom,g,party,desc:pick(PORTRAITS[party])[g==='f'?1:0]};}
-function newGame(arch,goals,guided){
-  arch=ARCH[arch]?arch:'heritier';const A=ARCH[arch];
+function newGame(spec,goals,guided){
+  const key=typeof spec==='string'&&PRESETS[spec]?spec:'perso',pp={...PRESETS.heritier,...(typeof spec==='string'?PRESETS[spec]||{}:spec||{})},sl=SALAIRES[pp.sal],cash=EPARGNES[pp.cap].v;
   const seed=(Date.now()^Math.floor(Math.random()*1e9))|0;
-  S={v:3,rng:seed,phase:'turn',year:Y0,month:'Janvier',cash:A.cash,liv:0,arch,goals:(goals||[]).filter(g=>GOALS[g]).slice(0,2),start:A.cash,ach:{},achNew:[],advRec:{},flair:0,city:'lille',home:{type:'t2rp',own:false,since:Y0},onb:guided?1:null,onbAns:[],buyHist:{},page:null,
+  S={v:3,rng:seed,phase:'turn',year:Y0,month:'Janvier',cash,liv:0,arch:key,p:{city:pp.city,sal:pp.sal,cap:pp.cap,couple:!!pp.couple},coef:coefOf(pp),goals:(goals||[]).filter(g=>GOALS[g]).slice(0,2),start:cash,ach:{},achNew:[],advRec:{},flair:0,city:pp.city,home:{type:'t2rp',own:false,since:Y0},onb:guided?1:null,buyHist:{},page:null,
     acc:{cto:{hold:{},cash:0},pea:{hold:{},cash:0,vers:0,open:null},av:{hold:{},cash:0,vers:0,open:null}},
     px:{...PX0},lastR:{},props:[],fut:{},
     idx:Object.fromEntries(Object.entries(BIENS).map(([k,b])=>[k,{price:b.price,rent:b.rent}])),
-    w:{...W0},wPrev:null,pol:null,th:null,drift:null,gaz:null,
+    w:{...W0},wPrev:null,pol:null,th:null,drift:null,
     lossCarry:0,flags:{},pending:{},jeton:{name:JETONS[0],alive:false,born:0},avAb:{y:0,used:0},
-    revenu:A.rev,tauxEp:A.tx,defl:1,bench:{liv:A.cash,trk:A.cash},yearExt:0,
-    hist:[{x:Y0,net:A.cash,liv:A.cash,trk:A.cash}],bilans:[],event:null,life:null,nextY:null,
+    revenu:sl.m*12,tauxEp:sl.tx,defl:1,bench:{liv:cash,trk:cash},yearExt:0,
+    hist:[{x:Y0,net:cash,liv:cash,trk:cash}],bilans:[],event:null,life:null,nextY:null,
     usedFut:[],usedLife:[],uid:1,log:[],turnShock:{},lock:false,well:{sum:0,n:0},ph:{},pxPrev:null,profile:null,lg:{lines:{},env:{pea:[],av:[]},props:[]},clk:{t:Y0,y:Y0},
-    me:{humeur:A.hum,relation:A.partner?A.rel:0,partner:A.partner,first:A.partner,exes:[],marie:false,enfants:0,ruptures:0,burnouts:0,retireYear:null,gap:0,besoin:0,pension:false,car:true,kids:[]}};
+    me:{humeur:65,relation:pp.couple?60:0,partner:null,first:null,exes:[],marie:false,enfants:0,ruptures:0,burnouts:0,retireYear:null,gap:0,besoin:0,pension:false,car:CITIES[pp.city].car,kids:[]}};
+  if(pp.couple){const n=pick(PARTNERS);S.me.partner=n;S.me.first=n;}
   S.drift={mkt:gauss()*.01};for(const s of STOCKS)S.drift[s]=gauss()*.03;for(const k in BIENS)S.drift['b_'+k]=gauss()*.006;
   S.pol={ir:.128,ps:.172,peaCap:150000,livCap:22950,ageLegal:64,deficit:5,irLoyer:.30,spreadAdj:0,pres:{...newPres('centre'),since:Y0-4}};
   S.th=makeThemes();
+  S.home={type:bestRental(),own:false,since:Y0};
   for(const id in PX0)S.ph[id]=[PX0[id]];
   startTurn(Y0);
 }
@@ -763,7 +772,7 @@ function raiseCash(ctx){
       if(envYears('pea')>=5){id=EQUITY.find(k=>ev('pea',k)>0.5);if(id){sellIn('pea',id,Math.min(ev('pea',id),need));continue;}}
       else{add(withdraw('pea',0));ctx.peaClosed=true;continue;}
     }
-    if(S.props.length){const p=S.props[0];const c=sellProp(p.uid,propValue(p)*.85,ctx.y||S.year,'Vente forcée');ctx.props.push(`${pname(p.type)} vendu d’office avec 15 % de décote (${fmt(c.net)} net).`);continue;}
+    if(S.props.length){const p=S.props[0];const c=sellProp(p.uid,propValue(p)*.85,ctx.y||S.year,'Vente forcée');ctx.props.push(`${pnameP(p)} vendu d’office avec 15 % de décote (${fmt(c.net)} net).`);continue;}
     break;
   }
   if(S.cash<-1){
@@ -806,30 +815,32 @@ function effort(extraAnn,extraRent){
   return ann/(foyerRev()+0.7*rents);
 }
 // Prêt à taux zéro : premier achat de résidence principale, revenus du foyer sous 60 000 € (en euros de 2026). Il finance 20 % du prix.
-const ptzOk=type=>BIENS[type].k==='rp'&&!S.flags.ownedRP&&foyerRev()<=60000*S.defl;
+const ptzOk=(type,use)=>(use||(BIENS[type].k==='rp'?'rp':'loc'))==='rp'&&BIENS[type].k==='rp'&&!S.flags.ownedRP&&foyerRev()<=60000*S.defl;
 const DURS=[15,20,25];
-function propQuote(type,n=20){
+function propQuote(type,n=20,use){
   if(!DURS.includes(n))n=20;
+  use=use||(BIENS[type].k==='rp'?'rp':'loc');
   // Avec un PTZ, la banque se contente d'un apport de 10 % + frais de notaire ; sinon 20 % + frais.
-  const ix=S.idx[type],price=ix.price,frais=price*0.075,z=ptzOk(type)?price*.2:0,ap=z?.1:.2,L=price*(1-ap),r=(curCredit()+(n>=25?.2:n<=15?-.15:0))/100;
+  const ix=S.idx[type],price=ix.price,frais=price*0.075,z=ptzOk(type,use)?price*.2:0,ap=z?.1:.2,L=price*(1-ap),r=(curCredit()+(n>=25?.2:n<=15?-.15:0))/100;
   const annM=annuity(L-z,r,n),annZ=z?z/n:0,ann=annM+annZ;
-  return {price,frais,cashNeed:price+frais,apport:price*ap+frais,ap,L,z,r,n,ann,annM,annZ,rent:ix.rent,eff:effort(ann,BIENS[type].k==='rp'?0:ix.rent)};
+  return {price,frais,cashNeed:price+frais,apport:price*ap+frais,ap,L,z,r,n,ann,annM,annZ,use,rent:ix.rent,eff:effort(ann,use==='rp'?0:ix.rent)};
 }
 // La plus courte durée qui passe sous les 35 % de taux d'effort.
-function bestDur(type){for(const n of DURS)if(propQuote(type,n).eff<=.35)return n;return 25;}
-function buyProp(type,mode,n=20){
+function bestDur(type,use){for(const n of DURS)if(propQuote(type,n,use).eff<=.35)return n;return 25;}
+function buyProp(type,mode,n=20,use){
   if(!BIENS[type])return 'Bien inconnu.';
+  use=BIENS[type].k==='bur'?'loc':use||(BIENS[type].k==='rp'?'rp':'loc');
   if(retired(S.year)&&mode==='credit')return 'À la retraite, ta banque ne te prête plus sur 20 ans.';
-  const rp=BIENS[type].k==='rp';
+  const rp=use==='rp';
   if(rp&&S.props.some(isRP))return 'Tu as déjà une résidence principale.';
-  const q=propQuote(type,n);
+  const q=propQuote(type,n,use);
   if(mode==='cash'){
     if(S.cash<q.cashNeed)return `Il faut ${fmt(q.cashNeed)} sur ton compte courant (prix + frais de notaire). Tu as ${fmt(S.cash)}.`;
-    S.cash-=q.cashNeed;S.props.push({uid:S.uid++,type,buyYear:S.year,cost:q.cashNeed,loan:null,rentMult:1,vacantUntil:0,noRent:0,mode:'comptant',flows:[{t:S.clk.t,y:S.clk.y,a:-q.cashNeed}]});
+    S.cash-=q.cashNeed;S.props.push({uid:S.uid++,type,use,buyYear:S.year,cost:q.cashNeed,loan:null,rentMult:1,vacantUntil:0,noRent:0,mode:'comptant',flows:[{t:S.clk.t,y:S.clk.y,a:-q.cashNeed}]});
   }else{
     if(S.cash<q.apport)return `Apport insuffisant : il faut ${fmt(q.apport)} (${pc0(q.ap)} + frais de notaire) sur ton compte courant. Tu as ${fmt(S.cash)}.`;
     if(q.eff>0.35)return `Ta banque refuse : taux d’effort de ${f1(q.eff*100)} % pour un maximum de 35 %.`;
-    S.cash-=q.apport;S.props.push({uid:S.uid++,type,buyYear:S.year,cost:q.cashNeed,loan:{p:q.L-q.z,r:q.r,n:q.n,ann:q.annM,z:q.z?{p:q.z,ann:q.annZ}:null},rentMult:1,vacantUntil:0,noRent:0,mode:`crédit ${q.n} ans${q.z?' + PTZ':''}`,flows:[{t:S.clk.t,y:S.clk.y,a:-q.apport}]});
+    S.cash-=q.apport;S.props.push({uid:S.uid++,type,use,buyYear:S.year,cost:q.cashNeed,loan:{p:q.L-q.z,r:q.r,n:q.n,ann:q.annM,z:q.z?{p:q.z,ann:q.annZ}:null},rentMult:1,vacantUntil:0,noRent:0,mode:`crédit ${q.n} ans${q.z?' + PTZ':''}`,flows:[{t:S.clk.t,y:S.clk.y,a:-q.apport}]});
   }
   if(rp){S.home={type,own:true,since:S.year};S.flags.ownedRP=true;if(S.flags.rpYear==null)S.flags.rpYear=S.year;if(age(S.year)<30)unlock('proprio');}
   if(S.props.filter(p=>!isRP(p)).length>=2)S.flags.twoRent=true;
@@ -851,7 +862,7 @@ function sellProp(uid,gross,y,how){
   const i=S.props.findIndex(p=>p.uid===uid);if(i<0)return null;
   const p=S.props[i];const c=propSaleCalc(p,gross??propValue(p)*0.95,y??S.year);
   S.cash+=c.net;S.props.splice(i,1);lgProp(p,c.net);
-  if(S.lg)S.lg.props.push({type:p.type,mode:p.mode||'',buyYear:p.buyYear,sellYear:S.clk.y,how:how||'Vente',flows:p.flows||[]});
+  if(S.lg)S.lg.props.push({type:p.type,use:isRP(p)?'rp':'loc',mode:p.mode||'',buyYear:p.buyYear,sellYear:S.clk.y,how:how||'Vente',flows:p.flows||[]});
   if(isRP(p))S.home={type:bestRental(),own:false,since:S.year}; // on redevient locataire
   return c;
 }
@@ -874,7 +885,7 @@ function bestRental(){
 function bestBuy(){
   const rp=rpOf(),avail=Math.max(0,S.cash)+S.liv+(rp?Math.max(0,propSaleCalc(rp,propValue(rp)*.95,S.year).net):0);
   const c=cityRP().filter(k=>BIENS[k].cap>=Math.min(need(),5)&&(!rp||k!==rp.type)).sort((a,b)=>S.idx[a].price-S.idx[b].price);
-  const all=c.map(type=>{const n=bestDur(type),q=propQuote(type,n);return {type,n,q,ok:q.eff<=.35&&avail>=q.apport};});
+  const all=c.map(type=>{const n=bestDur(type,'rp'),q=propQuote(type,n,'rp');return {type,n,q,ok:q.eff<=.35&&avail>=q.apport};});
   return all.find(x=>x.ok)||all[0]||null;
 }
 const moveCost=()=>Math.round(1500*S.defl/10)*10;
@@ -888,11 +899,11 @@ function moveTo(type,free){
 }
 // Achète une résidence principale en vendant l'ancienne et en complétant l'apport avec le Livret A si besoin.
 function buyHome(type,n){
-  const rp=rpOf(),probe=dry(()=>{if(rp)sellProp(rp.uid);const q=propQuote(type,n);if(S.cash<q.apport&&S.liv>0)livOut(Math.min(S.liv,q.apport-S.cash));return buyProp(type,'credit',n);});
+  const rp=rpOf(),probe=dry(()=>{if(rp)sellProp(rp.uid);const q=propQuote(type,n,'rp');if(S.cash<q.apport&&S.liv>0)livOut(Math.min(S.liv,q.apport-S.cash));return buyProp(type,'credit',n,'rp');});
   if(probe)return probe;
   if(rp)sellProp(rp.uid,undefined,undefined,'Vente pour déménager');
-  const q=propQuote(type,n);if(S.cash<q.apport&&S.liv>0)livOut(Math.min(S.liv,q.apport-S.cash));
-  return buyProp(type,'credit',n);
+  const q=propQuote(type,n,'rp');if(S.cash<q.apport&&S.liv>0)livOut(Math.min(S.liv,q.apport-S.cash));
+  return buyProp(type,'credit',n,'rp');
 }
 
 /* ===================== CHOCS ===================== */
@@ -988,7 +999,7 @@ function fwdScore(a){
   return clamp((r-rt)/.12,-1,1);
 }
 function makeFiche(a,s){
-  const pg=clamp(.5+.4*s,.08,.92),u=(lo,hi)=>lo+rnd()*(hi-lo),sg=x=>(x>=0?'+':'−')+f1(Math.abs(x))+' %';
+  const pg=clamp(.5+.4*s,.08,.92),u=(lo,hi)=>lo+rnd()*(hi-lo),sg=x=>{const v=f1(Math.abs(x));return (v==='0,0'?'':x>=0?'+':'−')+v+' %';};
   const rows=[],m=(k,good,bad,r)=>rows.push({k,v:rnd()<pg?good():bad(),r});
   if(THEMES.includes(a)){
     m('Clients qui renouvellent',()=>Math.round(u(82,96))+' %',()=>Math.round(u(45,72))+' %','> 80 %');
@@ -1199,7 +1210,7 @@ const EVT={
       if(c==='eur'){const e=buyIn('av','euros',amt);if(e)return {err:e};return {msg:'Héritage placé sur le fonds euros de ton assurance-vie.'};}
       const room=peaCap()-S.acc.pea.vers,inPea=Math.min(amt,Math.max(0,Math.floor(room)));if(inPea>0)buyIn('pea','monde',inPea);if(amt-inPea>0)buyIn('cto','monde',amt-inPea);
       return {msg:`Héritage placé sur l’ETF Monde${inPea>0?` (${fmt(inPea)} en PEA)`:''}.`};}},
-  impaye:{w:()=>S.props.some(p=>BIENS[p.type].k==='loc')?1:0,make(){const p=pick(S.props.filter(p=>BIENS[p.type].k==='loc'));return {uid:p.uid,cost:Math.round(3000*S.defl)};},
+  impaye:{w:()=>S.props.some(p=>!isRP(p)&&BIENS[p.type].k!=='bur')?1:0,make(){const p=pick(S.props.filter(p=>!isRP(p)&&BIENS[p.type].k!=='bur'));return {uid:p.uid,cost:Math.round(3000*S.defl)};},
     view:p=>({kicker:'Ton locataire',title:'Ton locataire ne paie plus depuis trois mois',body:'Il ne répond plus aux relances. La procédure d’expulsion peut prendre des mois.',
       choices:[{id:'proc',label:'Lancer une procédure',desc:`Avocat et commissaire de justice : ${fmt(p.cost)}, loyers récupérés`},{id:'vendre',label:'Vendre le bien occupé',desc:'Décote de 20 %'},{id:'attendre',label:'Attendre',desc:'Aucun loyer cette année'}]}),
     act(c,p){const pr=S.props.find(x=>x.uid===p.uid);if(!pr)return {msg:'Le bien n’est plus à toi.'};
@@ -1369,19 +1380,19 @@ function imprevu(y){
 function conseils(){
   const w=S.w,P0=S.wPrev,y=S.year,a=alloc(),T=finT(a),eqs=eqShare(),out=[],add=(t,btn)=>out.push({t,btn});
   const crash=S.event&&EVT[S.event.id].crash,risk=crisisRisk(w),cs=coussin();
-  if(crash)add('Krach : la Bourse remonte en général avant l’économie, souvent dès l’année suivante. Vendre maintenant fige la perte.',isIdle()&&S.profile!=null?{act:'place',label:'Placer l’argent qui dort'}:null);
+  if(crash)add('Krach : la Bourse remonte en général avant l’économie, souvent dès l’année suivante. Vendre maintenant fige la perte.',{act:'view',view:'portefeuille',label:'Voir mon portefeuille'});
   if(cs<3&&!retired(y))add(`Ton coussin de sécurité ne couvre que ${f1(cs)} mois de dépenses. Vise 3 à 6 mois sur le Livret A avant d’investir : un pépin ne t’obligera pas à vendre au mauvais moment.`,{act:'tip-tab',tab:'liv',label:'Aller au Livret A'});
   if(isIdle()&&!S.lock&&cs>=3){const idle=idleAmt();add(`${fmt(idle)} dorment sans rien rapporter.${w.infl>2?` Avec ${f1(w.infl)} % d’inflation, ils perdent environ ${fmt(idle*w.infl/100)} par an.`:''}`,
-    S.profile!=null?{act:'place',label:`Placer selon mon profil (${pc0(S.profile)} actions)`}:{act:'tip-prof',p:.5,label:'Choisir un profil équilibré'});}
-  if(homeCap()<need())add(`À ${need()} dans ${homeName().toLowerCase()}, on se marche dessus : l’humeur et le couple en pâtissent chaque année.`,{act:'tip-home',label:'Voir les logements'});
+    {act:'view',view:'portefeuille',label:'Voir où investir'});}
+  if(homeCap()<need())add(`À ${need()} dans ${homeName().toLowerCase()}, on se marche dessus : l’humeur et le couple en pâtissent chaque année.`,{act:'view',view:'immo',label:'Voir les logements'});
   if(!crash&&risk>=.1&&eqs>.65&&T>10000){const why=[w.r10<w.rate?'courbe des taux inversée':'',w.cg>4?'crédit trop gonflé':'',w.pe>22?'Bourse chère':'',w.phase==='surchauffe'?'économie en surchauffe':''].filter(Boolean).join(', ');
-    add(`Plusieurs voyants sont à l’orange (${why}) : une forte baisse devient plus probable. Avec ${pc0(eqs)} d’actions, une chute de 35 % te coûterait environ ${fmt(.35*a.eq)}. Si ça t’empêche de dormir, allège.`,{act:'tip-prof',p:.5,label:'Voir les ordres pour 50 % d’actions'});}
-  if(w.pe<11&&eqs<.7&&T>5000)add(`La Bourse est bradée (${f1(w.pe)} fois les bénéfices, contre 15 en moyenne). Acheter bon marché paie souvent sur dix ans.`,{act:'tip-prof',p:.8,label:'Voir les ordres pour 80 % d’actions'});
+    add(`Plusieurs voyants sont à l’orange (${why}) : une forte baisse devient plus probable. Avec ${pc0(eqs)} d’actions, une chute de 35 % te coûterait environ ${fmt(.35*a.eq)}. Si ça t’empêche de dormir, allège.`,{act:'view',view:'portefeuille',label:'Voir mon portefeuille'});}
+  if(w.pe<11&&eqs<.7&&T>5000)add(`La Bourse est bradée (${f1(w.pe)} fois les bénéfices, contre 15 en moyenne). Acheter bon marché paie souvent sur dix ans.`,{act:'view',view:'portefeuille',label:'Voir où investir'});
   const rn=S.props.find(canReneg);
   if(rn)add(`Les taux ont baissé : renégocier ton crédit à ${rate(curCredit())} ferait baisser tes mensualités (frais : ${fmt(rn.loan.p*.01)}).`,{act:'reneg',u:rn.uid,label:'Renégocier'});
   if(S.acc.pea.open==null&&y<=YN-5&&!retired(y)&&cs>=3)add('Ton PEA n’est pas ouvert. Ses 5 ans avant l’exonération ne démarrent qu’au premier versement : ouvre-le tôt, même avec un petit montant.',{act:'tip-tab',tab:'pea',label:'Aller au PEA'});
   if(P0&&w.rate-P0.rate>=.75&&hv('oat')>500)add('La BCE monte ses taux : tes fonds OAT perdent de la valeur quand les taux grimpent. Le Livret A et le fonds euros, eux, vont mieux rapporter.',null);
-  if(w.credit<2.5&&!rpOf()&&!retired(y)&&age(y)<55)add(`Le crédit ne coûte que ${rate(w.credit)} : c’est quand les taux sont bas qu’acheter sa résidence principale coûte le moins cher en intérêts.`,{act:'tip-home',label:'Voir les logements'});
+  if(w.credit<2.5&&!rpOf()&&!retired(y)&&age(y)<55)add(`Le crédit ne coûte que ${rate(w.credit)} : c’est quand les taux sont bas qu’acheter sa résidence principale coûte le moins cher en intérêts.`,{act:'view',view:'immo',label:'Voir les logements'});
   for(const id of [...STOCKS,...THEMES,'jeton','or']){const v=hv(id);if(T>5000&&v>.25*T){add(`${nm(id)} pèse ${pc0(v/T)} de ton épargne. Une seule mauvaise nouvelle et c’est tout ton patrimoine qui trinque.`,null);break;}}
   S.th.forEach((Th,i)=>{if(themeStage(Th,y)==='bulle'&&hv(THEMES[i])>500)add(`Le ${Th.f} s’envole. Les bulles finissent par éclater, personne ne sait quand : encaisser une partie des gains limite la casse.`,null);});
   if(w.infl>3.5&&a.safe>.5*Math.max(1,T))add(`Avec ${f1(w.infl)} % d’inflation, l’argent garanti (Livret A, fonds euros) rapporte moins que la hausse des prix.`,null);
@@ -1431,25 +1442,14 @@ function acheter(id){
   save();return null;
 }
 // ----- accueil : les 5 étapes du premier janvier -----
-const ONB=['Ta situation','Ton logement','Ton épargne de sécurité','Ton profil','Ton premier portefeuille'];
-const ONBQ=[
-  {q:'Ton placement perd 30 % en un mois. Tu fais quoi ?',a:['Je vends tout, je ne supporte pas','J’attends que ça remonte','J’en rachète, c’est les soldes']},
-  {q:'Tu auras besoin de cet argent dans…',a:['Moins de 5 ans','5 à 15 ans','Plus de 15 ans']},
-  {q:'Tu choisis lequel ?',a:['2 % par an, garanti','6 % par an en moyenne, parfois −20 %','9 % par an en moyenne, parfois −40 %']},
-];
-function onbCity(c){
-  if(!CITIES[c]||S.year!==Y0)return 'Ville inconnue.';
-  S.city=c;S.revenu=(ARCH[S.arch]||ARCH.heritier).rev*CITIES[c].sal;S.me.car=CITIES[c].car;S.home={type:bestRental(),own:false,since:Y0};
-  return null;
-}
 function homeOptions(){
   const out=[],ep=epargneYear()+refRent()+carRef()-carCost(),cash=Math.max(0,S.cash)+S.liv;
-  const add=o=>{o.reste=(ep-o.cost)/12;out.push(o);};
+  const add=o=>{o.reste=(ep-o.cost)/12;if(o.ok&&!o.warn&&o.reste<0)o.warn='Ton budget serait dans le rouge chaque mois.';out.push(o);};
   if(age(S.year)<30)add({kind:'rent',type:'parents',n:P()?`Chez les parents de ${P()}`:'Rester chez tes parents',d:'Le temps de mettre de côté.',cost:0,ok:true,warn:P()?'Le couple en souffre chaque année.':'Ton humeur en pâtit un peu.'});
   if(!P())add({kind:'rent',type:'coloc',n:'Colocation',d:'Une chambre, une cuisine partagée.',cost:COLOC*S.defl,ok:true});
   for(const t of cityRP()){const B=BIENS[t],small=B.cap<need();
     add({kind:'rent',type:t,n:`Louer : ${B.n}`,d:'Sans apport, tu restes libre.',cost:S.idx[t].rent,ok:canRent(t),why:canRent(t)?'':`Le propriétaire veut des revenus d’au moins ${fmt(3*S.idx[t].rent/12)} par mois.`,warn:small?'Trop petit pour vous.':''});
-    const n=bestDur(t),q=propQuote(t,n),ok=q.eff<=.35&&cash>=q.apport;
+    const n=bestDur(t),q=propQuote(t,n,'rp'),ok=q.eff<=.35&&cash>=q.apport;
     add({kind:'buy',type:t,n:`Acheter : ${B.n}`,d:`Crédit sur ${n} ans${q.z?' avec un prêt à taux zéro':''}.`,cost:S.idx[t].rent*.15+q.ann,q,dur:n,ok,left:cash-q.apport,
       why:cash<q.apport?`Il te manque ${fmt(q.apport-cash)} d’apport.`:q.eff>.35?`Taux d’effort de ${f1(q.eff*100)} % : la banque refuse au-delà de 35 %.`:'',warn:small?'Trop petit pour vous.':''});
   }
@@ -1463,7 +1463,7 @@ function recoHome(opts){
   if(rent&&rent.reste>=150*S.defl)return rent;
   return opts.find(o=>o.type==='parents')||opts.find(o=>o.type==='coloc')||rent||opts[0];
 }
-const un=t=>{const n=BIENS[t].n;return (/^Maison/.test(n)?'une ':'un ')+n.charAt(0).toLowerCase()+n.slice(1).replace(/^t(\d)/,'T$1');};
+const un=t=>{const n=BIENS[t].n;return (/^Maison/.test(n)?'une ':'un ')+(n.charAt(0).toLowerCase()+n.slice(1)).replace(/^t(\d)/,'T$1');};
 function sophieHome(o){
   if(!o)return '';
   if(o.kind==='buy')return `« Avec ${fmt(o.q.apport)} d’apport${o.q.z?' et un prêt à taux zéro':''}, acheter te coûte ${fmt(o.cost/12)} par mois, charges comprises. Chaque mensualité t’enrichit. Garde quand même ${fmt(Math.max(0,o.left))} de côté pour les coups durs. »`;
@@ -1484,14 +1484,7 @@ function onbHome(i){
   else{S.home={type:o.type,own:false,since:Y0};}
   S.onbHome=o.n;return null;
 }
-function onbCushion(m){const amt=Math.floor(Math.min(Math.max(0,S.cash),m*monthlySpend(),livretCap()-S.liv));if(amt>=1)return livIn(amt);return null;}
-const onbProfile=ans=>{const s=ans.reduce((a,x)=>a+(x||0),0);return s<=2?.2:s<=4?.5:.8;};
-function onbPlan(p){return dry(()=>{const ops=[];placeIdle(p,ops);return ops;});}
-function onbNext(){
-  if(!S.onb)return;
-  if(S.onb===5){if(S.profile!=null)placeIdle(S.profile,[]);S.onb=null;S.page.notes=makeNotes(S.year,S.page.head,null);save();return;}
-  S.onb++;save();
-}
+function onbNext(){if(!S.onb)return;S.onb=null;S.page.notes=makeNotes(S.year,S.page.head,null);save();}
 
 /* ===================== TOURS ===================== */
 const finLiquid=()=>Math.max(0,S.cash)+S.liv+envTotal('cto')+envTotal('pea')+envTotal('av');
@@ -1502,7 +1495,7 @@ function pickLife(crash){
   if(y>=Y0+37&&S.me.retireYear==null)return 'retraite';
   if(S.me.retireYear==null&&y>=Y0+18&&y<Y0+37&&(!S.flags.fireAsked||y-S.flags.fireAsked>=5)&&finLiquid()>=30*S.revenu*.5){S.flags.fireAsked=y;return 'fire';}
   if(crash){if(S.me.humeur<35)return 'panique';if(P()&&rnd()<.7)return 'weekend';}
-  if(['crise','recession'].includes(f.phase)&&!retired(y)&&S.arch!=='fondatrice'&&y-(S.me.chomY||0)>5&&rnd()<(f.phase==='crise'?.15:.07))return 'licenciement';
+  if(['crise','recession'].includes(f.phase)&&!retired(y)&&y-(S.me.chomY||0)>5&&rnd()<(f.phase==='crise'?.15:.07))return 'licenciement';
   if(y===Y0)return null;
   // logement : chez les parents à 30 ans, ou trop petit depuis un an (au plus tous les deux ans)
   if(!retired(y)&&S.home){
@@ -1523,7 +1516,7 @@ function startTurn(y){
   const f=S.fut[y];
   S.shockEur=0;
   // Augmentation négociée en janvier : 80 % de l'inflation de l'an dernier + carrière + climat de l'emploi (gel en récession et en crise).
-  if(y>Y0&&!retired(y)){const A=ARCH[S.arch]||ARCH.heritier,adj={expansion:.004,surchauffe:.012,recession:-.012,crise:-.025,reprise:0}[S.w.phase];
+  if(y>Y0&&!retired(y)){const A=prof(),adj={expansion:.004,surchauffe:.012,recession:-.012,crise:-.025,reprise:0}[S.w.phase];
     S.me.raise=Math.max(0,.8*S.w.infl/100+(age(y)<45?A.g[0]+(cityOf().g||0):A.g[1])+adj);S.revenu*=1+S.me.raise;}else S.me.raise=null;
   THEMES.forEach((id,i)=>{if(themeStage(S.th[i],y)==='lancement'){S.px[id]=100;S.ph[id]=[100];if(S.pxPrev)S.pxPrev[id]=null;}});
   const id=pickEvent(y,f);let d=null;
@@ -1634,7 +1627,7 @@ function simulateYear(y){
   const ref=refRent(),cref=carRef(),hc=homeCost(),cc=carCost();let rpFlow=0; // budget calculé avec les loyers de l'année
   for(const p of S.props){
     const B=BIENS[p.type],ix=S.idx[p.type];let months=12;
-    if(B.k==='rp'){
+    if(isRP(p)){
       const {ann}=payLoan(p);
       const saved=ix.rent,ch=ix.rent*.15;S.cash+=saved-ch-ann;lgProp(p,saved-ch-ann);rpFlow+=saved-ch-ann;
       b.flows.rp+=saved;b.flows.charges+=ch;b.flows.credit+=ann;
@@ -1642,14 +1635,14 @@ function simulateYear(y){
       b.props.push({uid:p.uid,vs:ix.price});continue;
     }
     if(p.vacantUntil>=y||p.noRent===y)months=0;
-    else if(rnd()<B.vac)months=12-(B.k==='loc'?1+Math.floor(rnd()*5):3+Math.floor(rnd()*10));
+    else if(rnd()<(B.vac||.1))months=12-(B.k!=='bur'?1+Math.floor(rnd()*5):3+Math.floor(rnd()*10));
     months=Math.max(0,months);
-    const rent=ix.rent*p.rentMult*months/12,charges=ix.rent*(B.k==='loc'?.22:.12);
+    const rent=ix.rent*p.rentMult*months/12,charges=ix.rent*(B.k!=='bur'?.22:.12);
     const {ann,it:interest}=payLoan(p);
     const tax=Math.max(0,rent-charges-interest)*(S.pol.irLoyer+psRate());
     S.cash+=rent-charges-ann-tax;lgProp(p,rent-charges-ann-tax);
     b.flows.loyers+=rent;b.flows.charges+=charges;b.flows.credit+=ann;b.flows.impots+=tax;
-    if(months<12)b.notes.push(months===0?`${B.n} : aucun loyer encaissé cette année.`:`${B.n} : ${12-months} mois de vacance locative.`);
+    if(months<12)b.notes.push(months===0?`${B.n} (en location) : aucun loyer encaissé cette année.`:`${B.n} : ${12-months} mois de vacance locative.`);
     if(p.loan&&p.loan.n===0&&ann>0)b.notes.push(`${B.n} : dernier remboursement, le crédit est soldé.`);
     b.props.push({uid:p.uid,vs:ix.price});
   }
@@ -1662,7 +1655,7 @@ function simulateYear(y){
     if(S.me.early&&age(y)>=S.pol.ageLegal&&!S.me.pension62){S.me.pension62=true;S.me.besoin*=.5;b.notes.push(`Tu as ${age(y)} ans : ta pension arrive. Tu puises désormais ${fmt(S.me.besoin)} par an.`);}
     const v=-S.me.besoin+ref+cref;ext(v);b.flows.retraite=v;
   }else{
-    let ep=epargneYear();if(S.arch==='fondatrice'){const fx=Math.max(0,1+gauss()*.7+(f.phase==='crise'?-.4:f.phase==='recession'?-.2:0));ep*=fx;if(fx<.4)b.notes.push('Mauvaise année pour ta boîte : tu épargnes presque rien.');else if(fx>1.7)b.notes.push('Année record pour ta boîte : ton épargne explose.');}
+    const ep=epargneYear();
     ext(ep+ref+cref);b.flows.epargne=ep+ref+cref;
     if(humeurMult()<1&&ep>0)b.notes.push('Moral en berne : dépenses compulsives, ton épargne de l’année baisse de 30 %.');
   }
@@ -1686,7 +1679,7 @@ function simulateYear(y){
   b.netEnd=net();b.infl=mac.infl;b.livret=mac.livret;b.cashEnd=S.cash;b.phase=f.phase;
   let dh=0,dr=0;
   if(P()){dh+=S.me.relation>=60?3:S.me.relation<30?-3:0;dr-=S.me.marie?1:2;}else dh-=2;
-  if(S.me.enfants)dh+=1;if(ret)dh+=2;if((ARCH[S.arch]||{}).trait==='zen')dh+=1;
+  if(S.me.enfants)dh+=1;if(ret)dh+=2;
   if(!ret){
     if(S.home.type==='parents'){dh-=3;dr-=8;}
     if(homeCap()<need()){dh-=3;dr-=5;S.flags.small=(S.flags.small||0)+1;b.notes.push(`${homeName()} est trop petit pour ${need()} : on se marche dessus.`);}else S.flags.small=0;
@@ -1723,7 +1716,7 @@ function finalScore(){
   const real=net()/S.defl,be=S.well.n?S.well.sum/S.well.n:50,mult=.4+1.2*be/100;
   const ref=S.bench.trk,nn=net(),mt=ref<1000?(nn>1000?2:0):nn>=ref*1.05?2:nn>=ref*.75?1:0,lt=be>=62?2:be>=48?1:0;
   const T=[['Naufragé de la Corbeille','Épargnant à la traîne','Cigale heureuse'],['Bourreau de travail','Épargnant équilibré','Sage de la Corbeille'],['Loup de la Corbeille','Investisseur avisé','Légende de la Corbeille']];
-  const gl=(S.goals||[]).map(g=>({g,st:GOALS[g].st(true)})),gm=1+gl.filter(x=>x.st===1).reduce((a,x)=>a+GOALS[x.g].bonus,0),coef=(ARCH[S.arch]||ARCH.heritier).coef;
+  const gl=(S.goals||[]).map(g=>({g,st:GOALS[g].st(true)})),gm=1+gl.filter(x=>x.st===1).reduce((a,x)=>a+GOALS[x.g].bonus,0),coef=S.coef||1;
   return {real,be,mult,gm,gl,coef,score:Math.round(real/1000*mult*gm*coef),title:S.flags.faillite?'Faillite personnelle':T[mt][lt],mt,lt};
 }
 
@@ -1742,7 +1735,7 @@ function legacyGame(){
 function dropLegacy(){try{localStorage.removeItem(OLDKEY);}catch(e){}}
 
 /* ===================== INTERFACE ===================== */
-const U={setup:{arch:'heritier',goals:['rp35','serein']},anim:null,animTok:0,copied:null,invOpen:false,plan:null,allocMsg:null,tab:'pea',open:null,msg:{},amt:{},wd:{},evAmt:'',evAsset:null,evEnv:null,evErr:'',confirmReset:false,confirmSell:null,confirmClose:false,deskErr:'',envMsg:{},legacy:null,classeur:false,dur:20,lifeErr:'',achErr:'',homeMsg:null,onbErr:'',scroll:null};
+const U={setup:{city:'lille',sal:2,cap:1,couple:false,goals:['rp35','serein']},view:'profil',city:null,dossier:null,dosMsg:null,anim:null,animTok:0,copied:null,invOpen:false,plan:null,allocMsg:null,tab:'pea',open:null,msg:{},amt:{},wd:{},evAmt:'',evAsset:null,evEnv:null,evErr:'',confirmReset:false,confirmSell:null,confirmClose:false,deskErr:'',envMsg:{},legacy:null,dur:null,lifeErr:'',achErr:'',homeMsg:null,onbErr:'',scroll:null};
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const TICKS=[Y0,Y0+10,Y0+20,Y0+30,Y0+40,YN];
 
@@ -1750,67 +1743,48 @@ function header(){
   const reset=S?`<button class="ghost ${U.confirmReset?'danger':''}" data-act="reset">${U.confirmReset?'Confirmer : tout effacer':'Nouvelle partie'}</button>`:'';
   return `<header class="mast"><div><h1 class="logo">La <i>Corbeille</i></h1><span class="tag">Gestion de patrimoine · ${Y0} → ${YN}</span></div>${reset}</header>`;
 }
-function statusBar(){
-  if(!S)return '';
-  const n=net(),d=n/(S.start||100000)-1;
-  const date=S.phase==='bilan'?`31 déc. ${S.bilans[S.bilans.length-1].y}`:S.phase==='end'?`31 déc. ${YN}`:`${S.month} ${S.year}`;
-  const x=S.phase==='bilan'?S.bilans[S.bilans.length-1].y+1:S.phase==='end'?YN+1:S.year;
-  const g=(lbl,v)=>v==null?`<div class="gauge"><div class="top"><span>Couple</span><span class="mut">seul·e</span></div><div class="bar-g"></div></div>`:`<div class="gauge ${v<30?'low':''}"><div class="top"><span>${lbl}</span><span class="num">${Math.round(v)}</span></div><div class="bar-g"><i style="width:${v}%"></i></div></div>`;
-  const who=[`${age(Math.min(x,YN))} ans`,P()?(S.me.marie?`marié·e à ${P()}`:`en couple avec ${P()}`):'célibataire',S.me.enfants?`${S.me.enfants} enfant${S.me.enfants>1?'s':''}`:'',retired(Math.min(x,YN))?'retraité·e':''].filter(Boolean).join(' · ');
-  const ec=envCash();
-  return `<section class="status" aria-label="Situation">
-    <div class="date"><span class="lbl">Date</span><strong>${date}</strong><small class="mut who">${who}</small></div>
-    <div><span class="lbl">Patrimoine net</span><strong>${fmt(n)}</strong><small class="${cls(d)}">${pct(d)} depuis ${Y0} · ${fmt(n/S.defl)} en € de ${Y0}</small></div>
-    <div><span class="lbl">Compte courant</span><strong>${fmt(S.cash)}</strong><small class="mut">${ec>0.5?`+ ${fmt(ec)} en attente dans tes enveloppes`:'disponible pour investir'}</small></div>
-    <div><span class="lbl">Moral</span><div class="gauges">${g('Humeur',S.me.humeur)}${g('Couple',P()?S.me.relation:null)}</div></div>
-  </section>
-  ${S.goals&&S.goals.length?`<div class="goals" aria-label="Tes objectifs">${S.goals.map(g=>{const st=GOALS[g].st(S.phase==='end');return `<span class="goal ${st>0?'ok':st<0?'ko':''}" title="${GOALS[g].d}">${st>0?'✓ ':st<0?'✗ ':''}${GOALS[g].n}${st>0?' · atteint':st<0?' · raté':''}</span>`;}).join('')}</div>`:''}
-  <div class="timeline" aria-hidden="true"><div class="track"></div><div class="fill" style="width:${clamp((x-Y0)/(YN-Y0+1)*100,0,100)}%"></div>${TICKS.map(t=>`<span style="left:${(t-Y0)/(YN-Y0+1)*100}%">${t}</span>`).join('')}</div>`;
-}
 // ----- petits dessins (traits simples, couleur du texte) -----
 const SW='fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"';
-const mouth=(m,x,y)=>m>0?`<path d="M${x-4} ${y}c2 1.6 6 1.6 8 0" ${SW}/>`:m<0?`<path d="M${x-4} ${y+1.5}c2-1.6 6-1.6 8 0" ${SW}/>`:`<path d="M${x-3.5} ${y+.8}h7" ${SW}/>`;
-function figure(kind,m){
-  if(kind==='kid')return `<svg class="dw" width="34" height="44" viewBox="0 0 40 48" aria-hidden="true"><circle cx="20" cy="22" r="7.5" ${SW}/><path d="M9 46c1-8 5-12 11-12s10 4 11 12" ${SW}/><path d="M17 21.5h.01M23 21.5h.01" ${SW} stroke-width="3"/>${mouth(m,20,25)}<path d="M18 14.5c1-3 5-3 5 0" ${SW}/></svg>`;
-  const hair=kind==='partner'?`<path d="M11 13c0-10 18-10 18 0v9" ${SW}/>`:`<path d="M12.5 10c3-5 12-5 15 0" ${SW}/>`;
-  return `<svg class="dw" width="40" height="48" viewBox="0 0 40 48" aria-hidden="true"><circle cx="20" cy="14" r="8" ${SW}/>${hair}<path d="M5 46c1-12 7-18 15-18s14 6 15 18" ${SW}/><path d="M16.5 14h.01M23.5 14h.01" ${SW} stroke-width="3"/>${mouth(m,20,18)}</svg>`;
+function figure(kind){
+  if(kind==='kid')return `<svg class="dw" width="28" height="34" viewBox="0 0 40 48" aria-hidden="true"><circle cx="20" cy="22" r="7.5" ${SW}/><path d="M9 46c1-8 5-12 11-12s10 4 11 12" ${SW}/></svg>`;
+  const hair=kind==='partner'?`<path d="M11 13c0-10 18-10 18 0v9" ${SW}/>`:'';
+  return `<svg class="dw" width="32" height="38" viewBox="0 0 40 48" aria-hidden="true"><circle cx="20" cy="14" r="8" ${SW}/>${hair}<path d="M5 46c1-12 7-18 15-18s14 6 15 18" ${SW}/></svg>`;
 }
-const ICO={
-  eco:`<svg width="22" height="22" viewBox="0 0 22 22" aria-hidden="true"><path d="M3 4h13v14H5a2 2 0 0 1-2-2zM16 8h3v8a2 2 0 0 1-2 2M6 8h7M6 11h7M6 14h4" ${SW} stroke-width="1.6"/></svg>`,
-  argent:`<svg width="22" height="22" viewBox="0 0 22 22" aria-hidden="true"><circle cx="11" cy="11" r="8" ${SW} stroke-width="1.6"/><path d="M13.5 7.5c-3-1.5-6 0-6 3.5s3 5 6 3.5M6 10h5M6 12.5h5" ${SW} stroke-width="1.5"/></svg>`,
-  maison:`<svg width="22" height="22" viewBox="0 0 22 22" aria-hidden="true"><path d="M3 19V9l8-6 8 6v10zM9 19v-6h4v6" ${SW} stroke-width="1.6"/></svg>`,
-  famille:`<svg width="22" height="22" viewBox="0 0 22 22" aria-hidden="true"><circle cx="8" cy="7" r="3" ${SW} stroke-width="1.6"/><circle cx="15.5" cy="10" r="2.2" ${SW} stroke-width="1.6"/><path d="M3 19c.5-4 2.5-6 5-6s4.5 2 5 6M12.5 19c.3-2.5 1.5-4 3-4s2.7 1.5 3 4" ${SW} stroke-width="1.6"/></svg>`,
-  coeur:`<svg width="22" height="22" viewBox="0 0 22 22" aria-hidden="true"><path d="M11 18s-7-4.3-7-9a3.8 3.8 0 0 1 7-2 3.8 3.8 0 0 1 7 2c0 4.7-7 9-7 9z" ${SW} stroke-width="1.6"/></svg>`,
-};
-function goalsTimeline(x){
-  return `${S.goals&&S.goals.length?`<div class="goals" aria-label="Tes objectifs">${S.goals.map(g=>{const st=GOALS[g].st(S.phase==='end');return `<span class="goal ${st>0?'ok':st<0?'ko':''}" title="${GOALS[g].d}">${st>0?'✓ ':st<0?'✗ ':''}${GOALS[g].n}${st>0?' · atteint':st<0?' · raté':''}</span>`;}).join('')}</div>`:''}
-  <div class="timeline" aria-hidden="true"><div class="track"></div><div class="fill" style="width:${clamp((x-Y0)/(YN-Y0+1)*100,0,100)}%"></div>${TICKS.map(t=>`<span style="left:${(t-Y0)/(YN-Y0+1)*100}%">${t}</span>`).join('')}</div>`;
+// ----- barre d'argent, toujours visible -----
+function moneyBar(){
+  if(!S)return '';
+  const end=S.phase==='end',bil=S.phase==='bilan',y=bil?S.bilans[0].y:S.year,fin=envTotal('cto')+envTotal('pea')+envTotal('av'),immo=propsValue()-debtTotal();
+  const date=end?`31 décembre ${YN}`:bil?`31 décembre ${y}`:`Janvier ${y}`,ag=end?75:age(bil?y+1:y);
+  const c=(l,v,cl='')=>`<div class="${cl}"><span>${l}</span><b class="num">${fmt(v)}</b></div>`;
+  return `<div class="topbar" role="region" aria-label="Ton argent"><div class="tb-in">
+    <div class="tb-date"><b>${date}</b><span>${ag} ans</span></div>
+    ${c('Compte courant',S.cash,S.cash<0?'neg':'')}${c('Livret A',S.liv)}${c('Placements',fin)}${c('Immobilier net',immo)}${c('Patrimoine net',net(),'tb-net')}</div></div>`;
 }
-// Le foyer : chaque personne avec son état, et l'argent du foyer.
-function foyerHtml(){
-  const me=S.me,y=S.year,cards=[];
-  const st=v=>v>=70?['Épanoui·e','bien',1]:v>=45?['Ça va','',0]:v>=30?['Fatigué·e','fatigue',0]:['Épuisé·e','stress',-1];
-  const [l1,c1,m1]=st(me.humeur),job=(ARCH[S.arch]||ARCH.heritier).n.replace(/^L’/,'').replace(/^La |^Le /,'');
-  cards.push(`<div class="pers">${figure('me',m1)}<div><b>Toi</b><small>${age(y)} ans · ${retired(y)?'à la retraite':job}</small><br><span class="etat ${c1}">${l1}</span></div></div>`);
-  if(P()){const r=me.relation,[l,c,m]=r>=70?['Complices','bien',1]:r>=45?['Ça va','',0]:r>=25?['Distants','fatigue',0]:['En crise','stress',-1];
-    cards.push(`<div class="pers">${figure('partner',m)}<div><b>${P()}</b><small>${me.marie?'mariés':'en couple'}</small><br><span class="etat ${c}">${l}</span></div></div>`);}
-  const kids=me.kids||[];
-  kids.slice(0,3).forEach(k=>{const a=kidAge(k),l=a<=1?'Bébé':a<=5?'Tout petit':a<=10?'À l’école':a<=17?'Ado':a<=24?'Étudiant·e':'Parti·e';
-    cards.push(`<div class="pers">${figure('kid',1)}<div><b>${k.n}</b><small>${a<=0?'vient de naître':`${a} an${a>1?'s':''}`}</small><br><span class="etat bien">${l}</span></div></div>`);});
-  if(kids.length>3)cards.push(`<div class="pers"><div><b>+${kids.length-3}</b><small>enfant${kids.length>4?'s':''}</small></div></div>`);
-  const sv=yearlySave()/12,cs=coussin();
-  const money=`<div class="argent"><span class="lbl">L’argent du foyer</span>
-    <div class="ln"><span>${sv>=0?'Mis de côté par mois':'Puisé par mois'}</span><b class="num ${sv<0?'down':''}">${fmt(Math.abs(sv))}</b></div>
-    <div class="ln"><span>Coussin de sécurité</span><b class="num ${cs<3?'warn':''}">${f1(Math.min(cs,99))} mois</b></div>
-    <div class="jauge" title="Coussin : ${f1(Math.min(cs,99))} mois sur 6 conseillés"><i style="width:${clamp(cs/6*100,2,100)}%"></i></div>
-    <div class="ln"><span>Patrimoine</span><b class="num">${fmt(net())}</b></div>
-    <div class="ln"><span>${homeName()}</span><small class="mut">${rpOf()?'propriétaire':S.home.type==='parents'||S.home.type==='coloc'?'':'locataire'}</small></div></div>`;
-  return `<section class="foyer" aria-label="Ton foyer">${cards.join('')}${money}</section>${goalsTimeline(y)}`;
+const VIEWS=[['profil','Profil'],['portefeuille','Portefeuille'],['immo','Immobilier'],['patrimoine','Patrimoine']];
+function tabsNav(){
+  const v=U.view||'profil',pend=(S.event&&!S.event.answered?1:0)+(S.life&&!S.life.answered?1:0);
+  return `<nav class="vtabs" role="tablist" aria-label="Sections">${VIEWS.map(([k,l])=>`<button role="tab" aria-selected="${v===k}" data-act="view" data-view="${k}">${l}${k==='profil'&&pend?`<span class="badge" aria-label="${pend} décision${pend>1?'s':''} à prendre">${pend}</span>`:''}</button>`).join('')}</nav>`;
 }
-function postit(x,i){
-  const b=x.btn,btn=!b?'':b.act==='reneg'?`<button class="secondary" data-act="reneg" data-u="${b.u}" ${S.lock?'disabled':''}>${b.label}</button>`
-    :`<button class="secondary" data-act="${b.act}"${b.p!=null?` data-p="${b.p}"`:''}${b.tab?` data-tab="${b.tab}"`:''} ${S.lock&&b.act==='place'?'disabled':''}>${b.label}</button>`;
-  return `<div class="postit${i%2?' r':''}"><b>${i?'Encore un mot de Sophie':'Le mot de Sophie'}</b><p>${x.t}</p>${btn?`<div class="btns">${btn}</div>`:''}</div>`;
+// ----- onglet Profil : qui tu es, ton budget, ton année -----
+function foyerList(){
+  const me=S.me,y=S.year,st=v=>v>=70?['Épanoui·e','ok']:v>=45?['Ça va','']:v>=30?['Fatigué·e','warn']:['Épuisé·e','bad'];
+  const row=(fig,n,sub,[l,c])=>`<li>${fig}<div><b>${n}</b><small>${sub}</small></div><span class="etat ${c}">${l}</span></li>`;
+  const out=[row(figure('me'),'Toi',`${age(y)} ans · ${retired(y)?'à la retraite':fmt(S.revenu/12)+' net par mois'}`,st(me.humeur))];
+  if(P()){const r=me.relation;out.push(row(figure('partner'),P(),me.marie?'marié·e avec toi':'en couple avec toi',r>=70?['Complices','ok']:r>=45?['Ça va','']:r>=25?['Distants','warn']:['En crise','bad']));}
+  for(const k of me.kids||[]){const a=kidAge(k);out.push(row(figure('kid'),k.n,a<=0?'vient de naître':`${a} an${a>1?'s':''}`,[a<=1?'Bébé':a<=10?'Enfant':a<=17?'Ado':a<=24?'Étudiant·e':'Parti·e','']));}
+  return `<ul class="foyer">${out.join('')}</ul>`;
+}
+function budgetTable(){
+  const ret=retired(S.year),ep=ret?-S.me.besoin:epargneYear(),ref=refRent(),cref=carRef(),inc=ret?S.revenu:foyerRev(),dep=inc-(ep+ref+cref);
+  const hs=housingOut(),car=carCost(),sv=yearlySave(),cs=coussin(),rp=rpOf();
+  const r=(l,v,sub)=>`<tr><td>${l}${sub?`<small>${sub}</small>`:''}</td><td class="n">${v<0?'−':''}${fmt(Math.abs(v)/12)}</td></tr>`;
+  return `<table class="budget"><tbody>
+    ${r(ret?'Ta pension':'Revenus du foyer',inc,ret?'':P()?`toi et ${P()}`:'ton salaire net')}
+    ${r('Dépenses courantes',-dep,'courses, transports, enfants, loisirs')}
+    ${r(rp?'Crédit et charges du logement':'Loyer',-hs,homeName())}
+    ${car?r('Voiture',-car,'assurance, entretien, essence'):''}
+    <tr class="tot"><td>${sv>=0?'Ce que tu mets de côté':'Ce que tu dois puiser'}</td><td class="n ${sv<0?'down':''}">${sv<0?'−':''}${fmt(Math.abs(sv)/12)}</td></tr></tbody></table>
+    <p class="small ${cs<3?'warn':'mut'}">Ton épargne de sécurité (compte courant + Livret A) couvre <b>${f1(Math.min(cs,99))} mois</b> de dépenses. ${cs<3?'C’est trop peu : vise au moins 3 mois.':'Au-delà de 6 mois, l’argent dort.'}</p>`;
 }
 function eventDecision(v,e){
   const waitLife=S.life&&!S.life.answered&&['weekend','burnout','panique'].includes(S.life.id);
@@ -1824,107 +1798,136 @@ function qEvent(){
   if(!S.event)return '';
   const d=evDef(),e=S.event,v=d.view(e.p);
   const shocks=Object.entries(S.turnShock).map(([k,x])=>`<span class="chip ${cls(x)}">${shockName(k)} ${pct(x/100,0)}</span>`).join('');
-  return `<div class="q"><span class="lbl">${v.kicker}</span><p class="qt">${v.title}</p><p class="qb">${v.body}</p>
-    ${shocks?`<div class="shocks">${shocks}</div>`:''}${e.fiche?`<details class="qd"><summary>La fiche de l’analyste</summary>${ficheHtml(e.fiche)}</details>`:''}${advHtml()}
-    <div class="decision">${eventDecision(v,e)}</div></div>`;
+  return `<article class="dec ${e.answered?'done':''}"><span class="lbl">${v.kicker}</span><h3>${v.title}</h3><p>${v.body}</p>
+    ${shocks?`<div class="shocks">${shocks}</div>`:''}${e.fiche?`<details><summary>La fiche de l’analyste</summary>${ficheHtml(e.fiche)}</details>`:''}${advHtml()}
+    <div class="decision">${eventDecision(v,e)}</div></article>`;
 }
 function qLife(){
   if(!S.life)return '';
   const v=S.life.v;
   const dec=S.life.answered?`<p class="result">${S.life.result}</p>`:`<div class="choices">${v.choices.map(c=>`<button class="choice" data-act="life" data-c="${c.id}"><b>${c.label}</b><small>${c.desc}</small></button>`).join('')}</div>${U.lifeErr?`<p class="err">${U.lifeErr}</p>`:''}`;
-  return `<div class="q life"><span class="lbl">${v.kicker}</span><p class="qt">${v.title}</p><p class="qb">${v.body}</p><div class="decision">${dec}</div></div>`;
+  return `<article class="dec life ${S.life.answered?'done':''}"><span class="lbl">Vie perso · ${v.kicker}</span><h3>${v.title}</h3><p>${v.body}</p><div class="decision">${dec}</div></article>`;
 }
-function carnetHtml(){
-  const y=S.year,pg=S.page||{notes:[]};
-  const notes=(pg.notes||[]).map(n=>`<li>${ICO[n.i]||''}<span>${n.t}</span></li>`).join('');
-  const gate=S.life&&!S.life.answered&&['weekend','burnout','panique','retraite','fire','licenciement','logement'].includes(S.life.id);
-  const qs=gate?qLife()+qEvent():qEvent()+qLife();
-  const r=rappels();
-  const marge=conseils().map(postit).join('')+(r.length?`<div class="postit pb"><b>Pense-bête</b>${r.map(t=>`<p>${t}</p>`).join('')}</div>`:'');
+function adviceBtn(b){
+  if(!b)return '';
+  if(b.act==='reneg')return `<button class="link" data-act="reneg" data-u="${b.u}" ${S.lock?'disabled':''}>${b.label} →</button>`;
+  return `<button class="link" data-act="${b.act}"${b.view?` data-view="${b.view}"`:''}${b.tab?` data-tab="${b.tab}"`:''}>${b.label} →</button>`;
+}
+function profilTab(){
+  const y=S.year,pg=S.page||{notes:[]},gate=S.life&&!S.life.answered&&['weekend','burnout','panique','retraite','fire','licenciement','logement'].includes(S.life.id);
+  const decs=gate?qLife()+qEvent():qEvent()+qLife(),pend=(S.event&&!S.event.answered?1:0)+(S.life&&!S.life.answered?1:0);
   const ach=Object.keys(ACHATS).map(id=>{const s=achatState(id);if(!s)return '';const A=ACHATS[id];
-    const eff=[A.h?`humeur +${Math.round(A.h*s.f)}`:'',A.r&&P()?`couple +${Math.round(A.r*s.f)}`:''].filter(Boolean).join(', ');
-    return `<button class="achat" data-act="achat" data-a="${id}" ${s.ok?'':'disabled'}><b>${A.n}</b><span>${fmt(s.c)} · ${A.d()}</span><span class="eff">${s.done?'Déjà fait cette année':!s.ok?'Budget insuffisant':eff+(s.recent?' · effet réduit, déjà fait récemment':'')}</span></button>`;}).join('');
-  const b=S.bilans&&S.bilans[0]&&S.bilans[0].y===y-1?S.bilans[0]:null,rp=rpOf(),a=alloc();
-  const bil=b?`<div class="bilan-page"><div><span class="lbl">Ce que ${b.y} a fait à notre patrimoine</span><b class="${cls(b.netEnd-b.netStart)}">${b.netEnd>=b.netStart?'+':'−'}${fmt(Math.abs(b.netEnd-b.netStart))}</b><small>${b.save>=0?`dont ${fmt(b.save)} mis de côté`:`dont ${fmt(-b.save)} puisés`}</small></div>
-    <div><span class="lbl">Notre logement</span><b>${rp?fmt(propValue(rp)):fmt(homeCost()/12)+'/mois'}</b><small>${rp?(loanLeft(rp)>0?`crédit restant : ${fmt(loanLeft(rp))}`:'payé'):homeName()}</small></div>
-    <div><span class="lbl">Nos placements</span><b>${fmt(finT(a)-Math.max(0,S.cash))}</b><small>${fmt(Math.max(0,S.cash))} sur le compte courant</small></div></div>`:'';
-  return `<article class="carnet" aria-label="Carnet ${y}"><div class="spirale" aria-hidden="true">${'<i></i>'.repeat(8)}</div>
-    <div class="page-h"><h2>Année ${y}</h2><span class="lbl">Page ${y-Y0+1} · tu as ${age(y)} ans</span></div>
-    <div class="cols"><div><ul class="cnotes">${notes}</ul>${qs?`<div class="choix">${qs}</div>`:''}</div><aside class="marge">${marge}</aside></div>
-    <div class="plaisirs"><h3>Se faire du bien cette année</h3><div class="achats">${ach}</div>${U.achErr?`<p class="err">${U.achErr}</p>`:''}</div>
-    ${bil}
-    <div class="pied"><button class="ghost" data-act="classeur" aria-expanded="${!!U.classeur}">${U.classeur?'Fermer le classeur':'Ouvrir le classeur (placements, logement, immobilier)'}</button></div></article>`;
+    const eff=[A.h?`humeur +${Math.round(A.h*s.f)}`:'',A.r&&P()?`couple +${Math.round(A.r*s.f)}`:''].filter(Boolean).join(' · ');
+    return `<tr><td><b>${A.n}</b><small>${A.d()}${s.recent&&!s.done?' · effet réduit, déjà fait récemment':''}</small></td><td class="eff">${eff}</td><td class="n">${fmt(s.c)}</td>
+      <td class="act">${s.done?'<span class="mut small">Fait</span>':`<button class="secondary" data-act="achat" data-a="${id}" ${s.ok?'':'disabled'} title="${s.ok?'':'Budget insuffisant'}">Offrir</button>`}</td></tr>`;}).join('');
+  const goals=(S.goals||[]).map(g=>{const st=GOALS[g].st(false);return `<li class="${st>0?'ok':st<0?'ko':''}"><b>${GOALS[g].n}</b><small>${st>0?'Atteint':st<0?'Raté':GOALS[g].d}</small></li>`;}).join('');
+  return `<div class="pgrid"><div class="pmain">
+    <section class="panel year"><div class="ph"><h2>${y}</h2><span class="mut">Ce qui se passe cette année</span></div>
+      <ul class="news">${(pg.notes||[]).map(n=>`<li>${n.t}</li>`).join('')}</ul></section>
+    ${decs?`<section class="decs"><div class="ph"><h3>${pend?`À décider (${pend})`:'Tes décisions de l’année'}</h3>${pend?'<span class="mut small">Obligatoire pour passer à l’année suivante</span>':''}</div>${decs}</section>`:''}
+    <section class="panel"><div class="ph"><h3>Les conseils de Sophie</h3><span class="mut small">Ta cousine, analyste financière</span></div>
+      <ul class="advice">${conseils().map(x=>`<li><p>${x.t}</p>${adviceBtn(x.btn)}</li>`).join('')}</ul>
+      ${rappels().length?`<p class="small mut remind">À ne pas oublier : ${rappels().join(' · ')}</p>`:''}</section>
+    <section class="panel"><div class="ph"><h3>Se faire du bien</h3><span class="mut small">Payé avec ton compte courant, puis ton Livret A</span></div>
+      <div class="tbl-wrap"><table class="shop"><tbody>${ach}</tbody></table></div>${U.achErr?`<p class="err">${U.achErr}</p>`:''}</section>
+  </div><aside class="pside">
+    <section class="panel"><h3>Ton foyer</h3>${foyerList()}</section>
+    <section class="panel"><h3>Ton budget du mois</h3>${budgetTable()}</section>
+    ${goals?`<section class="panel"><h3>Tes objectifs</h3><ul class="goals2">${goals}</ul></section>`:''}
+  </aside></div>`;
 }
-function logementSec(){
-  const rp=rpOf(),h=S.home,y=S.year,n=U.dur||20,noCredit=retired(y);
-  const cur=`<div class="kv"><span>Où tu vis</span><span>${homeName()}${rp?' · propriétaire':h.type==='parents'||h.type==='coloc'?'':' · locataire'}</span>
-    <span>Ce que ça coûte</span><span>${fmt(housingOut()/12)}/mois</span><span>Place</span><span class="${homeCap()<need()?'down':''}">${homeCap()>=need()?'suffisante':`trop petit pour ${need()}`}</span>
-    <span>Mis de côté chaque mois</span><span>${fmt(yearlySave()/12)}</span></div>`;
-  const sel=`<label class="small">Durée du crédit <select id="dur" aria-label="Durée du crédit">${DURS.map(d=>`<option value="${d}" ${d===n?'selected':''}>${d} ans</option>`).join('')}</select></label>`;
-  const cards=cityRP().map(t=>{const B=BIENS[t],q=propQuote(t,n),own=(q.ann+S.idx[t].rent*.15)/12,rent=S.idx[t].rent/12,here=h.type===t;
-    const r=q.r,L=q.L-q.z,k=Math.min(10,n),left=r?L*Math.pow(1+r,k)-q.annM*(Math.pow(1+r,k)-1)/r:L-q.annM*k,cap10=L-left+(q.z?q.z*k/n:0);
-    const rentOk=!rp&&!here&&canRent(t),buyOk=!noCredit&&(!rp||rp.type!==t);
-    return `<div class="offer ${here?'here':''}"><h3>${B.n}</h3><p class="small mut">Pour ${B.cap} personne${B.cap>1?'s':''}${B.cap<need()?' · trop petit pour vous':''}${here?' · tu y vis':''}</p>
-      <div class="kv"><span>Louer</span><span>${fmt(rent)}/mois</span><span>Acheter</span><span>${fmt(q.price)}</span><span>Apport</span><span>${fmt(q.apport)}</span><span>Mensualité + charges</span><span>${noCredit?'—':fmt(own)+'/mois'}</span><span>Taux d’effort</span><span class="${q.eff>.35?'down':''}">${noCredit?'—':f1(q.eff*100)+' %'}</span></div>
-      ${noCredit?'':`<p class="small mut">${q.z?'Avec un prêt à taux zéro. ':''}En ${k} ans, tu aurais remboursé ${fmt(cap10)} de capital : c’est ton épargne.</p>`}
-      <div class="btns"><button class="secondary" data-act="home-rent" data-t="${t}" ${rentOk?'':'disabled'}>Louer</button>${noCredit?'':`<button class="primary" data-act="home-buy" data-t="${t}" ${buyOk?'':'disabled'}>Acheter · apport ${fmt(q.apport)}</button>`}</div></div>`;}).join('');
+// ----- onglet Portefeuille : liquidités et où investir -----
+function portefeuilleTab(){
+  const ec=envCash(),cs=coussin(),lr=curLivret();
+  const card=(n,v,d)=>`<div class="liq"><span class="lbl">${n}</span><b class="num">${fmt(v)}</b><small>${d}</small></div>`;
+  return `<section class="panel"><div class="ph"><h2>Tes liquidités</h2><span class="mut small">L’argent disponible tout de suite</span></div>
+    <div class="liqs">${card('Compte courant',S.cash,'Ton salaire arrive ici en fin d’année. Il ne rapporte rien.')}${card('Livret A',S.liv,`${rate(lr)} par an, sans impôt · plafond ${fmt(livretCap())}`)}
+    ${ec>.5?card('En attente dans tes enveloppes',ec,'Liquidités du PEA et de l’assurance-vie, à réinvestir'):''}</div>
+    <p class="small mut">Ton épargne de sécurité couvre ${f1(Math.min(cs,99))} mois de dépenses. ${isIdle()?`${fmt(idleAmt())} dorment sans rien rapporter : choisis ci-dessous où les placer.`:''}</p></section>
+    ${book()}${allocSec()}`;
+}
+// ----- onglet Immobilier : ton logement, tes biens, le catalogue et le dossier de crédit -----
+function immoTab(){
+  const rp=rpOf(),h=S.home,city=U.city||S.city,y=S.year;
+  const owned=S.props.map(p=>{const v=propValue(p),c=propSaleCalc(p,v*.95,y),conf=U.confirmSell===p.uid,rn=canReneg(p)?`<button class="ghost" data-act="reneg" data-u="${p.uid}" ${S.lock?'disabled':''}>Renégocier à ${rate(curCredit())}</button>`:'';
+    return `<tr><td><b>${pnameP(p)}</b><small>acheté en ${p.buyYear} · ${p.mode}</small></td><td class="n">${fmt(v)}</td><td class="n">${loanLeft(p)>0?fmt(loanLeft(p)):'—'}</td><td class="n">${fmt(S.idx[p.type].rent*p.rentMult/12)}</td>
+      <td class="act">${rn}<button class="ghost ${conf?'danger':''}" data-act="prop-sell" data-u="${p.uid}" ${S.lock?'disabled':''}>${conf?`Confirmer · ${fmt(c.net)} net`:'Vendre'}</button></td></tr>`;}).join('');
   const alt=[age(y)<30&&!rp&&h.type!=='parents'?`<button class="ghost" data-act="home-rent" data-t="parents">Retourner chez mes parents</button>`:'',!P()&&!rp&&h.type!=='coloc'?`<button class="ghost" data-act="home-rent" data-t="coloc">Colocation · ${fmt(COLOC*S.defl/12)}/mois</button>`:''].join('');
-  return `<section class="sec" id="home"><div class="sec-h"><h2>Ton logement</h2><span class="mut">${cityOf().n} · revenus du foyer ${fmt(foyerRev()/12)}/mois</span></div>
-    ${cur}<div class="btns">${sel}${alt}</div>
-    ${U.homeMsg?`<p class="${U.homeMsg.ok?'ok':'err'}">${U.homeMsg.t}</p>`:''}
-    <div class="desk">${cards}</div>
-    <p class="mut small">Pour louer, le propriétaire demande des revenus d’au moins trois fois le loyer. Pour acheter : apport de 20 % + 7,5 % de frais de notaire, taux d’effort maximum 35 %. Un premier achat sous plafond de revenus ouvre droit à un prêt à taux zéro sur 20 % du prix. Déménager coûte ${fmt(moveCost())}.</p></section>`;
+  const types=Object.keys(BIENS).filter(k=>!BIENS[k].hide&&BIENS[k].v===city);
+  const cards=types.map(t=>{const B=BIENS[t],ix=S.idx[t],sel=U.dossier&&U.dossier.t===t;
+    return `<button class="bien ${sel?'sel':''}" data-act="dossier" data-t="${t}" aria-pressed="${sel}"><b>${B.n}</b><small>${B.k==='bur'?'Bureaux · à louer à une entreprise':`Pour ${B.cap} personne${B.cap>1?'s':''}`}</small>
+      <span class="kv"><span>Prix</span><span>${fmt(ix.price)}</span><span>Loyer de marché</span><span>${fmt(ix.rent/12)}/mois</span><span>Rendement brut</span><span>${rate(ix.rent/ix.price*100)}</span></span>
+      <span class="go">${sel?'Dossier ouvert ↓':'Étudier le dossier →'}</span></button>`;}).join('');
+  return `<section class="panel"><div class="ph"><h2>Ton logement</h2><span class="mut small">${CITIES[S.city].n}</span></div>
+      <div class="kv wide"><span>Où tu vis</span><span>${homeName()}${rp?' · propriétaire':h.type==='parents'||h.type==='coloc'?'':' · locataire'}</span><span>Ce que ça coûte</span><span>${fmt(housingOut()/12)} par mois</span>
+      <span>Place</span><span class="${homeCap()<need()?'down':''}">${homeCap()>=need()?'suffisante':`trop petit pour ${need()} personnes`}</span></div>
+      ${alt?`<div class="btns">${alt}</div>`:''}${U.homeMsg?`<p class="${U.homeMsg.ok?'ok':'err'}">${U.homeMsg.t}</p>`:''}</section>
+    ${owned?`<section class="panel"><div class="ph"><h3>Tes biens</h3></div><div class="tbl-wrap"><table class="owned2"><thead><tr><th>Bien</th><th class="n">Valeur</th><th class="n">Crédit restant</th><th class="n">Loyer / mois</th><th></th></tr></thead><tbody>${owned}</tbody></table></div>${U.deskErr?`<p class="${U.deskErr.ok?'ok':'err'}">${U.deskErr.t}</p>`:''}</section>`:''}
+    <section class="panel"><div class="ph"><h2>Acheter ou louer</h2><span class="mut small">Un appartement, une maison ou des bureaux, dans chaque ville</span></div>
+      <div class="seg" role="group" aria-label="Ville">${Object.entries(CITIES).map(([k,c])=>`<button data-act="icity" data-c="${k}" aria-pressed="${city===k}">${c.n}</button>`).join('')}</div>
+      <div class="biens">${cards}</div>${U.dossier&&BIENS[U.dossier.t]&&BIENS[U.dossier.t].v===city?dossierHtml():''}</section>`;
 }
-function classeurHtml(){
-  return `<section class="classeur" id="classeur"><div class="sec-h"><h2>Le classeur</h2><span class="mut">Tes placements, ton logement et tes investissements</span></div>${allocSec()}${logementSec()}${book()}${desk()}${invSec()}</section>`;
+function dossierHtml(){
+  const t=U.dossier.t,B=BIENS[t],bur=B.k==='bur',use=bur?'loc':U.dossier.use||'rp',ret=retired(S.year),n=U.dur||bestDur(t,use);
+  const q=propQuote(t,n,use),ix=S.idx[t],rp=rpOf(),cash=Math.max(0,S.cash)+S.liv,inCity=B.v===S.city;
+  const ch=ix.rent*(use==='rp'?.15:bur?.12:.22),vac=B.vac||.1,rentIn=use==='loc'?ix.rent*(1-vac):0;
+  const tax=use==='loc'?Math.max(0,rentIn-ch-q.L*q.r)*(S.pol.irLoyer+psRate()):0;
+  const after=use==='rp'?yearlySave()+housingOut()-(q.ann+ch):yearlySave()-q.ann-ch+rentIn-tax;
+  const why=ret?'À la retraite, la banque ne prête plus sur ces durées.':use==='rp'&&rp?'Tu as déjà une résidence principale : vends-la d’abord.':use==='rp'&&!inCity?`Pour y vivre, il faudrait habiter ${CITIES[B.v].n}. Tu vis à ${CITIES[S.city].n}.`:cash<q.apport?`Il te manque ${fmt(q.apport-cash)} d’apport (compte courant + Livret A).`:q.eff>.35?`Taux d’effort de ${f1(q.eff*100)} % : au-delà de 35 %, la banque refuse.`:'';
+  const r=(l,v,c='')=>`<tr class="${c}"><td>${l}</td><td class="n">${v}</td></tr>`;
+  return `<div class="dossier" id="dossier"><div class="ph"><h3>Dossier de crédit · ${B.n}</h3>${bur?'':`<div class="seg" role="group" aria-label="Usage"><button data-act="dos-use" data-u="rp" aria-pressed="${use==='rp'}">Pour y vivre</button><button data-act="dos-use" data-u="loc" aria-pressed="${use==='loc'}">Pour le louer</button></div>`}</div>
+    <div class="dgrid"><div class="tbl-wrap"><table><tbody>
+      ${r('Prix',fmt(q.price))}${r('Frais de notaire (7,5 %)',fmt(q.frais))}${r(`Apport demandé (${pc0(q.ap)} du prix + frais)`,fmt(q.apport),'strong')}
+      ${r('Montant emprunté',fmt(q.L))}${q.z?r('dont prêt à taux zéro',fmt(q.z)):''}
+      <tr><td>Durée</td><td class="n"><select id="dur" aria-label="Durée du crédit">${DURS.map(d=>`<option value="${d}" ${d===n?'selected':''}>${d} ans</option>`).join('')}</select></td></tr>
+      ${r('Taux',rate(q.r*100))}${r('Mensualité',fmt(q.ann/12),'strong')}${r(use==='rp'?'Charges et taxe foncière':'Charges, taxe foncière et gestion',fmt(ch/12)+'/mois')}
+      ${use==='loc'?r(`Loyer attendu (${pc0(vac)} de vacance)`,fmt(rentIn/12)+'/mois')+r('Impôt sur les loyers',fmt(tax/12)+'/mois'):''}
+    </tbody></table></div>
+    <div class="verdict ${why?'no':'yes'}"><span class="lbl">Réponse de la banque</span><b>${why?'Refusé':'Accordé'}</b><p>${why||`Taux d’effort de ${f1(q.eff*100)} % après l’achat, sous la limite de 35 %.`}</p>
+      <div class="kv"><span>Taux d’effort</span><span class="${q.eff>.35?'down':''}">${f1(q.eff*100)} %</span><span>Mis de côté chaque mois après l’achat</span><span class="${after<0?'down':''}">${after<0?'−':''}${fmt(Math.abs(after)/12)}</span>${use==='rp'?`<span>Louer le même bien</span><span>${fmt(ix.rent/12)}/mois</span>`:''}</div>
+      <div class="btns"><button class="primary" data-act="dos-buy" data-m="credit" ${why?'disabled':''}>Acheter à crédit</button>
+      <button class="secondary" data-act="dos-buy" data-m="cash" ${ret||cash<q.cashNeed||(use==='rp'&&(rp||!inCity))?'disabled':''} title="${cash<q.cashNeed?`Il faut ${fmt(q.cashNeed)}`:''}">Comptant · ${fmt(q.cashNeed)}</button>
+      ${use==='rp'&&!bur&&inCity&&!rp&&S.home.type!==t?`<button class="ghost" data-act="home-rent" data-t="${t}">Le louer pour y vivre · ${fmt(ix.rent/12)}/mois</button>`:''}</div>
+      ${U.dosMsg?`<p class="${U.dosMsg.ok?'ok':'err'}">${U.dosMsg.t}</p>`:''}</div></div></div>`;
 }
+// ----- onglet Patrimoine : le résumé -----
+function patrimoineTab(){
+  const a=alloc(),pv=propsValue(),debt=debtTotal(),ec=envCash();
+  const r=(l,v,c='')=>`<tr class="${c}"><td>${l}</td><td class="n">${v<0?'−':''}${fmt(Math.abs(v))}</td></tr>`;
+  const tot=Object.values(a).reduce((x,y)=>x+y,0)||1;
+  const segs=CLASSES.filter(c=>a[c.k]>0.5).map(c=>`<i style="width:${a[c.k]/tot*100}%;background:var(${c.c})" title="${c.n} : ${fmt(a[c.k])}"></i>`).join('');
+  const leg=CLASSES.filter(c=>a[c.k]>0.5).map(c=>`<div><span class="sw" style="background:var(${c.c})"></span><span>${c.n}</span><span class="v">${fmt(a[c.k])} · ${pc0(a[c.k]/tot)}</span></div>`).join('');
+  const na=Object.keys(S.ach||{}).length;
+  return `<section class="panel"><div class="ph"><h2>Ton patrimoine net : ${fmt(net())}</h2><span class="mut small">${fmt(net()/S.defl)} en euros de ${Y0}</span></div>
+    <div class="pgrid2"><div class="tbl-wrap"><table class="sheet"><tbody>
+      <tr class="sec"><td colspan="2">Liquidités</td></tr>${r('Compte courant',S.cash)}${r('Livret A',S.liv)}${ec>.5?r('Liquidités du PEA et de l’assurance-vie',ec):''}
+      <tr class="sec"><td colspan="2">Placements financiers</td></tr>${r('Compte-titres',liquidOf('cto'))}${r('PEA',liquidOf('pea'))}${r('Assurance-vie',liquidOf('av'))}
+      <tr class="sec"><td colspan="2">Immobilier</td></tr>${r('Valeur des biens',pv)}${debt>.5?r('Crédits restant à rembourser',-debt):''}${r('Immobilier net',pv-debt,'sub')}
+      ${r('Patrimoine net',net(),'tot')}</tbody></table></div>
+    <div><div class="abar" role="img" aria-label="Répartition du patrimoine">${segs}</div><div class="alegend">${leg}</div></div></div></section>
+    <section class="panel"><div class="ph"><h3>Évolution depuis ${Y0}</h3></div>${chart(S.hist,200)}</section>
+    <section class="panel"><div class="ph"><h3>Le détail de tes investissements</h3><span class="mut small">${na} succès sur ${ACH.length}</span></div>${invBody()}</section>`;
+}
+// ----- accueil : le logement, juste après la création du profil -----
 function onbView(){
-  const st=S.onb,steps=ONB.map((t,i)=>`<span class="${i+1<st?'done':i+1===st?'on':''}">${t}</span>`).join('');
-  const A=ARCH[S.arch]||ARCH.heritier,me=P()?`${P()} et toi`:'toi';
-  let title='',body='',next=true,nl='Continuer →',back=false;
-  if(st===1){
-    title='Ta situation';
-    const dep=(foyerRev()-(epargneYear()+refRent()+carRef()))/12,before=(epargneYear()+refRent()+carRef()-carCost())/12;
-    body=`<p class="lede">${A.d}</p>
-      <div class="budget"><div><span class="lbl">Revenus du foyer</span><b>${fmt(foyerRev()/12)}/mois</b><small>${P()?`toi ${fmt(S.revenu/12)} + ${P()} ${fmt(S.revenu*.6/12)}`:'ton salaire net'}</small></div>
-        <div><span class="lbl">Dépenses courantes</span><b>${fmt(dep)}/mois</b><small>courses, transport, factures${S.me.car?', voiture':''}</small></div>
-        <div><span class="lbl">Épargne de départ</span><b>${fmt(S.cash)}</b><small>sur ton compte courant</small></div></div>
-      <p>Avant de te loger, il te reste <b>${fmt(before)}</b> par mois.</p>
-      <p class="lbl">Dans quelle ville vis-tu ?</p>
-      <div class="opts">${Object.entries(CITIES).map(([k,c])=>`<button class="opt pick" data-act="onb-city" data-c="${k}" aria-pressed="${S.city===k}" ${S.onbHome?'disabled':''}><b>${c.n}</b><span class="small">${c.d}</span></button>`).join('')}</div>`;
-  }else if(st===2){
-    title=`Où allez-vous vivre, ${me} ?`.replace('allez-vous vivre, toi','vas-tu vivre');
-    const opts=homeOptions(),reco=recoHome(opts),bought=!!rpOf();back=!S.onbHome;next=!!S.onbHome;
-    body=`<div class="opts">${opts.map((o,i)=>{const chosen=S.onbHome===o.n;return `<button class="opt ${o===reco?'reco':''} ${!o.ok?'off':''}" data-act="onb-home" data-i="${i}" aria-pressed="${chosen}" ${!o.ok||bought&&!chosen?'disabled':''}>
-        ${o===reco?'<span class="tag">Conseillé pour vous</span>':''}${chosen?'<span class="tag">Ton choix</span>':''}<b>${o.n}</b><span class="small mut">${o.d||''}</span>
-        <span class="kv">${o.kind==='buy'?`<span>Apport</span><span>${fmt(o.q.apport)}</span><span>Mensualité + charges</span><span>${fmt(o.cost/12)}/mois</span><span>Taux d’effort</span><span>${f1(o.q.eff*100)} %</span>`:`<span>Loyer</span><span>${fmt(o.cost/12)}/mois</span>`}<span>Il vous reste chaque mois</span><span>${fmt(o.reste)}</span>${o.kind==='buy'?`<span>Épargne restante</span><span>${fmt(Math.max(0,o.left))}</span>`:''}</span>
-        ${o.why?`<span class="why">${o.why}</span>`:o.warn?`<span class="why">${o.warn}</span>`:''}</button>`;}).join('')}</div>
-      <div class="sophie">${figure('partner',1)}<div><b>Sophie, ta cousine</b><p>${sophieHome(reco)}</p></div></div>`;
-  }else if(st===3){
-    title='Ton épargne de sécurité';const sp=monthlySpend();next=false;
-    body=`<p class="lede">Avant d’investir, mets de côté 3 à 6 mois de dépenses sur le Livret A : sans impôt, sans risque, disponible tout de suite. Une panne, un licenciement, et tu n’auras pas à vendre tes placements au pire moment.</p>
-      <div class="budget"><div><span class="lbl">Tes dépenses</span><b>${fmt(sp)}/mois</b><small>logement compris</small></div><div><span class="lbl">3 mois</span><b>${fmt(3*sp)}</b><small>le minimum</small></div><div><span class="lbl">Sur ton compte</span><b>${fmt(S.cash)}</b><small>disponible</small></div></div>
-      <div class="btns"><button class="primary" data-act="onb-cushion" data-m="3">Mettre 3 mois sur le Livret A</button><button class="secondary" data-act="onb-cushion" data-m="6">Mettre 6 mois</button><button class="ghost" data-act="onb-cushion" data-m="0">Plus tard</button></div>`;
-  }else if(st===4){
-    title='Ton profil d’investisseur';back=true;const ans=S.onbAns||[];next=ans.filter(x=>x!=null).length===3;
-    body=`${ONBQ.map((q,i)=>`<div class="q"><p class="qt">${q.q}</p><div class="profiles">${q.a.map((a,j)=>`<button class="pchip" data-act="onb-q" data-q="${i}" data-a="${j}" aria-pressed="${ans[i]===j}">${a}</button>`).join('')}</div></div>`).join('')}
-      ${next?`<p class="result">Ton profil : <b>${S.profile<=.2?'Prudent':S.profile<=.5?'Équilibré':'Dynamique'}</b>, ${pc0(S.profile)} d’actions dans ton épargne. Tu pourras le changer quand tu veux dans le classeur.</p>`:''}`;
-  }else{
-    title='Ton premier portefeuille';back=true;nl=`Valider et commencer ${S.year} →`;
-    const ops=onbPlan(S.profile??.5);
-    body=`<p class="lede">Voici ce que je te propose de faire avec l’argent qui te reste, selon ton profil (${pc0(S.profile??.5)} d’actions). La part actions va sur l’ETF Monde, dans ton PEA : son compteur de 5 ans démarre aujourd’hui.</p>
-      ${ops.length?`<ul class="plan">${ops.map(o=>`<li>${opText(o)}</li>`).join('')}</ul>`:'<p class="mut">Rien à placer pour l’instant.</p>'}`;
-  }
-  return `<section class="modal onb" aria-label="Accueil, étape ${st}"><div class="steps">${steps}</div><div><p class="lbl">Étape ${st} sur 5</p><h2>${title}</h2></div>${body}
+  const opts=homeOptions(),reco=recoHome(opts),bought=!!rpOf(),me=P()?`${P()} et toi`:'toi';
+  return `<section class="modal onb" aria-label="Choisir ton logement"><div><p class="lbl">Avant de commencer</p><h2>${P()?`Où allez-vous vivre, ${me} ?`:'Où vas-tu vivre ?'}</h2>
+    <p class="mut">Tu habites ${CITIES[S.city].n}. Tu as ${fmt(S.cash)} de côté. Pour chaque possibilité, voici ce qu’il te restera chaque mois une fois tout payé.</p></div>
+    <div class="opts">${opts.map((o,i)=>{const chosen=S.onbHome===o.n;return `<button class="opt ${o===reco?'reco':''} ${!o.ok?'off':''}" data-act="onb-home" data-i="${i}" aria-pressed="${chosen}" ${!o.ok||bought&&!chosen?'disabled':''}>
+      ${o===reco?'<span class="tag">Conseillé par Sophie</span>':''}<b>${o.n}</b><span class="small mut">${o.d||''}</span>
+      <span class="kv">${o.kind==='buy'?`<span>Apport</span><span>${fmt(o.q.apport)}</span><span>Crédit + charges</span><span>${fmt(o.cost/12)}/mois</span><span>Taux d’effort</span><span>${f1(o.q.eff*100)} %</span>`:`<span>Loyer</span><span>${fmt(o.cost/12)}/mois</span>`}<span>Il te reste chaque mois</span><span>${fmt(o.reste)}</span></span>
+      ${o.why?`<span class="why">${o.why}</span>`:o.warn?`<span class="why">${o.warn}</span>`:''}</button>`;}).join('')}</div>
+    <div class="sophie">${figure('partner')}<div><b>Sophie, ta cousine</b><p>${sophieHome(reco)}</p></div></div>
     ${U.onbErr?`<p class="err">${U.onbErr}</p>`:''}
-    <div class="row-btns">${back?'<button class="ghost" data-act="onb-back">← Retour</button>':'<span></span>'}${st===3?'':`<button class="primary" data-act="onb-next" ${next?'':'disabled'}>${nl}</button>`}</div></section>`;
+    <div class="row-btns"><span class="mut small">Tu pourras déménager ou acheter plus tard, dans l’onglet Immobilier.</span><button class="primary" data-act="onb-next" ${S.onbHome?'':'disabled'}>Commencer ${S.year} →</button></div></section>`;
 }
 function turnView(){
-  if(S.onb)return onbView();
-  const ready=turnReady();
-  return `${foyerHtml()}${toastsHtml()}${carnetHtml()}${U.classeur?classeurHtml():''}
-    <div class="bar"><div class="bar-in"><small>${ready&&isIdle()&&!S.lock?`${fmt(idleAmt())} dorment encore · `:''}${ready?(S.year>=YN?`Dernière page · bilan final au 31 décembre ${YN}`:`Page suivante : ${S.year+1}`):'Réponds d’abord aux questions de la page'}</small>
-    <button class="primary" data-act="end" ${ready?'':'disabled'}>Tourner la page →</button></div></div>`;
+  if(S.onb)return moneyBar()+onbView();
+  const v=U.view||'profil',ready=turnReady();
+  const body=v==='portefeuille'?portefeuilleTab():v==='immo'?immoTab():v==='patrimoine'?patrimoineTab():profilTab();
+  return `${moneyBar()}${tabsNav()}${toastsHtml()}<div class="tabpanel" role="tabpanel">${body}</div>
+    <div class="bar"><div class="bar-in"><small>${ready?(S.year>=YN?`Dernière année · bilan final au 31 décembre ${YN}`:`${isIdle()&&!S.lock?`${fmt(idleAmt())} dorment encore · `:''}Prochaine étape : janvier ${S.year+1}`):'Réponds d’abord aux décisions de l’onglet Profil'}</small>
+    <button class="primary" data-act="end" ${ready?'':'disabled'}>Passer à ${S.year+1>YN?'la fin':S.year+1} →</button></div></div>`;
 }
 function ficheHtml(f){
   return `<div class="fiche"><span class="lbl">Fiche analyste · ${nm(f.a)}</span>
@@ -2023,8 +2026,8 @@ function lineStats(flows,termV,termT){
 }
 function invData(){
   const now=S.clk.t,props=[],fin=[],envs=[];
-  for(const p of S.lg.props)props.push({name:pname(p.type),sub:`${p.mode?p.mode+' · ':''}${p.how.toLowerCase()}`,y0:p.buyYear,per:`${p.buyYear} → ${p.sellYear}`,...lineStats(p.flows,0,now),open:false});
-  for(const p of S.props){const c=propSaleCalc(p,propValue(p)*.95,S.year);props.push({name:pname(p.type),sub:`${p.mode?p.mode+' · ':''}en portefeuille`,y0:p.buyYear,per:`depuis ${p.buyYear}`,...lineStats(p.flows||[],Math.max(0,c.net),now),open:true});}
+  for(const p of S.lg.props)props.push({name:pname(p.type,p.use),sub:`${p.mode?p.mode+' · ':''}${p.how.toLowerCase()}`,y0:p.buyYear,per:`${p.buyYear} → ${p.sellYear}`,...lineStats(p.flows,0,now),open:false});
+  for(const p of S.props){const c=propSaleCalc(p,propValue(p)*.95,S.year);props.push({name:pnameP(p),sub:`${p.mode?p.mode+' · ':''}en portefeuille`,y0:p.buyYear,per:`depuis ${p.buyYear}`,...lineStats(p.flows||[],Math.max(0,c.net),now),open:true});}
   const curJ=lgKey('cto','jeton');
   for(const k in S.lg.lines){
     const L=S.lg.lines[k],cur=L.env==='liv'?S.liv:(L.id==='jeton'&&k!==curJ)?0:ev(L.env,L.id),open=cur>0.5,st=lineStats(L.flows,open?cur:0,now);
@@ -2090,26 +2093,6 @@ function book(){
     <div class="book"><div class="row head"><div>Placement</div><div class="r c-px">Cours / taux</div><div>10 ans</div><div class="r c-var">Sur un an</div><div class="r c-pos">Position</div><div class="r c-pl">Latent</div><div></div></div>
     ${ids.map(id=>bookRow(tab,id)).join('')}</div></section>`;
 }
-function desk(){
-  const noCredit=retired(S.year),hasRP=S.props.some(isRP);
-  const n=U.dur||20,offer=t=>{const B=BIENS[t],q=propQuote(t,n),rp=B.k==='rp';return `<div class="offer"><h3>${B.n}</h3><p class="small mut">${rp?'Résidence principale : tu ne paies plus de loyer et la plus-value est exonérée. Mais l’argent est immobilisé.':B.d}</p><div class="kv">
-    <span>Prix</span><span>${fmt(q.price)}</span><span>Frais de notaire</span><span>${fmt(q.frais)}</span>
-    <span>${rp?'Loyer économisé':'Loyer de marché'}</span><span>${fmt(q.rent/12)}/mois</span><span>${rp?'Économie / prix':'Rendement brut'}</span><span>${rate(q.rent/q.price*100)}</span>
-    <span>Crédit ${n} ans</span><span>${noCredit?'—':`${rate(q.r*100)} · ${fmt(q.ann/12)}/mois`}</span><span>Taux d’effort après achat</span><span class="${q.eff>.35?'down':''}">${noCredit?'—':f1(q.eff*100)+' %'}</span></div>
-    <div class="btns"><button class="secondary" data-act="prop-buy" data-t="${t}" data-m="cash" ${S.lock?'disabled':''}>Comptant · ${fmt(q.cashNeed)}</button>${noCredit?'':`<button class="primary" data-act="prop-buy" data-t="${t}" data-m="credit" ${S.lock?'disabled':''}>Crédit · apport ${fmt(q.apport)}</button>`}</div></div>`;};
-  const owned=S.props.map(p=>{const v=propValue(p),c=propSaleCalc(p,v*.95,S.year),conf=U.confirmSell===p.uid;
-    const rn=canReneg(p)?`<button class="ghost" data-act="reneg" data-u="${p.uid}" ${S.lock?'disabled':''}>Renégocier à ${rate(curCredit())}</button>`:'';
-    return `<div class="prop"><div><b>${pname(p.type)}</b><br><small class="mut">acheté en ${p.buyYear} · ${fmt(p.cost)}${p.loan&&p.loan.p>0?` · crédit à ${rate(p.loan.r*100)}`:''}</small></div>
-    <div class="num"><small class="mut">Valeur</small><br>${fmt(v)}</div><div class="num"><small class="mut">Crédit restant</small><br>${loanLeft(p)>0?fmt(loanLeft(p)):'—'}</div>
-    <div class="num"><small class="mut">${isRP(p)?'Loyer économisé':'Loyer'}</small><br>${fmt(S.idx[p.type].rent*p.rentMult/12)}/mois</div>
-    <div class="btns">${rn}<button class="ghost ${conf?'danger':''}" data-act="prop-sell" data-u="${p.uid}" ${S.lock?'disabled':''}>${conf?`Confirmer · ${fmt(c.net)} net`:'Vendre'}</button></div></div>`;}).join('');
-  const locs=Object.keys(BIENS).filter(k=>BIENS[k].k!=='rp'),rps=Object.keys(BIENS).filter(k=>BIENS[k].k==='rp');
-  return `<section class="sec" id="desk"><div class="sec-h"><h2>Investir dans la pierre</h2><span class="mut">Revenus du foyer ${fmt(foyerRev())}/an · effort max 35 % · apport 20 % + frais · crédit sur ${n} ans (à choisir dans « Ton logement »)</span></div>
-    ${owned?`<div class="owned">${owned}</div>`:''}
-    ${U.deskErr?`<p class="${U.deskErr.ok?'ok':'err'}">${U.deskErr.t}</p>`:''}
-    <p class="lbl">Investissement locatif</p><div class="desk">${locs.map(offer).join('')}</div>
-    <p class="mut small">Loyers imposés à ${pc0(S.pol.irLoyer)} + prélèvements sociaux après charges et intérêts. Vente : 5 % de frais, plus-value taxée à 19 % + prélèvements sociaux, exonérée d’impôt après 22 ans et de prélèvements sociaux après 30 ans. Résidence principale : plus-value exonérée, pas d’impôt sur le loyer économisé. Renégociation possible quand les taux baissent d’au moins 0,7 point (frais : 1 % du capital restant).</p></section>`;
-}
 function niceTicks(lo,hi){
   const t=[];for(let e=3;e<=10;e++)for(const m of [1,2.5,5]){const v=m*Math.pow(10,e);if(v>=lo&&v<=hi)t.push(v);}
   return t.length>6?t.filter((_,i)=>i%2===0):t;
@@ -2138,11 +2121,11 @@ function bilanView(){
   const d=b.netStart>0?b.netEnd/b.netStart-1:0;
   const nextLbl=(S.flags.faillite||S.nextY>YN)?'Voir le bilan final →':`Retour à la Corbeille · janvier ${S.nextY} →`;
   const lines=b.lines.map(l=>`<tr><td>${lineName(l)}</td><td class="n">${fmt(l.ev)}</td><td class="n ${cls(l.r)}">${pct(l.r)}</td></tr>`).join('');
-  const props=S.props.map(p=>{const f=b.props.find(x=>x.uid===p.uid);const g=f?propValue(p)/f.vs-1:0;return `<tr><td>${pname(p.type)}</td><td class="n">${fmt(propValue(p))}</td><td class="n ${cls(g)}">${f?pct(g):'—'}</td></tr>`;}).join('');
+  const props=S.props.map(p=>{const f=b.props.find(x=>x.uid===p.uid);const g=f?propValue(p)/f.vs-1:0;return `<tr><td>${pnameP(p)}</td><td class="n">${fmt(propValue(p))}</td><td class="n ${cls(g)}">${f?pct(g):'—'}</td></tr>`;}).join('');
   const F=b.flows;
   const flows=[['Revenus moins dépenses courantes',F.epargne],['Prélèvements pour vivre (hors logement)',F.retraite],['Logement (loyer ou valeur locative)',F.logement||0],['Voiture',F.voiture||0],['Loyers encaissés',F.loyers],['Loyer économisé (résidence principale)',F.rp],['Charges et taxe foncière',-F.charges],['Mensualités de crédit',-F.credit],['Frais des placements',-(F.frais||0)],['Impôts et prélèvements',-F.impots],['Plaisirs et imprévus, payés en janvier',(F.plaisir||0)+(F.imprevu||0)]].filter(x=>Math.abs(x[1])>0.5)
     .map(x=>`<tr><td>${x[0]}</td><td class="n ${x[1]<0?'down':''}">${x[1]<0?'−':'+'}${fmt(Math.abs(x[1]))}</td></tr>`).join('');
-  return `${statusBar()}${toastsHtml()}<section class="bilan" aria-live="polite">
+  return `${moneyBar()}${toastsHtml()}<section class="bilan" aria-live="polite">
     <div class="une-mast"><span>Le Courrier de la Corbeille · Bilan</span><span>${PHASES[b.phase].n} en ${b.y}</span></div>
     <h2>Bilan au 31 décembre ${b.y}</h2>
     <div class="bigline"><div><span class="lbl">Patrimoine net</span><div class="v">${fmt(b.netEnd)}</div></div>
@@ -2165,8 +2148,8 @@ function coups(){
   return {best,worst};
 }
 function epilogue(){
-  const A=ARCH[S.arch]||ARCH.heritier,c=coups(),t=[];
-  t.push(`${A.n} de ${Y0} a aujourd’hui 75 ans.`);
+  const c=coups(),t=[];
+  t.push(`Tu avais 25 ans en ${Y0}. Tu en as aujourd’hui 75.`);
   if(P())t.push(`${S.me.marie?'Marié·e':'En couple'} avec ${P()}${S.me.enfants?`, ${S.me.enfants} enfant${S.me.enfants>1?'s':''}`:''}${S.me.ruptures?`, après ${S.me.ruptures} rupture${S.me.ruptures>1?'s':''}`:''}.`);
   else t.push(S.me.ruptures?`Seul·e, après ${S.me.ruptures} rupture${S.me.ruptures>1?'s':''}.`:'Toujours célibataire.');
   if(S.flags.rpYear)t.push(`Propriétaire de sa résidence principale depuis ${S.flags.rpYear}.`);
@@ -2179,22 +2162,22 @@ function epilogue(){
   return t.join(' ');
 }
 function shareText(){
-  const fs=finalScore(),A=ARCH[S.arch]||ARCH.heritier,na=Object.keys(S.ach||{}).length;
-  return `La Corbeille · ${A.n} · ${fs.title} · score ${NF.format(fs.score)} · ${fmt(fs.real)} en euros de ${Y0} · ${na}/${ACH.length} succès. À toi de jouer !`;
+  const fs=finalScore(),na=Object.keys(S.ach||{}).length;
+  return `La Corbeille · ${profLabel()} · ${fs.title} · score ${NF.format(fs.score)} · ${fmt(fs.real)} en euros de ${Y0} · ${na}/${ACH.length} succès. À toi de jouer !`;
 }
 function endView(){
   const n=net(),fs=finalScore(),trk=S.bench.trk,liv=S.bench.liv;
   const moneyTxt=['L’ETF Monde sans rien toucher aurait fait nettement mieux.','Tu fais à peu près jeu égal avec l’ETF Monde laissé à lui-même.','Tu bats nettement l’ETF Monde laissé à lui-même.'][fs.mt];
   const lifeTxt=['Ta vie perso a été sacrifiée.','Une vie perso correcte, avec des hauts et des bas.','Et une vie perso épanouie.'][fs.lt];
-  return `${statusBar()}<section class="bilan">
+  return `${moneyBar()}<section class="bilan">
     <div class="une-mast"><span>Le Courrier de la Corbeille · Édition spéciale</span><span>31 décembre ${YN}</span></div>
-    <p class="kicker">Fin de partie · ${(ARCH[S.arch]||ARCH.heritier).n} · 75 ans</p><p class="rank">${fs.title}</p><p class="lede">${epilogue()}</p><p class="lede">${S.flags.faillite?'Tes dettes ont dépassé ce que tu pouvais vendre.':moneyTxt+' '+lifeTxt}</p>
+    <p class="kicker">Fin de partie · ${profLabel()} · 75 ans</p><p class="rank">${fs.title}</p><p class="lede">${epilogue()}</p><p class="lede">${S.flags.faillite?'Tes dettes ont dépassé ce que tu pouvais vendre.':moneyTxt+' '+lifeTxt}</p>
     <div class="bigline"><div><span class="lbl">Score</span><div class="v">${NF.format(fs.score)}</div></div>
       <div><span class="lbl">Patrimoine en € de ${Y0}</span><div class="v">${fmt(fs.real)}</div></div>
       <div><span class="lbl">Bien-être moyen</span><div class="v">${Math.round(fs.be)} / 100</div></div>
       <div><span class="lbl">Objectifs</span><div class="v">${fs.gl.filter(x=>x.st===1).length} / ${fs.gl.length}</div></div></div>
     ${fs.gl.length?`<div class="goals">${fs.gl.map(x=>`<span class="goal ${x.st>0?'ok':'ko'}" title="${GOALS[x.g].d}">${x.st>0?'✓':'✗'} ${GOALS[x.g].n}</span>`).join('')}</div>`:''}
-    <p class="mut small">Score = patrimoine en milliers d’euros de ${Y0} × bien-être (${f1(fs.mult)}) × objectifs atteints (${fs.gm.toFixed(2).replace('.',',')}) × difficulté du personnage (${String(fs.coef).replace('.',',')}). Le bien-être moyen combine ton humeur et ton couple sur 51 ans.</p>
+    <p class="mut small">Score = patrimoine en milliers d’euros de ${Y0} × bien-être (${f1(fs.mult)}) × objectifs atteints (${fs.gm.toFixed(2).replace('.',',')}) × difficulté de ton profil (${String(fs.coef).replace('.',',')}). Le bien-être moyen combine ton humeur et ton couple sur 51 ans.</p>
     <div class="share"><div class="btns"><button class="primary" data-act="copy">${U.copied===true?'Copié !':'Copier mon résultat'}</button><span class="small mut">Pour défier tes potes</span></div>${U.copied==='fallback'?`<textarea id="share-txt" readonly aria-label="Résultat à copier">${esc(shareText())}</textarea>`:''}</div>
     <div class="bigline"><div><span class="lbl">Patrimoine net ${YN}</span><div class="v">${fmt(n)}</div></div>
       <div><span class="lbl">Mêmes versements, ETF Monde</span><div class="v mut">${fmt(trk)}</div></div>
@@ -2210,30 +2193,32 @@ function endView(){
     <div class="btns"><button class="primary" data-act="replay">Rejouer</button></div></section>`;
 }
 function introView(){
-  const st=U.setup,A=ARCH[st.arch];
-  const archs=Object.entries(ARCH).map(([k,a])=>`<button class="archc" aria-pressed="${st.arch===k}" data-act="arch" data-k="${k}"><b>${a.n}</b><span class="small">${a.d}</span>
-    <span class="kv"><span>Capital</span><span>${fmt(a.cash)}</span><span>Salaire</span><span>${fmt(a.rev)}/an</span><span>Épargne</span><span>${pc0(a.tx)} du salaire</span><span>Difficulté</span><span>${a.lvl} · ×${String(a.coef).replace('.',',')}</span></span></button>`).join('');
+  const st=U.setup,pp={city:st.city,sal:st.sal,cap:st.cap,couple:st.couple},s=SALAIRES[st.sal],c=coefOf(pp);
+  const first=st.couple?CITIES[st.city].t2:Object.keys(BIENS).find(k=>BIENS[k].k==='rp'&&BIENS[k].v===st.city&&BIENS[k].cap===1);
+  const t2=BIENS[CITIES[st.city].t2].rent,ref=BIENS.t2rp.rent+.5*(t2-BIENS.t2rp.rent),rentFirst=BIENS[first].rent;
+  const reste=(s.m*12*s.tx*(st.couple?1.15:1)+ref-rentFirst)/12;
+  const opt=(k,v,lbl,d)=>`<button class="opt" data-act="set" data-k="${k}" data-v="${v}" aria-pressed="${String(st[k])===String(v)}"><b>${lbl}</b>${d?`<span class="small mut">${d}</span>`:''}</button>`;
   const goals=Object.entries(GOALS).map(([k,g])=>`<button class="pchip" aria-pressed="${st.goals.includes(k)}" data-act="goal" data-k="${k}" title="${g.d}">${g.n} · +${pc0(g.bonus)}</button>`).join('');
   const L=U.legacy;
   const legacy=L?`<div class="idle"><span><strong>Nouvelle saison.</strong> Ta partie de l’ancienne version (2000-2050) s’arrête ici, en ${L.year}, avec un patrimoine de ${fmt(L.net)}. Le jeu se joue désormais dans un monde inventé à chaque partie.</span><button class="secondary" data-act="legacy-ok">Compris</button></div>`:'';
-  return `${legacy}<section class="intro"><div class="setup">
-    <p class="kicker">1er janvier ${Y0} · tu as 25 ans</p><h2>Cinquante ans de marchés t’attendent.</h2>
-    <p class="lede">Un monde inventé à chaque partie : cycles, krachs, bulles, élections, révolutions technologiques. Ta famille, ton logement, tes placements : chaque année s’écrit dans ton carnet, et Sophie, ta cousine, t’accompagne.</p>
-    <div class="sec-h"><h2>Choisis ton personnage</h2></div><div class="archs">${archs}</div>
-    <div class="sec-h"><h2>Choisis 2 objectifs de vie</h2><span class="mut">Plus l’objectif est dur, plus il rapporte</span></div>
-    <div class="profiles">${goals}</div>
-    <p class="small mut">${st.goals.map(g=>`<b>${GOALS[g].n}</b> : ${GOALS[g].d}`).join('<br>')||'Aucun objectif choisi.'}</p>
-    <div class="btns"><button class="primary" data-act="start">Commencer avec ${A.n.toLowerCase()} →</button></div></div>
-    <div class="rules"><span class="lbl">Règles</span><ul>
-      <li>Au départ, Sophie t’aide en 5 étapes : ta ville, ton logement (louer ou acheter selon tes moyens), ton épargne de sécurité, ton profil, ton premier portefeuille.</li>
-      <li>Un tour = une page de ton carnet : les nouvelles de la famille, ton salaire, tes dépenses, l’économie, et les décisions de l’année. Le classeur range tes placements et ton logement.</li>
-      <li>Ton budget est réel : loyer ou mensualités, voiture, enfants, imprévus. Ce qui reste, tu l’épargnes ; avec un coussin trop mince, tu stresses.</li>
-      <li>Les crises naissent des excès : crédit qui gonfle, Bourse trop chère, taux qui s’inversent. Elles finissent toujours par passer.</li>
-      <li>Tous les cinq ans, une présidentielle peut changer la flat tax, le PEA, le Livret A ou l’âge de la retraite.</li>
-      <li>Trois enveloppes : compte-titres, PEA (fiscalité douce après 5 ans) et assurance-vie (après 8 ans). Plus le Livret A et l’immobilier à Lille, Lyon ou Paris.</li>
-      <li>Tu épargnes une part de ton salaire chaque année. Vers 62-67 ans, tu prends ta retraite et tu puises dans ton patrimoine.</li>
-      <li>Humeur et couple comptent : moral bas, burn-out et ventes paniques ; couple négligé, rupture coûteuse.</li>
-      <li>Score final : ton patrimoine en euros de ${Y0} × ton bien-être moyen × tes objectifs atteints × la difficulté de ton personnage. ${ACH.length} succès à débloquer.</li></ul></div></section>`;
+  return `${legacy}<section class="setup2"><div class="intro-h"><p class="kicker">1er janvier ${Y0} · tu as 25 ans</p><h2>Cinquante ans de marchés t’attendent.</h2>
+    <p class="lede">Crée ton profil. Le monde est inventé à chaque partie : cycles, krachs, élections, révolutions technologiques. Chaque année, tu décides de ta vie et de ton argent, jusqu’à tes 75 ans.</p></div>
+    <div class="build"><div class="build-main">
+      <fieldset><legend>Où vis-tu ?</legend><div class="opts3">${Object.entries(CITIES).map(([k,x])=>opt('city',k,x.n,x.d)).join('')}</div></fieldset>
+      <fieldset><legend>Ton salaire net par mois</legend><div class="chips">${SALAIRES.map((x,i)=>`<button class="pchip" data-act="set" data-k="sal" data-v="${i}" aria-pressed="${st.sal===i}">${x.n}</button>`).join('')}</div>
+        <p class="small mut">À ce niveau, tu mets de côté environ ${pc0(s.tx)} de ton salaire, et ta carrière progresse de ${f1(s.g[0]*100)} % par an en plus de l’inflation jusqu’à 45 ans.</p></fieldset>
+      <fieldset><legend>Ton épargne de départ</legend><div class="opts3">${EPARGNES.map((e,i)=>opt('cap',i,e.n,e.d)).join('')}</div></fieldset>
+      <fieldset><legend>Ta situation</legend><div class="opts3">${opt('couple',false,'Célibataire','Tu décides seul·e. Les rencontres viendront peut-être.')}${opt('couple',true,'En couple','Ton conjoint gagne environ 60 % de ton salaire. Vous partagez tout.')}</div></fieldset>
+      <fieldset><legend>Tes deux objectifs de vie</legend><div class="chips">${goals}</div>
+        <p class="small mut">${st.goals.map(g=>`<b>${GOALS[g].n}</b> : ${GOALS[g].d}`).join('<br>')||'Aucun objectif choisi.'}</p></fieldset>
+    </div><aside class="build-side panel"><h3>Ton point de départ</h3>
+      <div class="kv"><span>Revenus du foyer</span><span>${fmt(s.m*(st.couple?1.6:1))}/mois</span><span>Épargne de départ</span><span>${fmt(EPARGNES[st.cap].v)}</span>
+        <span>Loyer d’un ${st.couple?'T2':'studio'} à ${CITIES[st.city].n}</span><span>${fmt(rentFirst/12)}/mois</span><span>Tu pourras mettre de côté</span><span class="${reste<100?'down':''}">environ ${fmt(reste)}/mois</span>
+        <span>Difficulté</span><span>${levelOf(c)}</span></div>
+      <p class="small mut">Score final : ton patrimoine en euros de ${Y0} × ton bien-être × tes objectifs atteints × ${String(c).replace('.',',')} (plus ton départ est facile, plus ce coefficient est bas).</p>
+      <button class="primary big" data-act="start">Commencer →</button>
+      <ul class="rules2"><li>Un tour = une année. Les décisions de l’année apparaissent dans l’onglet Profil.</li><li>Ton argent est toujours affiché en haut : compte courant, Livret A, placements, immobilier.</li><li>Rien n’est placé à ta place : c’est toi qui choisis où investir.</li><li>Vers 62-67 ans, tu prends ta retraite et tu vis de ta pension et de ton patrimoine.</li></ul>
+    </aside></div></section>`;
 }
 function animHtml(){
   const b=S.bilans[U.anim.i];if(!b)return '';
@@ -2272,31 +2257,31 @@ function onClick(ev_){
   if(a!=='reset')U.confirmReset=false;
   if(a!=='prop-sell')U.confirmSell=null;
   if(a!=='pea-close')U.confirmClose=false;
-  if(!['rebal-preview','rebal-ok','tip-prof'].includes(a))U.plan=null;
+  if(!['rebal-preview','rebal-ok'].includes(a))U.plan=null;
   if(!['place','rebal-ok'].includes(a))U.allocMsg=null;
-  if(a!=='achat')U.achErr='';if(a!=='life')U.lifeErr='';if(!['home-rent','home-buy'].includes(a))U.homeMsg=null;
+  if(a!=='achat')U.achErr='';if(a!=='life')U.lifeErr='';if(a!=='home-rent')U.homeMsg=null;if(!['dos-buy','dos-use','home-rent'].includes(a))U.dosMsg=null;
   const [e,id]=key?key.split(':'):[];
   switch(a){
-    case 'start':dropLegacy();U.legacy=null;U.classeur=false;newGame(U.setup.arch,U.setup.goals,true);break;
-    case 'onb-city':U.onbErr=onbCity(t.dataset.c)||'';save();break;
+    case 'start':{const st=U.setup;dropLegacy();U.legacy=null;U.view='profil';U.dossier=null;U.city=null;U.dur=null;newGame({city:st.city,sal:st.sal,cap:st.cap,couple:st.couple},st.goals,true);break;}
+    case 'set':{const k=t.dataset.k,v=t.dataset.v;U.setup[k]=k==='city'?v:k==='couple'?v==='true':+v;break;}
+    case 'view':U.view=t.dataset.view;window.scrollTo({top:0});break;
+    case 'icity':U.city=t.dataset.c;U.dossier=null;break;
+    case 'dossier':U.dossier={t:t.dataset.t,use:BIENS[t.dataset.t].k==='bur'?'loc':'rp'};U.dur=null;U.scroll='dossier';break;
+    case 'dos-use':if(U.dossier){U.dossier.use=t.dataset.u;U.dur=null;}break;
+    case 'dos-buy':{const d=U.dossier;if(!d)break;const B=BIENS[d.t],use=B.k==='bur'?'loc':d.use,n=U.dur||bestDur(d.t,use),m=t.dataset.m;let er;
+      if(use==='rp'&&m==='credit')er=buyHome(d.t,n);
+      else{const q=propQuote(d.t,n,use),need=m==='cash'?q.cashNeed:q.apport,go=()=>{if(S.cash<need&&S.liv>0)livOut(Math.min(S.liv,need-S.cash));return buyProp(d.t,m,n,use);};er=dry(go);if(!er)go();}
+      if(!er&&use==='rp')spend(moveCost(),true);
+      U.dosMsg=er?{t:er}:{t:use==='rp'?`${B.n} acheté : tu y emménages.`:`${B.n} acheté : il sera loué dès cette année.`,ok:true};save();break;}
     case 'onb-home':U.onbErr=onbHome(+t.dataset.i)||'';save();break;
-    case 'onb-cushion':{const m=+t.dataset.m;U.onbErr=(m?onbCushion(m):null)||'';if(!U.onbErr){S.onb=4;save();}break;}
-    case 'onb-q':{const q=+t.dataset.q,a=+t.dataset.a;S.onbAns[q]=a;if(S.onbAns.filter(x=>x!=null).length===3)S.profile=onbProfile(S.onbAns);save();break;}
     case 'onb-next':U.onbErr='';if(S.onb===2&&!S.onbHome){U.onbErr='Choisis d’abord où tu vas vivre.';break;}onbNext();window.scrollTo({top:0});break;
-    case 'onb-back':U.onbErr='';if(S.onb>1&&!(S.onb===2&&S.onbHome))S.onb--;break;
     case 'achat':U.achErr=acheter(t.dataset.a)||'';break;
-    case 'classeur':U.classeur=!U.classeur;if(U.classeur)U.scroll='classeur';break;
-    case 'tip-home':U.classeur=true;U.scroll='home';break;
-    case 'home-rent':{const e=moveTo(t.dataset.t);U.homeMsg=e?{t:e}:{t:`Tu emménages : ${homeName()}.`,ok:true};save();break;}
-    case 'home-buy':{const e=buyHome(t.dataset.t,U.dur||20);U.homeMsg=e?{t:e}:{t:`Te voilà propriétaire : ${homeName()}.`,ok:true};if(!e)spend(moveCost(),true);save();break;}
+    case 'home-rent':{const e=moveTo(t.dataset.t);U.homeMsg=e?{t:e}:{t:`Tu emménages : ${homeName()}.`,ok:true};U.dosMsg=e?{t:e}:{t:`Tu emménages : ${homeName()}.`,ok:true};save();break;}
     case 'legacy-ok':dropLegacy();U.legacy=null;break;
-    case 'arch':U.setup.arch=t.dataset.k;break;
     case 'goal':{const k=t.dataset.k,g=U.setup.goals;if(g.includes(k))U.setup.goals=g.filter(x=>x!==k);else U.setup.goals=[...g,k].slice(-2);break;}
     case 'skip-anim':U.anim=null;U.animTok++;break;
     case 'copy':{const txt=shareText();try{navigator.clipboard.writeText(txt).then(()=>{U.copied=true;render();},()=>{U.copied='fallback';render();setTimeout(()=>{const ta=document.getElementById('share-txt');if(ta)ta.select();},0);});}catch(er){U.copied='fallback';}break;}
-    case 'tip-prof':{const p=+t.dataset.p;S.profile=p;U.plan={p,...dry(()=>rebalance(p))};U.classeur=true;U.scroll='alloc';save();break;}
-    case 'tip-tab':U.tab=t.dataset.tab;U.open=null;U.envMsg={};U.classeur=true;U.scroll='book';break;
-    case 'tip-desk':U.classeur=true;U.scroll='desk';break;
+    case 'tip-tab':U.view='portefeuille';U.tab=t.dataset.tab;U.open=null;U.envMsg={};U.scroll='book';break;
     case 'prof':S.profile=+t.dataset.p;save();break;
     case 'place':{if(S.profile==null||S.lock)break;const ops=[];placeIdle(S.profile,ops);U.allocMsg=ops.length?`Placé : ${ops.map(opText).join(' ; ')}.`:'Rien à placer.';save();break;}
     case 'rebal-preview':if(S.profile!=null){const p=S.profile;U.plan={p,...dry(()=>rebalance(p))};}break;
@@ -2317,11 +2302,10 @@ function onClick(ev_){
     case 'ev-pass':U.evErr=answerEvent('pass')||'';break;
     case 'ev-choice':U.evErr=answerEvent('choice',t.dataset.c)||'';break;
     case 'life':U.lifeErr=answerLife(t.dataset.c)||'';break;
-    case 'prop-buy':{const er=buyProp(t.dataset.t,t.dataset.m,U.dur||20);U.deskErr=er?{t:er}:{t:`${BIENS[t.dataset.t].n} acheté.`,ok:true};save();break;}
     case 'prop-sell':{const u=+t.dataset.u;if(U.confirmSell===u){const c=sellProp(u,undefined,undefined,'Vente');U.deskErr={t:`Bien vendu : ${fmt(c.net)} net après crédit et impôt.`,ok:true};U.confirmSell=null;save();}else U.confirmSell=u;break;}
     case 'reneg':{const er=reneg(+t.dataset.u);U.deskErr=er?{t:er}:{t:'Crédit renégocié : tes mensualités baissent.',ok:true};save();break;}
     case 'end':U.open=null;U.msg={};U.deskErr='';U.evErr='';U.envMsg={};S.achNew=[];endTurn();window.scrollTo({top:0});if(S.phase==='bilan'&&canAnim()){U.anim={i:0};render();runAnim();return;}break;
-    case 'next':S.achNew=[];nextBilan();U.evAmt='';U.evAsset=null;U.evEnv=null;window.scrollTo({top:0});break;
+    case 'next':S.achNew=[];nextBilan();U.view='profil';U.dossier=null;U.evAmt='';U.evAsset=null;U.evEnv=null;window.scrollTo({top:0});break;
   }
   render();
   if(U.scroll){const el=document.getElementById(U.scroll);U.scroll=null;if(el)el.scrollIntoView({behavior:canAnim()?'smooth':'auto',block:'start'});}
@@ -2342,12 +2326,12 @@ function migrate(o){
   if(!o)return o;
   for(const k in BIENS){if(!o.idx[k])o.idx[k]={price:BIENS[k].price*o.defl,rent:BIENS[k].rent*o.defl};if(o.drift&&o.drift['b_'+k]==null)o.drift['b_'+k]=0;}
   if(!o.city)o.city='lille';
+  if(!o.p){const old={heritier:[2,2,1],ingenieure:[4,1,.66],infirmier:[1,1,2.3],fondatrice:[2,1,1.1]}[o.arch]||[2,2,1];o.p={city:o.city,sal:old[0],cap:old[1],couple:!!o.me.first};if(o.coef==null)o.coef=old[2];}
   if(!o.home){const rp=o.props.find(p=>BIENS[p.type]&&BIENS[p.type].k==='rp');o.home=rp?{type:rp.type,own:true,since:rp.buyYear}:{type:'t2rp',own:false,since:o.year};if(rp)o.flags.ownedRP=true;}
   if(o.me.car==null)o.me.car=true;
   if(!o.me.kids){o.me.kids=[];for(let i=0;i<o.me.enfants;i++)o.me.kids.push({n:KIDS[i],born:o.year-2-i});}
   if(!o.buyHist)o.buyHist={};
   if(o.onb===undefined)o.onb=null;
-  if(!o.onbAns)o.onbAns=[];
   if(!o.page)o.page={head:(o.gaz&&o.gaz.head)||{t:`Année ${o.year}`,c:''},notes:[],imp:null,spent:0};
   delete o.gaz;delete o.sigRec;
   return o;

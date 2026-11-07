@@ -28,8 +28,7 @@ async function step(pg) {
     const n = (await pg.$$('[data-act=ev-choice]')).length;
     for (let i = n - 1; i >= 0 && (await pg.$('[data-act=ev-choice]')); i--) await pg.click(`[data-act=ev-choice] >> nth=${i}`, o);
   }
-  if (await pg.$('.postit [data-act=place]')) await pg.click('.postit [data-act=place]', o);
-  if (await pg.$('.achat:not([disabled])') && Math.random() < .3) await pg.click('.achat:not([disabled]) >> nth=0', o);
+  if (await pg.$('[data-act=achat]:not([disabled])') && Math.random() < .3) await pg.click('[data-act=achat]:not([disabled]) >> nth=0', o);
   await pg.click('[data-act=end]', o);
 }
 
@@ -42,26 +41,21 @@ for (const [name, viewport, colorScheme] of [['desktop', { width: 1280, height: 
   pg.on('console', m => { const where = (m.location() && m.location().url) || ''; if (m.type() === 'error' && !/fonts\.(googleapis|gstatic)/.test(where + ' ' + m.text())) errors.push(`${name} : ${m.text()} ${where}`.trim()); });
   pg.on('requestfailed', r => { if (!/fonts\.(googleapis|gstatic)/.test(r.url())) errors.push(`${name} : échec de chargement ${r.url()}`); });
   await pg.goto(url);
-  await pg.click('[data-act=arch][data-k=fondatrice]');
+  // création du profil
+  await pg.click('[data-act=set][data-k=city][data-v=lyon]');
+  await pg.click('[data-act=set][data-k=sal][data-v="2"]');
+  await pg.click('[data-act=set][data-k=couple][data-v=true]');
   await pg.screenshot({ path: join(out, `${name}-0-depart.png`), fullPage: true });
   await pg.click('[data-act=start]');
-  // accueil en 5 étapes
-  await pg.click('[data-act=onb-city][data-c=lille]');
-  await pg.screenshot({ path: join(out, `${name}-1a-situation.png`), fullPage: true });
-  await pg.click('[data-act=onb-next]');
-  await pg.screenshot({ path: join(out, `${name}-1b-logement.png`), fullPage: true });
+  // choix du logement
+  await pg.screenshot({ path: join(out, `${name}-1a-logement.png`), fullPage: true });
   await pg.click('.opt.reco');
   await pg.click('[data-act=onb-next]');
-  await pg.click('[data-act=onb-cushion][data-m="3"]');
-  for (let i = 0; i < 3; i++) await pg.click(`[data-act=onb-q][data-q="${i}"][data-a="2"]`);
-  await pg.click('[data-act=onb-next]');
-  await pg.screenshot({ path: join(out, `${name}-1c-portefeuille.png`), fullPage: true });
-  await pg.click('[data-act=onb-next]');
   if (await pg.$('[data-act=ev-pass]')) await pg.click('[data-act=ev-pass]');
-  await pg.screenshot({ path: join(out, `${name}-1-tour.png`), fullPage: true });
-  await pg.click('[data-act=classeur]');
-  await pg.screenshot({ path: join(out, `${name}-1d-classeur.png`), fullPage: true });
-  await pg.click('[data-act=classeur]');
+  // les quatre onglets
+  await pg.screenshot({ path: join(out, `${name}-1-profil.png`), fullPage: true });
+  for (const v of ['portefeuille', 'immo', 'patrimoine']) { await pg.click(`[data-act=view][data-view=${v}]`); if (v === 'immo') await pg.click('[data-act=dossier] >> nth=1'); await pg.screenshot({ path: join(out, `${name}-1-${v}.png`), fullPage: true }); }
+  await pg.click('[data-act=view][data-view=profil]');
   await pg.click('[data-act=end]');
   await pg.waitForTimeout(600);
   await pg.screenshot({ path: join(out, `${name}-2-animation.png`) });
