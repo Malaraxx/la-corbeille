@@ -21,7 +21,7 @@ export function build(src) {
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="description" content="Simulateur de gestion de patrimoine au tour par tour, de 2000 à 2050 : krachs, PEA, assurance-vie, immobilier, objectifs de vie.">
+<meta name="description" content="Simulateur de gestion de patrimoine au tour par tour, de 2026 à 2076, dans un monde inventé à chaque partie : cycles, krachs, élections, PEA, assurance-vie, immobilier.">
 <meta property="og:title" content="La Corbeille">
 <meta property="og:description" content="50 ans de marchés en tour par tour. Bats mon score.">
 <meta property="og:type" content="website">

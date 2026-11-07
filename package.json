@@ -1,7 +1,7 @@
 {
   "name": "la-corbeille",
-  "version": "2.0.0",
-  "description": "Simulateur de gestion de patrimoine au tour par tour, de 2000 à 2050.",
+  "version": "3.0.0",
+  "description": "Simulateur de gestion de patrimoine au tour par tour, de 2026 à 2076, dans un monde inventé à chaque partie.",
   "private": true,
   "type": "module",
   "scripts": {
@@ -10,7 +10,8 @@
     "test": "node tools/build.mjs --check && node tests/run.mjs",
     "test:full": "node tests/run.mjs --full",
     "balance": "node tests/run.mjs --balance",
-    "e2e": "node tests/e2e.mjs"
+    "e2e": "node tests/e2e.mjs",
+    "monde": "node tools/monde.mjs"
   },
   "engines": {
     "node": ">=18"

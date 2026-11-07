@@ -1,5 +1,17 @@
 # Journal des versions
 
+## 3.0.0 — Saison 3 : un monde inventé (7 novembre 2026)
+- **Fin de l'histoire réelle.** La partie va de 2026 à 2076 et chaque partie génère son propre monde : cycle économique en cinq phases, banque centrale (règle de Taylor), taux longs liés à la dette publique, PER, endettement privé, pétrole, euro/dollar. Les crises naissent des excès (crédit, valorisations, courbe inversée) ou de chocs extérieurs (pandémie, énergie, guerre).
+- **Un tour par an**, ouvert par **la Gazette** : brèves, douze indicateurs, tendances (conjoncture, pari des gérants, immobilier, rumeurs) dont la fiabilité est suivie. **Étude indépendante** payante pour des signaux plus fiables et une estimation du risque de krach.
+- **Présidentielles** tous les cinq ans avec des candidats et des partis fictifs. Les programmes changent la flat tax, les prélèvements sociaux, les plafonds du PEA et du Livret A, l'âge de la retraite, la taxation des loyers, et font réagir les marchés.
+- **Vagues d'innovation** : trois par partie (IA, fusion, robotique, longévité…), avec rumeur, lancement d'un fonds thématique, adoption, bulle et krach, ou échec.
+- **ETF Monde** (PEA, assurance-vie, compte-titres) avec effet de change. Il devient le placement par défaut et le repère du score.
+- **Immobilier multi-villes** : T2 à Lille, T3 à Lyon, studio à Paris, bureaux à Euralille, résidence principale à Lille ou à Paris, chacun avec son rendement, sa vacance et sa sensibilité au cycle.
+- Nouveaux événements déclenchés par l'état du monde : produit structuré en fin de boom du crédit, banque après une crise, crise de la dette de Méridia (pays fictif), BCE qui relève ses taux, crédit bon marché, licenciement en crise.
+- Jeton numérique rééquilibré : espérance proche de zéro, la plupart finissent à zéro. Nouveau succès « Visionnaire » ; « Mains de diamant », « Rekt » et « Patience récompensée » durcis ; objectif « Transmettre 2 millions ».
+- Les parties de la version 2 sont closes proprement avec leur patrimoine.
+- Tests : statistiques de 150 mondes (cibles réalistes), fiabilité de la Gazette, pureté de l'affichage, déterminisme. Nouvel outil `npm run monde`.
+
 ## 2.0.0 — Saison 2 (7 novembre 2026)
 - **4 personnages** avec coefficient de difficulté (héritier ×1, ingénieure ×0,6, infirmier ×2,3, fondatrice ×1).
 - **6 objectifs de vie** (2 au choix), avec des bonus de score de +10 % à +40 % selon leur difficulté mesurée.

@@ -1,7 +1,7 @@
 // Tests de La Corbeille — sans dépendance, Node ≥ 18.
-//   node tests/run.mjs             tests rapides (≈ 30 s)
-//   node tests/run.mjs --full      plus de parties (≈ 3 min)
-//   node tests/run.mjs --balance   rapport d'équilibrage (≈ 5 min, avertissements seulement)
+//   node tests/run.mjs             tests rapides (≈ 40 s)
+//   node tests/run.mjs --full      plus de parties (≈ 4 min)
+//   node tests/run.mjs --balance   rapport d’équilibrage (≈ 8 min, avertissements seulement)
 //   node tests/run.mjs --seed=42   rejoue une graine précise
 //
 // Le moteur est chargé tel quel depuis src/la-corbeille.html dans un bac à sable `vm` :
@@ -35,9 +35,9 @@ const ctx = {
 };
 vm.createContext(ctx);
 vm.runInContext(js + `;globalThis.T={get S(){return S},set S(v){S=v},newGame,startTurn,endTurn,nextBilan,buyIn,sellIn,livIn,livOut,withdraw,
-  buyProp,sellProp,reneg,canReneg,answerEvent,answerLife,evDef,LIFE,net,tradable,ORDER,ENVS,META,EQUITY,ARCH,GOALS,ACH,ADV,H,HIST_YEARS,hv,ev,
-  eligEnvs,peaCap,envTotal,turnReady,finalScore,placeIdle,rebalance,dry,alloc,eqShare,irr,invData,coups,epilogue,shareText,
-  turnView,bilanView,endView,introView,allocSec,invSec,animHtml,toastsHtml,advHtml,spark,save,load,U};`, ctx);
+  buyProp,sellProp,reneg,canReneg,answerEvent,answerLife,evDef,LIFE,EVT,net,tradable,ORDER,ENVS,META,EQUITY,STOCKS,THEMES,ARCH,GOALS,ACH,ADV,BIENS,PHASES,GOOD,Y0,YN,
+  eligEnvs,peaCap,envTotal,turnReady,finalScore,placeIdle,rebalance,dry,alloc,eqShare,irr,invData,coups,epilogue,shareText,genYear,enquete,peekR,hv,ev,
+  turnView,bilanView,endView,introView,gazetteHtml,allocSec,invSec,animHtml,toastsHtml,advHtml,spark,save,load,legacyGame,U};`, ctx);
 const T = ctx.T;
 
 // ---------- mini framework
@@ -54,48 +54,52 @@ function scanNumbers(o, path = 'S') {
   if (o && typeof o === 'object') for (const k in o) scanNumbers(o[k], `${path}.${k}`);
 }
 
+
 // ---------- stratégies de jeu
 const STOCK_ENVS = ['cto', 'pea', 'av'];
+const BIEN_IDS = Object.keys(T.BIENS);
 const randomPolicy = {
   life: (id, ch) => pickR(ch),
   event: (S, v) => {
     if (v.invest && R() < .5) {
       const as = v.invest.assets.filter(a => T.META[a].k === 'special' || T.tradable(a));
-      const a = as[0], envs = T.eligEnvs(a);
-      return ['invest', a, Math.floor(S.cash * R() * .5) + 1, pickR(envs)];
+      if (as.length) { const a = pickR(as), envs = T.eligEnvs(a); return ['invest', a, Math.floor(S.cash * R() * .5) + 1, pickR(envs)]; }
     }
     if (v.choices && v.choices.length && R() < .7) return ['choice', pickR(v.choices).id];
     return null;
   },
   port: S => {
+    if (R() < .15) T.enquete();
     for (const e of STOCK_ENVS) for (const id of T.ENVS[e].el) {
       if (!T.tradable(id)) continue;
-      if (R() < .1) T.buyIn(e, id, S.cash * R() * .4);
-      if (R() < .07 && T.ev(e, id) > 0) T.sellIn(e, id, T.ev(e, id) * R());
+      if (R() < .05) T.buyIn(e, id, S.cash * R() * .4);
+      if (R() < .04 && T.ev(e, id) > 0) T.sellIn(e, id, T.ev(e, id) * R());
     }
-    if (R() < .2) T.withdraw(R() < .5 ? 'pea' : 'av', S.acc.pea.cash * R());
-    if (R() < .1) T.livIn(Math.min(S.cash, 5000));
-    if (R() < .1) T.buyProp(pickR(['logement', 'bureaux', 'maison']), R() < .5 ? 'cash' : 'credit');
+    if (R() < .1) T.withdraw(R() < .5 ? 'pea' : 'av', S.acc.pea.cash * R());
+    if (R() < .05) T.livIn(Math.min(S.cash, 5000));
+    if (R() < .05) T.buyProp(pickR(BIEN_IDS), R() < .5 ? 'cash' : 'credit');
     for (const p of S.props) if (T.canReneg(p) && R() < .5) T.reneg(p.uid);
-    if (R() < .05 && S.props.length) T.sellProp(S.props[0].uid);
+    if (R() < .03 && S.props.length) T.sellProp(S.props[0].uid);
     if (R() < .3) T.placeIdle(R(), []);
   },
 };
 
-// Joue une partie complète. hooks.afterPort(S) permet d'insérer des vérifications pendant le tour.
+// Joue une partie complète, un tour par an. hooks.afterPort(S) permet d'insérer des vérifications pendant le tour.
 function play(arch, goals, pol, hooks = {}) {
   T.newGame(arch, goals);
   let guard = 0;
-  while (T.S.phase !== 'end' && guard++ < 300) {
+  while (T.S.phase !== 'end' && guard++ < 200) {
     const S = T.S;
     if (S.phase === 'turn') {
-      if (hooks.render) { T.turnView(); T.toastsHtml(); }
+      if (hooks.render) { const r0 = S.rng, h1 = T.turnView(); check(S.rng === r0, `l’affichage du tour ${S.year} consomme du hasard`); check(T.turnView() === h1, `affichage non déterministe en ${S.year}`); T.toastsHtml(); }
       if (S.life) { const ch = S.life.v.choices.map(c => c.id); T.answerLife(pol.life(S.life.id, ch)); }
-      const v = T.evDef().view(S.event.p);
-      let done = false;
-      if (!S.lock && pol.event) { const a = pol.event(S, v); if (a) done = !T.answerEvent(...a); }
-      if (!done) T.answerEvent('pass');
-      check(S.event.answered, `événement ${S.event.id} sans réponse`);
+      if (S.event) {
+        const v = T.evDef().view(S.event.p);
+        let done = false;
+        if (!S.lock && pol.event) { const a = pol.event(S, v); if (a) done = !T.answerEvent(...a); }
+        if (!done) T.answerEvent('pass');
+        check(S.event.answered, `événement ${S.event.id} sans réponse`);
+      }
       if (!S.lock && pol.port) pol.port(S);
       if (hooks.afterPort && !S.lock) hooks.afterPort(S);
       if (hooks.render) { T.turnView(); T.allocSec(); T.invSec(); }
@@ -106,7 +110,7 @@ function play(arch, goals, pol, hooks = {}) {
       T.nextBilan();
     }
   }
-  check(guard < 300, 'boucle infinie');
+  check(guard < 200, 'boucle infinie');
   if (hooks.render) { T.endView(); T.coups(); T.epilogue(); T.shareText(); }
   return T.S;
 }
@@ -134,6 +138,31 @@ function endInvariants(S) {
   check(Number.isFinite(fs.score), 'score non fini');
 }
 
+// Génère n mondes sans joueur et renvoie leurs statistiques annuelles.
+function worlds(n) {
+  const a = { tr: [], mo: [], infl: [], credit: [], crises: 0, rec: 0, years: 0, lille: [], paris: [] };
+  for (let i = 0; i < n; i++) {
+    T.newGame('heritier', []);
+    const S = T.S; S.fut = {}; S.wPrev = null; S.flags = {};
+    let hl = 1, hp = 1;
+    for (let y = T.Y0; y <= T.YN; y++) {
+      const f = T.genYear(y), sh = k => f.shock ? f.shock[k] / 100 : 0;
+      a.tr.push((1 + sh('tracker')) * (1 + f.r.tracker) - 1); a.mo.push((1 + sh('monde')) * (1 + f.r.monde) - 1);
+      a.infl.push(f.mac.infl); a.credit.push(f.mac.credit);
+      if (f.phase === 'crise') a.crises++; if (f.phase === 'recession') a.rec++; a.years++;
+      hl *= 1 + f.mac.gB.lille; hp *= 1 + f.mac.gB.paris;
+      S.wPrev = S.w; S.w = { ...f.mac };
+    }
+    a.lille.push(Math.pow(hl, 1 / 51) - 1); a.paris.push(Math.pow(hp, 1 / 51) - 1);
+  }
+  return a;
+}
+const mean = x => x.reduce((s, v) => s + v, 0) / x.length;
+const sd = x => { const m = mean(x); return Math.sqrt(mean(x.map(v => (v - m) ** 2))); };
+const geo = x => Math.exp(mean(x.map(v => Math.log(1 + v)))) - 1;
+const med = a => { a = [...a].sort((x, y) => x - y); return a[a.length >> 1]; };
+const pc = v => (v * 100).toFixed(1).replace('.', ',') + ' %';
+
 // =====================================================================
 console.log(`La Corbeille · tests ${FULL ? 'complets' : 'rapides'} · graine ${seed}\n`);
 
@@ -145,8 +174,49 @@ test('TRI : cas connus', () => {
   check(T.irr([{ t: 2000, a: -100 }, { t: 2000.2, a: 100 }]) === null, 'durée < 6 mois devrait donner null');
 });
 
+test('Monde généré : ordres de grandeur réalistes', () => {
+  const a = worlds(FULL ? 600 : 150);
+  const gt = geo(a.tr), gm = geo(a.mo), inf = mean(a.infl), cr = a.crises / (a.years / 51), rc = a.rec / a.years;
+  console.log(`    Bourse de Paris ${pc(gt)}/an (écart-type ${pc(sd(a.tr))}) · ETF Monde ${pc(gm)}/an · inflation ${inf.toFixed(1).replace('.', ',')} % · ${cr.toFixed(1).replace('.', ',')} crises par partie · ${pc(rc)} d’années de récession · immobilier Lille ${pc(med(a.lille))}/an, Paris ${pc(med(a.paris))}/an`);
+  check(gt > .035 && gt < .075, `Bourse de Paris hors cible : ${pc(gt)}/an`);
+  check(gm > .045 && gm < .085, `ETF Monde hors cible : ${pc(gm)}/an`);
+  check(sd(a.tr) > .14 && sd(a.tr) < .25, `volatilité hors cible : ${pc(sd(a.tr))}`);
+  check(inf > 1.5 && inf < 3, `inflation moyenne hors cible : ${inf.toFixed(2)} %`);
+  check(Math.max(...a.infl) > 5, 'jamais d’épisode inflationniste');
+  check(cr >= 2 && cr <= 6, `nombre de crises par partie hors cible : ${cr.toFixed(1)}`);
+  check(rc > .06 && rc < .22, `part des années de récession hors cible : ${pc(rc)}`);
+  check(Math.min(...a.credit) >= .8 && Math.max(...a.credit) < 10, 'taux de crédit irréaliste');
+  check(med(a.paris) > 0 && med(a.paris) < .06 && med(a.lille) > 0, 'immobilier irréaliste');
+});
+
+test('Gazette : signaux plus fiables avec une étude, sans hasard à l’affichage', () => {
+  let n = 0, okBase = 0, okEnq = 0, elections = 0;
+  for (let g = 0; g < (FULL ? 40 : 12); g++) {
+    T.newGame('heritier', []);
+    while (T.S.phase !== 'end') {
+      const S = T.S;
+      if (S.phase === 'turn') {
+        if (S.event && S.event.id === 'election') elections++;
+        const good = T.GOOD.includes(S.fut[S.year].phase);
+        okBase += S.gaz.sig.find(x => x.k === 'conj').good === good ? 1 : 0;
+        const c0 = S.cash; S.cash = 1e7; T.enquete(); S.cash = c0;
+        check(S.gaz.enq, 'étude non appliquée');
+        okEnq += S.gaz.sig.find(x => x.k === 'conj').good === good ? 1 : 0; n++;
+        const r0 = S.rng; T.gazetteHtml(); check(S.rng === r0, 'la Gazette consomme du hasard à l’affichage');
+        if (S.life) T.answerLife(S.life.v.choices[0].id);
+        if (S.event) T.answerEvent('pass');
+        T.endTurn();
+      } else T.nextBilan();
+    }
+  }
+  console.log(`    ${n} années · consensus juste ${Math.round(okBase / n * 100)} % · étude juste ${Math.round(okEnq / n * 100)} % · ${elections} présidentielles en Une`);
+  check(okEnq / n > okBase / n + .1, 'l’étude n’améliore pas les signaux');
+  check(okBase / n > .5 && okBase / n < .8, 'consensus trop ou pas assez fiable');
+  check(elections > 0, 'aucune présidentielle');
+});
+
 test('Parties aléatoires : invariants, rendu et identité de caisse', () => {
-  const N = FULL ? 150 : 25;
+  const N = FULL ? 120 : 15;
   let checked = 0, worst = 0;
   for (const arch of Object.keys(T.ARCH)) for (let g = 0; g < N; g++) {
     const goals = [pickR(Object.keys(T.GOALS)), pickR(Object.keys(T.GOALS))];
@@ -158,9 +228,10 @@ test('Parties aléatoires : invariants, rendu et identité de caisse', () => {
 });
 
 test('Rééquilibrage : aperçu pur, conservation de l’argent, aperçu = exécution', () => {
-  const N = FULL ? 60 : 12;
+  const N = FULL ? 40 : 8;
   let n = 0;
   const hook = S => {
+    if (R() > .3) return;
     const p = pickR([0, .2, .5, .8, 1, R()]);
     const before = T.net(), snap = JSON.stringify(S);
     const d = T.dry(() => T.rebalance(p));
@@ -177,82 +248,96 @@ test('Rééquilibrage : aperçu pur, conservation de l’argent, aperçu = exéc
   console.log(`    ${n} opérations contrôlées`);
 });
 
-test('Sauvegarde : l’état survit à un aller-retour JSON en cours de partie', () => {
-  T.newGame('fondatrice', ['rp35', 'serein']);
-  for (let i = 0; i < 6; i++) { const S = T.S; if (S.life) T.answerLife(S.life.v.choices[0].id); T.answerEvent('pass'); T.placeIdle(.6, []); T.endTurn(); T.nextBilan(); }
-  T.save();
-  const restored = T.load();
-  check(restored && restored.v === 2, 'chargement impossible');
-  check(JSON.stringify(restored) === JSON.stringify(T.S), 'état différent après rechargement');
-  T.S = restored; T.turnView();
+test('Déterminisme : même graine, même partie', () => {
+  // newGame tire sa graine de Date.now() et Math.random() : on les fige pour rejouer deux fois la même partie.
+  const once = () => { const a = R; let k = 7; ctx.Math.random = () => (k = (k * 16807) % 2147483647) / 2147483647; T.newGame('ingenieure', ['fire']);
+    for (let i = 0; i < 25; i++) { const S = T.S; if (S.life) T.answerLife(S.life.v.choices[0].id); if (S.event) T.answerEvent('pass'); T.placeIdle(.7, []); T.endTurn(); T.nextBilan(); }
+    ctx.Math.random = a; return JSON.stringify(T.S); };
+  check(once() === once(), 'deux parties à graine égale divergent');
 });
 
-test('Écran de départ et personnages', () => {
+test('Sauvegarde : l’état survit à un aller-retour JSON, ancienne version close proprement', () => {
+  T.newGame('fondatrice', ['rp35', 'serein']);
+  for (let i = 0; i < 6; i++) { const S = T.S; if (S.life) T.answerLife(S.life.v.choices[0].id); if (S.event) T.answerEvent('pass'); T.placeIdle(.6, []); T.endTurn(); T.nextBilan(); }
+  T.save();
+  const restored = T.load();
+  check(restored && restored.v === 3, 'chargement impossible');
+  check(JSON.stringify(restored) === JSON.stringify(T.S), 'état différent après rechargement');
+  T.S = restored; T.turnView();
+  store['la-corbeille-v2'] = JSON.stringify({ v: 2, year: 2013, phase: 'turn', cash: 1000, liv: 500, acc: { cto: { hold: { tracker: { v: 2000, b: 1000 } }, cash: 0 }, pea: { hold: {}, cash: 100 }, av: { hold: {}, cash: 0 } }, props: [{ type: 'logement', loan: { p: 40000 } }], idx: { logement: { price: 100000 } } });
+  const L = T.legacyGame();
+  check(L && Math.round(L.net) === 63600 && L.year === 2013, 'ancienne partie mal résumée');
+  T.S = null; T.U.legacy = L; check(T.introView().includes('Nouvelle saison'), 'message de clôture absent'); T.U.legacy = null;
+  delete store['la-corbeille-v2'];
+});
+
+test('Écran de départ, personnages et immobilier multi-villes', () => {
   T.S = null; check(T.introView().includes('Choisis ton personnage'), 'écran de départ absent');
   for (const a of Object.keys(T.ARCH)) { T.newGame(a, ['famille']); check(T.S.cash === T.ARCH[a].cash && T.S.start === T.ARCH[a].cash, `capital de départ faux pour ${a}`); T.turnView(); }
+  T.newGame('heritier', []); T.S.cash = 3e6; T.S.start = 3e6;
+  check(!T.buyProp('paris', 'cash') && !T.buyProp('lyon', 'cash') && !T.buyProp('maison', 'cash'), 'achat comptant refusé');
+  check(T.buyProp('rpparis', 'cash'), 'deux résidences principales acceptées');
+  check(T.S.flags.twoRent && T.S.flags.rpYear === T.Y0, 'objectifs immobiliers non suivis');
 });
 
 // =====================================================================
 if (BALANCE) {
   console.log('\nRapport d’équilibrage (avertissements seulement)\n');
-  const med = a => { a = [...a].sort((x, y) => x - y); return a[a.length >> 1]; };
   const warn = (ok, label, val, target) => console.log(`${ok ? '  OK  ' : ' WARN '} ${label.padEnd(52)} ${String(val).padStart(10)}   cible ${target}`);
   const choose = map => (id, ch) => { const w = map[id]; return w && ch.includes(w) ? w : (id === 'retraite' ? ch[Math.min(1, ch.length - 1)] : ch[0]); };
-  const BAL = { diner: 'rdv', promo: 'oui', vacances: 'oui', mariage: 'oui', enfant: 'non', sport: 'oui', ami: 'non', weekend: 'partir', burnout: 'arret', rupture: 'ok', panique: 'tenir', rencontre: 'oui', maison: 'non', fire: 'non' };
+  const BAL = { diner: 'rdv', promo: 'oui', vacances: 'oui', mariage: 'oui', enfant: 'non', sport: 'oui', ami: 'non', weekend: 'partir', burnout: 'arret', rupture: 'ok', panique: 'tenir', rencontre: 'oui', maison: 'non', fire: 'non', licenciement: 'chercher' };
   const MONEY = { ...BAL, diner: 'diner', vacances: 'non', mariage: 'non', sport: 'non', weekend: 'ecrans', rencontre: 'non' };
-  const peaTracker = S => { const room = T.peaCap() - S.acc.pea.vers, a = Math.min(S.cash + S.acc.pea.cash, Math.max(0, room) + S.acc.pea.cash); if (a > 1) T.buyIn('pea', 'tracker', a); if (S.cash > 1) T.buyIn('cto', 'tracker', S.cash); };
-  const run = (arch, pol, n = 150) => { const r = []; for (let i = 0; i < n; i++) { const S = play(arch, [], pol); let at2025 = null; for (const h of S.hist) if (h.x === 2025) at2025 = h.net; r.push({ real: T.finalScore().real, score: T.finalScore().score, ratio: S.bench.trk > 1000 ? T.net() / S.bench.trk : 1, at2025 }); } return r; };
+  const peaMonde = S => { const room = T.peaCap() - S.acc.pea.vers, a = Math.min(S.cash + S.acc.pea.cash, Math.max(0, room) + S.acc.pea.cash); if (a > 1) T.buyIn('pea', 'monde', a); if (S.cash > 1) T.buyIn('cto', 'monde', S.cash); };
+  const run = (arch, pol, n = 100) => { const r = []; for (let i = 0; i < n; i++) { const S = play(arch, [], pol); r.push({ real: T.finalScore().real, score: T.finalScore().score, ratio: S.bench.trk > 1000 ? T.net() / S.bench.trk : 1 }); } return r; };
 
-  const passive = run('heritier', { life: choose(BAL), port: peaTracker });
-  const career = run('heritier', { life: choose(MONEY), port: peaTracker });
-  const NEXT = {}; T.HIST_YEARS.forEach((y, i) => NEXT[y] = T.HIST_YEARS[i + 1] || 2026);
-  const sellAll = () => { for (const e of STOCK_ENVS) for (const id of T.ORDER) if (T.META[id].k !== 'special' && T.ev(e, id) > 0) T.sellIn(e, id, T.ev(e, id)); };
-  const oracle = run('heritier', { life: choose(BAL), port: S => {
-    if (S.year > 2024) { sellAll(); peaTracker(S); return; }
-    const to = NEXT[S.year]; let best = null, bv = Math.pow(1.03, to - S.year);
-    for (const k of ['tracker', 'telecom', 'luxe', 'banque', 'petro', 'aero', 'pharma', 'or', 'oat']) { let v = 1; for (let y = S.year; y < to; y++) v *= 1 + T.H[k][y - 2000] / 100; if (v > bv) { bv = v; best = k; } }
-    sellAll(); for (const e of ['pea', 'av']) if (S.acc[e].cash > 0 && !(e === 'pea' && S.year - S.acc.pea.open < 5)) T.withdraw(e, S.acc[e].cash);
-    if (!best) { T.livIn(Math.min(S.cash, 22950)); if (S.cash > 1) T.buyIn('av', 'euros', S.cash); return; }
-    if (T.eligEnvs(best).includes('pea')) { const a = Math.min(S.cash + S.acc.pea.cash, T.peaCap() - S.acc.pea.vers + S.acc.pea.cash); if (a > 1) T.buyIn('pea', best, a); }
-    if (S.cash > 1) T.buyIn('cto', best, S.cash);
+  const passive = run('heritier', { life: choose(BAL), port: peaMonde });
+  const career = run('heritier', { life: choose(MONEY), port: peaMonde });
+  // Lecteur de Gazette : suit le consensus (90 % ou 30 % d'actions) et met 30 % de son patrimoine sur le pari des gérants.
+  const reader = enq => ({ life: choose(BAL), port: S => {
+    if (enq) T.enquete();
+    const sig = S.gaz.sig, conj = sig.find(x => x.k === 'conj'), sect = sig.find(x => x.k === 'sect');
+    for (const id of [...T.STOCKS, 'or', 'oat', 'tracker']) if (T.ev('cto', id) > 0) T.sellIn('cto', id, T.ev('cto', id));
+    const crash = S.event && T.EVT[S.event.id].crash; // après un krach, la Bourse rebondit avant l'économie
+    T.rebalance(conj.good || crash ? .9 : .3);
+    if (sect && T.eligEnvs(sect.a).includes('cto')) { if (S.cash < .3 * T.net() && T.ev('cto', 'monde') > 0) T.sellIn('cto', 'monde', Math.min(T.ev('cto', 'monde'), .3 * T.net() - S.cash)); const amt = Math.floor(Math.min(S.cash, .3 * T.net())); if (amt > 100) T.buyIn('cto', sect.a, amt); }
   } });
-  const greens = f => f.rows.slice(0, 4).filter(r => { if (r.v === 'en pertes') return false; const x = parseFloat(String(r.v).replace(',', '.').replace('−', '-')), th = parseFloat(r.r.slice(2).replace(',', '.')); return r.r.startsWith('<') ? x < th : x > th; }).length;
-  const dip = useFiche => (S, v) => { const f = S.event.fiche; if (!f) return null;
-    if (S.event.id === 'bulle') return (!useFiche || greens(f) <= 1) && v.choices && v.choices.length ? ['choice', 'vendre'] : null;
+  const r0 = run('heritier', reader(false)), r1 = run('heritier', reader(true));
+  const greens = f => f.rows.slice(0, 4).filter(r => { if (r.v === 'en pertes') return false; const x = parseFloat(String(r.v).replace(',', '.').replace('−', '-')), th = parseFloat(r.r.slice(2).replace(',', '.').replace(' ', '')); return r.r.startsWith('<') ? x < th : x > th; }).length;
+  const dip = useFiche => (S, v) => { const f = S.event && S.event.fiche; if (!f) return null;
+    if (['bulle', 'themeBulle'].includes(S.event.id)) return (!useFiche || greens(f) <= 1) && v.choices && v.choices.length ? ['choice', 'vendre'] : null;
     if (!T.tradable(f.a) || (useFiche && greens(f) < 3)) return null;
-    const amt = Math.floor(T.net() * .15); if (S.cash < amt && T.ev('cto', 'tracker') > 0) T.sellIn('cto', 'tracker', amt - S.cash);
+    const amt = Math.floor(T.net() * .15); if (S.cash < amt && T.ev('cto', 'monde') > 0) T.sellIn('cto', 'monde', amt - S.cash);
     return ['invest', f.a, Math.min(amt, Math.floor(S.cash)), 'cto']; };
-  const ctoPassive = S => { if (S.cash > 1) T.buyIn('cto', 'tracker', S.cash); };
+  const ctoPassive = S => { if (S.cash > 1) T.buyIn('cto', 'monde', S.cash); };
   const naive = run('heritier', { life: choose(BAL), event: dip(false), port: ctoPassive });
-  const reader = run('heritier', { life: choose(BAL), event: dip(true), port: ctoPassive });
+  const fiche = run('heritier', { life: choose(BAL), event: dip(true), port: ctoPassive });
 
-  const r25 = med(oracle.map(x => x.at2025)) / med(passive.map(x => x.at2025));
-  warn(r25 <= 2.6, 'Oracle historique / passif (patrimoine 2025)', '×' + r25.toFixed(2), '≤ ×2,6');
   const pr = med(passive.map(x => x.ratio));
-  warn(pr >= .75 && pr <= .95, 'Passif PEA / repère Tracker sans frictions (2050)', pr.toFixed(2), '0,75 – 0,95');
-  const fr = med(reader.map(x => x.real)) / med(naive.map(x => x.real));
+  warn(pr >= .9 && pr <= 1.02, 'Passif PEA / repère ETF Monde sans frictions', pr.toFixed(2), '0,9 – 1,02');
+  const g0 = med(r0.map(x => x.real)) / med(passive.map(x => x.real)), g1 = med(r1.map(x => x.real)) / med(passive.map(x => x.real));
+  warn(g0 >= .7 && g0 <= 1.2, 'Lecteur de Gazette sans étude / passif', '×' + g0.toFixed(2), '×0,7 – ×1,2');
+  warn(g1 >= 1.05 && g1 <= 2, 'Lecteur de Gazette avec étude / passif', '×' + g1.toFixed(2), '×1,05 – ×2');
+  const fr = med(fiche.map(x => x.real)) / med(naive.map(x => x.real));
   warn(fr >= 1.15, 'Lecteur de fiches / acheteur naïf de paniques', '×' + fr.toFixed(2), '≥ ×1,15');
   warn(med(career.map(x => x.score)) < med(passive.map(x => x.score)), 'Score carriériste < score équilibré', `${med(career.map(x => x.score))} < ${med(passive.map(x => x.score))}`, 'vrai');
   const p10 = passive.map(x => x.real).sort((a, b) => a - b)[Math.floor(passive.length * .1)];
-  warn(p10 > 0, 'Patrimoine au 10e centile, joueur passif (€ de 2000)', Math.round(p10 / 1000) + ' k€', '> 0');
+  warn(p10 > 0, `Patrimoine au 10e centile, joueur passif (€ de ${T.Y0})`, Math.round(p10 / 1000) + ' k€', '> 0');
 
-  // personnages : scores médians après coefficient
   const S0 = {};
-  for (const a of Object.keys(T.ARCH)) S0[a] = med(run(a, { life: choose({ ...BAL, maison: 'credit' }), port: S => T.placeIdle(.6, []) }, 120).map(x => x.score));
+  for (const a of Object.keys(T.ARCH)) S0[a] = med(run(a, { life: choose({ ...BAL, maison: 'maison' }), port: S => T.placeIdle(.6, []) }, 100).map(x => x.score));
   for (const a of Object.keys(T.ARCH)) { const q = S0[a] / S0.heritier; warn(q >= .75 && q <= 1.33, `Score médian ${a} / héritier`, q.toFixed(2), '0,75 – 1,33'); }
 
-  // objectifs atteignables par un joueur qui les vise
-  const goalRate = (arch, goal, lifeMap, port, n = 100) => { let hit = 0; for (let i = 0; i < n; i++) { const S = play(arch, [goal], { life: choose(lifeMap), port }); if (T.finalScore().gl[0].st === 1) hit++; } return hit / n; };
-  const LOVE = { ...BAL, enfant: 'oui', maison: 'credit', vacances: 'oui', promo: 'non' };
-  const rpSmart = S => { if (!S.props.some(p => p.type === 'maison')) { if (S.liv > 0) T.livOut(S.liv); if (T.buyProp('maison', 'credit')) { T.livIn(Math.min(S.cash, 22950)); return; } } T.placeIdle(.6, []); };
-  const g1 = goalRate('heritier', 'rp35', LOVE, rpSmart); warn(g1 >= .8, 'Objectif « propriétaire avant 35 ans » (héritier)', Math.round(g1 * 100) + ' %', '≥ 80 %');
+  const goalRate = (arch, goal, lifeMap, port, n = 80) => { let hit = 0; for (let i = 0; i < n; i++) { play(arch, [goal], { life: choose(lifeMap), port }); if (T.finalScore().gl[0].st === 1) hit++; } return hit / n; };
+  const LOVE = { ...BAL, enfant: 'oui', maison: 'maison', vacances: 'oui', promo: 'non' };
+  const rpSmart = S => { if (!S.props.some(p => T.BIENS[p.type].k === 'rp')) { if (S.liv > 0) T.livOut(S.liv); if (T.buyProp('maison', 'credit')) { T.livIn(Math.min(S.cash, S.pol.livCap)); return; } } T.placeIdle(.6, []); };
+  const g1r = goalRate('heritier', 'rp35', LOVE, rpSmart); warn(g1r >= .8, 'Objectif « propriétaire avant 35 ans » (héritier)', Math.round(g1r * 100) + ' %', '≥ 80 %');
   const g2 = goalRate('infirmier', 'famille', LOVE, S => T.placeIdle(.6, [])); warn(g2 >= .5, 'Objectif « fonder une famille » (infirmier)', Math.round(g2 * 100) + ' %', '≥ 50 %');
   const g3 = goalRate('heritier', 'famille', LOVE, S => T.placeIdle(.6, [])); warn(g3 >= .25, 'Objectif « fonder une famille » (héritier)', Math.round(g3 * 100) + ' %', '≥ 25 %');
   const g4 = goalRate('heritier', 'fire', { ...BAL, fire: 'stop' }, S => T.placeIdle(.8, [])); warn(g4 >= .25 && g4 <= .7, 'Objectif « libre à 55 ans » (héritier)', Math.round(g4 * 100) + ' %', '25 – 70 %');
-  const g5 = goalRate('heritier', 'rentier', BAL, S => { if (S.props.filter(p => p.type !== 'maison').length < 2) T.buyProp('logement', 'credit'); T.placeIdle(.6, []); }); warn(g5 >= .7, 'Objectif « rentier immobilier » (héritier)', Math.round(g5 * 100) + ' %', '≥ 70 %');
+  const g5 = goalRate('heritier', 'rentier', BAL, S => { for (let k = 0; k < 2; k++) if (S.props.filter(p => T.BIENS[p.type].k !== 'rp').length < 2) T.buyProp('lille', 'credit'); T.placeIdle(.6, []); }); warn(g5 >= .7, 'Objectif « rentier immobilier » (héritier)', Math.round(g5 * 100) + ' %', '≥ 70 %');
+  const g6 = goalRate('heritier', 'million', BAL, S => T.placeIdle(.8, [])); warn(g6 >= .15 && g6 <= .6, 'Objectif « transmettre 2 millions » (héritier)', Math.round(g6 * 100) + ' %', '15 – 60 %');
 
-  // conseillers et succès sur joueurs aléatoires
-  const adv = {}, ach = {}; const NR = 200;
+  const adv = {}, ach = {}; const NR = 150;
   for (let i = 0; i < NR; i++) { const S = play(pickR(Object.keys(T.ARCH)), [], randomPolicy); for (const w in S.advRec) { adv[w] = adv[w] || { n: 0, ok: 0 }; adv[w].n += S.advRec[w].n; adv[w].ok += S.advRec[w].ok; } for (const id in S.ach) ach[id] = (ach[id] || 0) + 1; }
   const rate = w => adv[w] ? adv[w].ok / adv[w].n : 0;
   warn(rate('sophie') >= .7, 'Fiabilité de Sophie (doit être la meilleure)', Math.round(rate('sophie') * 100) + ' %', '≥ 70 %');

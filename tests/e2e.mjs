@@ -23,7 +23,10 @@ async function step(pg) {
   if (await pg.$('[data-act=next]')) return pg.click('[data-act=next]', o);
   if (await pg.$('[data-act=life]')) await pg.click('[data-act=life] >> nth=0', o);
   if (await pg.$('[data-act=ev-pass]')) await pg.click('[data-act=ev-pass]', o);
-  else if (await pg.$('[data-act=ev-choice]')) await pg.click('[data-act=ev-choice] >> nth=-1', o);
+  else { // un choix peut être refusé (pas assez d'argent) : on essaie les autres, du dernier au premier
+    const n = (await pg.$$('[data-act=ev-choice]')).length;
+    for (let i = n - 1; i >= 0 && (await pg.$('[data-act=ev-choice]')); i--) await pg.click(`[data-act=ev-choice] >> nth=${i}`, o);
+  }
   if (await pg.$('.idle [data-act=place]')) await pg.click('.idle [data-act=place]', o);
   await pg.click('[data-act=end]', o);
 }
@@ -40,9 +43,10 @@ for (const [name, viewport, colorScheme] of [['desktop', { width: 1280, height: 
   await pg.click('[data-act=arch][data-k=fondatrice]');
   await pg.screenshot({ path: join(out, `${name}-0-depart.png`), fullPage: true });
   await pg.click('[data-act=start]');
+  await pg.click('[data-act=enquete]');
   await pg.click('[data-act=prof][data-p="0.8"]');
   await pg.click('.idle [data-act=place]');
-  await pg.click('[data-act=ev-pass]');
+  if (await pg.$('[data-act=ev-pass]')) await pg.click('[data-act=ev-pass]');
   await pg.screenshot({ path: join(out, `${name}-1-tour.png`), fullPage: true });
   await pg.click('[data-act=end]');
   await pg.waitForTimeout(600);
@@ -50,7 +54,12 @@ for (const [name, viewport, colorScheme] of [['desktop', { width: 1280, height: 
   if (await pg.$('[data-act=skip-anim]')) await pg.click('[data-act=skip-anim]');
   // L'animation est vérifiée ci-dessus ; on la coupe ensuite pour éviter les courses entre clics et minuteries.
   await pg.emulateMedia({ reducedMotion: 'reduce' });
-  for (let i = 0; i < 600 && (await pg.evaluate('S.phase')) !== 'end'; i++) {
+  let une = false, last = '', same = 0;
+  for (let i = 0; i < 800 && (await pg.evaluate('S.phase')) !== 'end'; i++) {
+    const where = await pg.evaluate("S.phase+' '+S.year+' '+(S.event?S.event.id:'-')");
+    same = where === last ? same + 1 : 0; last = where;
+    if (same > 25) { errors.push(`${name} : partie bloquée (${where})`); break; }
+    if (!une && (await pg.evaluate("S.phase==='turn'&&!!S.event&&S.year>2032"))) { une = true; await pg.screenshot({ path: join(out, `${name}-2b-une.png`), fullPage: true }); }
     try { await step(pg); } catch { await pg.waitForTimeout(150); } // un clic manqué n'est pas un bug : on réessaie
   }
   if ((await pg.evaluate('S.phase')) !== 'end') errors.push(`${name} : la partie n’est pas allée jusqu’au bout`);
