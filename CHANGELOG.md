@@ -1,5 +1,12 @@
 # Journal des versions
 
+## 3.4.0 — Tout sur un écran, des décisions qui s'imposent (8 novembre 2026)
+- **Un seul écran, sans défiler** : ton argent en haut, les onglets et le bouton « Passer à l'année suivante » juste dessous, puis des cartes qui tiennent dans la fenêtre (une carte trop longue défile seule). Sur téléphone, seule la zone centrale défile.
+- **Décisions obligatoires en fenêtre** : chaque année commence par elles, une à la fois (« décision 1 sur 2 »), avec une illustration. Rien d'autre n'est accessible tant qu'elles ne sont pas prises. Le résultat s'affiche, puis « Décision suivante » ou « Voir mon année ».
+- **Animations** : les montants du haut défilent jusqu'à leur nouvelle valeur avec un « +X € » flottant, les cartes apparaissent en cascade, les jauges se remplissent, une notification confirme chaque achat ou déménagement. Tout est coupé si le système demande moins d'animations.
+- **Dessins** : visages qui sourient ou font la moue selon l'humeur et le couple, enfants dessinés, icônes pour chaque type d'événement et chaque note de l'année, anneau de répartition, tuiles « Se faire du bien », tuiles de biens immobiliers.
+- **Dossier de crédit en fenêtre** (fermeture par le bouton ou Échap) ; bilan de l'année et création du profil sur un écran.
+
 ## 3.3.1 — Audit du budget (8 novembre 2026)
 - **Un propriétaire ne voit plus de loyer** dans son bilan : seulement ses mensualités et ses charges. Le calcul était juste, mais l'affichage montrait un loyer et un « loyer économisé » qui donnaient l'impression de payer deux fois.
 - **Couple** : le foyer épargne sur ses deux revenus (le conjoint gagne 60 % de ton salaire), avec 6 points d'épargne en plus à deux.
