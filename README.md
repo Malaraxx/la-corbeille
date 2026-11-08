@@ -1,6 +1,6 @@
 # La Corbeille
 
-**50 ans de marchés en tour par tour, dans un monde inventé à chaque partie.** Tu as 25 ans le 1er janvier 2026. Cycles, krachs, bulles, présidentielles, révolutions technologiques : rien n'est écrit d'avance, mais tout obéit aux règles de l'économie réelle. Chaque année, ta famille, ton budget et les marchés te posent des choix, et Sophie, ta cousine, t'aide à décider.
+**55 ans de marchés en tour par tour, dans un monde inventé à chaque partie.** Tu as 20 ans le 1er janvier 2026, ton diplôme d’école de commerce en poche. Cycles, krachs, bulles, présidentielles, révolutions technologiques : rien n'est écrit d'avance, mais tout obéit aux règles de l'économie réelle. Chaque année, ta famille, ton budget et les marchés te posent des choix, et Sophie, ta cousine, t'aide à décider.
 
 ▶ **Jouer** : [version officielle sur Claude](https://claude.ai/artifact/GpZGGZupMd8fPAfZKjrozN) · [version GitHub Pages](https://malaraxx.github.io/la-corbeille/)
 

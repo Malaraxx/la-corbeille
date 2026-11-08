@@ -35,10 +35,10 @@ const ctx = {
 };
 vm.createContext(ctx);
 vm.runInContext(js + `;globalThis.T={get S(){return S},set S(v){S=v},newGame,startTurn,endTurn,nextBilan,buyIn,sellIn,livIn,livOut,withdraw,
-  buyProp,sellProp,reneg,canReneg,answerEvent,answerLife,evDef,LIFE,EVT,net,tradable,ORDER,ENVS,META,EQUITY,STOCKS,THEMES,PRESETS,GOALS,ACH,ADV,PHASES,GOOD,Y0,YN,
+  buyProp,sellProp,reneg,canReneg,answerEvent,answerLife,evDef,LIFE,EVT,net,tradable,ORDER,ENVS,META,EQUITY,STOCKS,THEMES,PRESETS,GOALS,ACH,ADV,PHASES,GOOD,Y0,get YN(){return YN},get A0(){return A0},setA0,age,AY,gTxt,
   eligEnvs,peaCap,envTotal,turnReady,finalScore,placeIdle,rebalance,dry,alloc,eqShare,irr,invData,coups,epilogue,shareText,genYear,peekR,hv,ev,conseils,rappels,pct,f1,
   homeOptions,recoHome,onbHome,onbNext,onbView,budgetTable,kidsCost,rpOf,PRESETS,EPARGNES,SALAIRES,coefOf,BIENS,dossierHtml,acheter,achatState,ACHATS,migrate,bestRental,bestBuy,buyHome,moveTo,propQuote,coussin,yearlySave,monthlySpend,CITIES,loanLeft,
-  halfYear,bizCreate,bizSell,bizRaise,bizDiv,bizHire,bizPay,bizLeave,bizStake,bizOffer,canRaise,DOMS,
+  halfYear,bizCalc,bizForecast,setBud,budgetModal,BUD0,setRent,rentExp,vacP,runPlans,moveCity,immoTab,bizSellPart,bizPlan,statusName,bizCreate,bizSell,bizRaise,bizDiv,bizHire,bizPay,bizLeave,bizStake,bizOffer,canRaise,DOMS,
   halfYear,buyHomeKeep,ifiTax,benchRef,biography,threadEnds,chapOf,boot,endView,envTotal,custErr,custLeft,custDefaults,homeName,startSave,turnView,bilanView,endView,introView,moneyBar,profilTab,portefeuilleTab,immoTab,patrimoineTab,animHtml,toastsHtml,advHtml,spark,save,load,legacyGame,U};`, ctx);
 const T = ctx.T;
 
@@ -85,6 +85,8 @@ const randomPolicy = {
     for (const p of S.props) if (T.canReneg(p) && R() < .5) T.reneg(p.uid);
     if (R() < .03 && S.props.length) T.sellProp(S.props[0].uid);
     if (R() < .3) T.placeIdle(R(), []);
+    if (R() < .05) for (const p of S.props) T.setRent(p.uid, pickR([-.1, 0, .1, .2]));
+    if (R() < .03) { const e = pickR(['pea', 'av', 'cto']); (S.plans || (S.plans = {}))[e + ':monde'] = { e, id: 'monde', a: Math.floor(R() * 5000) }; }
     if (!S.biz && R() < .03) T.bizCreate(pickR(Object.keys(T.DOMS)));
     if (S.biz && S.biz.alive && S.biz.role === 'own') {
       if (R() < .3) T.bizPay(pickR(['zero', 'smic', 'avant', 'haut']));
@@ -92,6 +94,7 @@ const randomPolicy = {
       if (R() < .2) T.bizRaise();
       if (R() < .2) T.bizDiv();
       if (R() < .03) T.bizSell(R() < .5 ? 'vente' : 'fermeture');
+      if (R() < .3) { T.setBud('mk', pickR([0, .05, .1, .15, .2])); T.setBud('pr', pickR([0, .05, .1, .15])); T.setBud('px', pickR([-.05, 0, .05, .1])); }
     } else if (S.biz && S.biz.alive && R() < .05) T.bizSell('vente');
   },
 };
@@ -232,10 +235,14 @@ test('Onglets : notes, conseils, budget, portefeuille, immobilier et patrimoine,
 });
 
 test('Création du profil et choix du logement, pour chaque salaire, épargne, ville et situation', () => {
-  let buys = 0, n = 0, explained = 0;
+  let buys = 0, n = 0, explained = 0, parents = 0;
   T.S = null; const intro = T.introView(); check(intro.includes('Crée ton profil') && intro.includes('Ton salaire net par mois'), 'écran de création absent');
   for (let sal = 0; sal < T.SALAIRES.length; sal++) for (let cap = 0; cap < T.EPARGNES.length; cap++) for (const city of Object.keys(T.CITIES)) for (const couple of [false, true]) {
     T.newGame({ city, sal, cap, couple }, [], true); const S = T.S; n++;
+    if (!couple) { // jeune diplômé·e seul·e : deux ou trois ans chez ses parents, sans fenêtre de logement
+      check(!S.onb && S.home.type === 'parents' && [T.Y0 + 2, T.Y0 + 3].includes(S.flags.parentsUntil) && T.age(T.Y0) === 20, `départ chez les parents raté (${sal}, ${cap}, ${city})`);
+      T.turnView(); parents++; continue;
+    }
     check(S.onb && !T.turnReady() && S.city === city && !!S.me.partner === couple && S.cash === T.EPARGNES[cap].v && Math.abs(S.revenu - T.SALAIRES[sal].m * 12) < 1, `profil mal créé (${sal}, ${cap}, ${city}, ${couple})`);
     check(S.coef > 0 && S.coef === T.coefOf({ city, sal, cap, couple }), 'coefficient absent');
     const opts = T.homeOptions(), reco = T.recoHome(opts);
@@ -248,7 +255,7 @@ test('Création du profil et choix du logement, pour chaque salaire, épargne, v
     check(cashIdentity(S) < 1 && S.cash > -0.5, 'argent créé ou perdu pendant l’accueil');
     T.turnView();
   }
-  console.log(`    ${n} profils · ${buys} achats conseillés dès le départ`);
+  console.log(`    ${n} profils · ${parents} départs chez les parents · ${buys} achats conseillés dès le départ`);
   check(buys > 0 && buys < n && explained > 0, 'le conseil logement ne dépend pas du profil');
 });
 
@@ -309,6 +316,7 @@ test('Profil sur mesure : saisie contrôlée, budget de départ fidèle, difficu
   check(!T.custErr(st), 'valeurs par défaut refusées : ' + T.custErr(st));
   check(Math.abs(T.custLeft(c, true) * 12 - T.startSave({ city: 'lyon', sal: 2, cap: 1, couple: true })) < 300, 'les valeurs par défaut ne redonnent pas l’épargne de la fourchette');
   check(T.custErr({ ...st, cust: { ...c, rent: 9000 } }).includes('dépassent'), 'budget dans le rouge accepté');
+  check(!T.custErr({ ...st, couple: false, cust: { ...c, salP: 0, dep: 500 } }) && /manger/.test(T.custErr({ ...st, couple: false, cust: { ...c, salP: 0, dep: 200 } })), 'plancher des dépenses de ses propres chiffres');
   check(T.custErr({ ...st, cust: { ...c, debt: 200, debtN: 0 } }).includes('années'), 'crédit sans durée accepté');
   check(T.custErr({ ...st, cust: { ...c, sal: 100 } }).includes('salaire'), 'salaire trop bas accepté');
   const cu = { sal: 2800, salP: 2100, rent: 1150, rooms: 3, dep: 2300, car: 250, debt: 180, debtN: 3 };
@@ -594,6 +602,105 @@ test('Carrière : créer sa boîte, la piloter, la vendre, sans créer ni perdre
   check(S.biz && S.biz.role === 'emp' && Math.abs(S.revenu - .8 * r0) < 1 && S.salRef === r0, 'embauche en start-up mal appliquée');
   T.endTurn(); T.nextBilan(); check(T.S.biz.share > 0 || !T.S.biz, 'actions non acquises');
   console.log(`    ${n} créations · ${fails} faillites en 14 ans · ${sold} ventes`);
+});
+
+test('Homme ou femme : textes accordés, départ à 20 ans, fin à 75 ans', () => {
+  for (const g of ['f', 'm', null]) {
+    T.newGame({ city: 'lille', sal: 2, cap: 1, couple: false, g, seed: 31 }, ['rp35', 'fire']); const S = T.S;
+    check(S.me.g === g && T.age(T.Y0) === 20 && T.YN === T.Y0 + 55, 'âge de départ ou fin de partie faux');
+    const html = T.gTxt(T.turnView(), S.me.g);
+    check(!html.includes('‧'), 'marqueur d’accord visible');
+    const t = T.gTxt('Tu restes seul‧e, fatigué‧e.', g);
+    check(t === (g === 'f' ? 'Tu restes seule, fatiguée.' : g === 'm' ? 'Tu restes seul, fatigué.' : 'Tu restes seul·e, fatigué·e.'), 'accord faux : ' + t);
+    check(T.GOALS.rp35.d.includes(String(T.Y0 + 15)) && T.GOALS.fire.d.includes(String(T.Y0 + 35)), 'objectifs non recalés sur l’âge');
+    let guard = 0; while (S.phase !== 'end' && guard++ < 200) { if (S.phase === 'turn') { if (S.life) for (const c of S.life.v.choices) if (!S.life.answered) T.answerLife(c.id); if (S.event) T.answerEvent('pass'); T.endTurn(); } else T.nextBilan(); }
+    check(T.S.phase === 'end' && T.S.year === T.Y0 + 55, 'la partie ne s’arrête pas à 75 ans');
+    const fs = T.finalScore(); check(g !== 'f' || !/Épargnant |Investisseur|Loup|Naufragé /.test(fs.title), 'titre non accordé : ' + fs.title);
+    check(!T.gTxt(T.endView(), g).includes('‧') && !T.shareText().includes('‧'), 'marqueur visible en fin de partie');
+  }
+  // une partie d'avant la 3.13 garde ses 25 ans et sa fin en 2076
+  T.newGame('heritier', []); const old = JSON.parse(JSON.stringify(T.S)); delete old.a0; T.boot({ S: old });
+  check(T.A0 === 25 && T.YN === 2076 && T.S.a0 === 25 && T.age(T.Y0) === 25, 'ancienne partie mal rechargée');
+  T.setA0(20);
+});
+
+test('Changer de ville : résidence vendue ou louée, nouveau loyer, argent juste', () => {
+  for (const how of ['vendre', 'louer']) {
+    T.newGame({ city: 'marseille', sal: 3, cap: 2, couple: true, seed: 90 }, []); const S = T.S;
+    S.cash = S.start = 400000; const er0 = T.buyProp('mrsmaison', 'credit', 25, 'rp', false, .5); check(!er0, 'achat de la maison refusé : ' + er0);
+    T.U.view = 'immo'; T.U.city = 'lille'; const r0 = S.rng, h = T.immoTab(); check(S.rng === r0 && h.includes('Déménager à Lille'), 'bouton de déménagement absent ou impur');
+    const r = T.moveCity('lille', how);
+    check(typeof r === 'object' && S.city === 'lille' && !S.home.own && T.CITIES.lille && S.home.type !== 'perso', `déménagement raté (${how}) : ${JSON.stringify(r)}`);
+    check(how === 'louer' ? S.props.length === 1 && S.props[0].use === 'loc' : S.props.length === 0, 'ancienne résidence mal traitée');
+    check(T.moveCity('paris', how) === 'Un changement de ville par an, c’est déjà beaucoup.', 'deux déménagements la même année');
+    check(cashIdentity(S) < 1, 'argent créé ou perdu en déménageant de ville');
+    T.endTurn(); T.nextBilan(); if (T.S.life) for (const c of T.S.life.v.choices) if (!T.S.life.answered) T.answerLife(c.id); if (T.S.event) T.answerEvent('pass');
+    const car = T.S.me.car; check(typeof T.moveCity('paris', how) === 'object' && T.S.city === 'paris' && !T.S.me.car, 'voiture gardée à Paris');
+    check(cashIdentity(T.S) < 1 || T.S.me.ruptures, 'argent créé ou perdu en partant à Paris'); void car;
+  }
+});
+
+test('Ta boîte : céder des parts, plan social, offre de rachat ; statuts de carrière', () => {
+  T.newGame({ city: 'lyon', sal: 2, cap: 2, couple: false, g: 'f', seed: 404 }, []); let S = T.S;
+  check(T.statusName() === 'Chargée d’affaires'.replace('ée', '‧e').replace('Charg‧e', 'Chargé‧e') || /Charg/.test(T.statusName()), 'statut de départ');
+  check(!T.bizCreate('ecom'), 'création refusée'); check(/^Fondatrice de /.test(T.statusName()), 'statut de fondatrice : ' + T.statusName());
+  check(T.bizSellPart(.25).err, 'cession avant le premier bilan');
+  for (let i = 0; i < 3; i++) { if (S.life) for (const c of S.life.v.choices) if (!S.life.answered) T.answerLife(c.id); if (S.event) T.answerEvent('pass'); T.endTurn(); T.nextBilan(); S = T.S; }
+  if (S.biz && S.biz.alive) {
+    const sh = S.biz.share, c0 = S.cash, r = T.bizSellPart(.25);
+    check(!r.err && Math.abs(S.biz.share - sh * .75) < 1e-9 && S.cash > c0 && cashIdentity(S) < 1, 'cession de parts mal comptée');
+    let k = 0; while (!T.bizSellPart(.25).err && k < 10) k++; check(S.biz.share >= .3 - 1e-9 && k < 10 && cashIdentity(S) < 1, 'on peut descendre sous 30 %');
+    S.biz.staff = 4; const t0 = S.biz.tre; check(!T.bizPlan() && S.biz.staff === 2 && S.biz.tre < t0, 'plan social');
+    S.event = { id: 'rachat', p: { who: 'un fonds d’investissement', prem: 1.3, name: S.biz.name, v: S.biz.share * S.biz.val }, answered: false }; const v = T.evDef().view(S.event.p);
+    check(v.choices.length === 3 && !T.answerEvent('choice', 'tout') && !S.biz && cashIdentity(S) < 1, 'offre de rachat');
+  }
+  T.newGame({ city: 'lyon', sal: 2, cap: 1, couple: false, g: 'm', seed: 405 }, []); S = T.S; S.me.rank = 1;
+  S.life = { id: 'promo', answered: false }; S.life.v = T.LIFE.promo.view(); T.answerLife('oui'); check(S.me.rank === 2 && T.statusName() === 'Directeur', 'promotion : ' + T.statusName());
+  S.me.g = null; check(T.statusName() === 'Directeur·rice', 'statut inclusif');
+});
+
+test('Loyers réglables et versements automatiques', () => {
+  T.newGame({ city: 'lille', sal: 3, cap: 2, couple: false, seed: 61 }, []); let S = T.S; S.cash = S.start = 1500000;
+  check(!T.buyProp('lille', 'cash') && !T.buyProp('paris', 'cash') && !T.buyProp('bureaux', 'cash'), 'achats refusés');
+  for (const p of S.props.filter(p => p.type !== 'paris')) {
+    const e = l => T.rentExp(p, l), m = e(0);
+    check(m >= e(.2) && m >= e(-.1) * .99 && Math.abs(e(.1) / m - 1) < .06 && T.vacP({ ...p, rl: .2 }) > T.vacP(p), `équilibre des loyers faux (${p.type})`);
+  }
+  const par = S.props.find(p => p.type === 'paris'), lil = S.props.find(p => p.type === 'lille');
+  check(T.setRent(par.uid, .1) && !T.setRent(par.uid, -.1) && !T.setRent(lil.uid, .2) && lil.rl === .2, 'réglage des loyers');
+  S.plans = { 'pea:monde': { e: 'pea', id: 'monde', a: 2000 }, 'liv:livret': { e: 'liv', id: 'livret', a: 1500 } };
+  const v0 = S.acc.pea.vers;
+  for (let i = 0; i < 3; i++) { if (S.life) for (const c of S.life.v.choices) if (!S.life.answered) T.answerLife(c.id); if (S.event) T.answerEvent('pass'); T.endTurn(); T.nextBilan(); S = T.S; }
+  check(S.acc.pea.vers - v0 >= 6000 - 1 && S.liv >= 4500 - 1 && cashIdentity(S) < 1, `versements automatiques non faits (${S.acc.pea.vers - v0}, ${S.liv})`);
+  check(S.page.notes.some(n => /versements automatiques/.test(n.t)), 'versements absents des notes');
+  S.cash = 50; check(T.runPlans().every(t => /sauté/.test(t)), 'versement sans argent');
+});
+
+test('Budget de ta boîte : prévisionnel pur, leviers, prévu contre réalisé', () => {
+  for (const dom of Object.keys(T.DOMS)) {
+    T.newGame({ city: 'lille', sal: 2, cap: 2, couple: false, seed: 700 }, []); let S = T.S;
+    check(!T.bizCreate(dom), 'création ' + dom);
+    const r0 = S.rng, F = T.bizForecast(), h = T.budgetModal(); check(S.rng === r0 && T.bizForecast().res === F.res && h.includes('Valider mon budget'), 'prévisionnel impur ou fenêtre absente');
+    check(Math.abs(F.ca - F.ops - F.pay - F.tax - F.res) < 1e-6, 'les lignes ne tombent pas juste');
+    // passer la première année, puis jouer les leviers sur l'année suivante
+    if (S.life) for (const c of S.life.v.choices) if (!S.life.answered) T.answerLife(c.id); if (S.event) T.answerEvent('pass'); T.endTurn(); T.nextBilan(); S = T.S;
+    if (!S.biz || !S.biz.alive) continue;
+    const base = T.bizForecast(T.BUD0), mk = T.bizForecast({ ...T.BUD0, mk: .15 }), px = T.bizForecast({ ...T.BUD0, px: .1 }), pr = T.bizForecast({ ...T.BUD0, pr: .15 });
+    check(mk.ca > base.ca && mk.mk > base.mk, `le commercial ne fait pas croître (${dom})`);
+    check(pr.res < base.res, `l’investissement ne coûte rien cette année (${dom})`);
+    check(T.DOMS[dom].el > 1 ? px.ca < base.ca * 1.1 : px.ca > base.ca, `élasticité-prix fausse (${dom})`);
+    check(T.setBud('mk', .3), 'budget hors grille accepté');
+    T.setBud('pr', .15); const K0 = S.biz.K ?? .25;
+    if (S.life) for (const c of S.life.v.choices) if (!S.life.answered) T.answerLife(c.id); if (S.event) T.answerEvent('pass');
+    const yr = S.year, fc = T.bizForecast(); T.endTurn(); const bz = T.S.bilans[0].biz;
+    check(!T.S.biz || T.S.biz.K > K0, 'le capital produit ne monte pas');
+    if (bz) { check(Math.abs(bz.fc.ca - fc.ca) < 1e-6 && Math.abs(bz.why.cyc + bz.why.hit + bz.why.alea - (bz.R.ca - bz.fc.ca)) < 1e-6, 'écart prévu-réalisé mal décomposé'); T.bilanView(); }
+    check(cashIdentity(T.S) < 1, 'argent créé ou perdu avec le budget'); void yr;
+  }
+  // forecast = réalité quand l'économie est celle supposée, sans aléa ni coup dur
+  T.newGame({ city: 'lyon', sal: 2, cap: 2, couple: false, seed: 701 }, []); T.bizCreate('conseil'); const S = T.S;
+  const F = T.bizForecast(), A = T.bizCalc(S.biz, { phase: S.w.phase, z: 0, hit: false, infl: S.w.infl / 100 });
+  check(Math.abs(F.res - A.res) < 1e-6, 'prévisionnel différent du calcul réel à hypothèses égales');
 });
 
 test('Profils tout faits et immobilier multi-villes', () => {

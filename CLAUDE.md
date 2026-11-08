@@ -8,7 +8,7 @@ Le propriétaire du projet est Flo (GitHub : `Malaraxx`), un professionnel du ri
 
 ## 1. Le jeu en une page
 
-La Corbeille est un simulateur de gestion de patrimoine **au tour par tour**, en français, du 1er janvier 2026 (le joueur a 25 ans) au 31 décembre 2076 (75 ans).
+La Corbeille est un simulateur de gestion de patrimoine **au tour par tour**, en français, du 1er janvier 2026 (le joueur a 20 ans et sort d'école de commerce) au 31 décembre 2081 (75 ans). Les parties d'avant la 3.13 gardent leurs 25 ans et leur fin en 2076 (`S.a0`).
 
 - **Aucune histoire réelle.** Chaque partie génère **son propre monde** : cycles économiques, krachs, bulles, élections, vagues d'innovation. Tout obéit à des règles économiques réelles (les crises naissent des excès, la banque centrale réagit à l'inflation, une Bourse chère rapporte moins ensuite), mais rien n'est écrit d'avance. Connaître l'histoire ne donne aucun avantage.
 - **Un tour = une année.** Tout tient sur **un seul écran, sans défilement de la page** : une barre d'argent toujours visible (compte courant, Livret A, placements, immobilier, patrimoine), la navigation avec le bouton de fin d'année, puis **cinq onglets** en cartes : **Profil** (l'année, les décisions obligatoires, les conseils de Sophie, le foyer, le budget du mois), **Portefeuille** (liquidités et où investir), **Immobilier** (logement, catalogue par ville, dossier de crédit), **Carrière** ou **Ma boîte** (salaire, création d'entreprise, tableau de bord de ta boîte), **Patrimoine** (le résumé).
@@ -78,7 +78,7 @@ Le script est découpé en sections balisées par `/* ===== NOM ===== */`. Dans 
 
 | Section | Contenu clé |
 |---|---|
-| **Données du monde** | `Y0`/`YN` (2026, 2076), `SALAIRES`, `EPARGNES`, `PARTNERS`, `PRESETS`, `coefOf`, `prof()`, `STOCKS`, `THEMES` (`th1`-`th3`), `EQUITY`, `SP` (paramètres des actions), `DIVY`, `META`, `ORDER`, `ENVS`, `PX0`, `BIENS` (immobilier par ville, `k` = loc/bur/rp), `GOALS`, `ADV`, `ACH`, `PHASES` et `TRANS` (cycle économique), `W0` (France fin 2025), `THEME_POOL` et `TR` (vagues d'innovation), `PARTIS`, `PRENOMS`, `NOMS`, `PORTRAITS`, `PROG` (programmes), `STARTUPS`, `JETONS` |
+| **Données du monde** | `Y0` (2026), `A0`/`YN` (âge de départ et dernière année de la partie en cours, posés par `setA0` dans `newGame` et `boot`), `AY(a)` (l'année de tes « a » ans : toute règle d'âge s'écrit avec, jamais `Y0+n`), `SALAIRES`, `EPARGNES`, `PARTNERS`, `PRESETS`, `coefOf`, `prof()`, `STOCKS`, `THEMES` (`th1`-`th3`), `EQUITY`, `SP` (paramètres des actions), `DIVY`, `META`, `ORDER`, `ENVS`, `PX0`, `BIENS` (immobilier par ville, `k` = loc/bur/rp), `GOALS`, `ADV`, `ACH`, `PHASES` et `TRANS` (cycle économique), `W0` (France fin 2025), `THEME_POOL` et `TR` (vagues d'innovation), `PARTIS`, `PRENOMS`, `NOMS`, `PORTRAITS`, `PROG` (programmes), `STARTUPS`, `JETONS` |
 | **Outils** | `S` (état global), formats `fmt` `fmtPx` `pct` `rate` `pc0` `f1`, `rnd`/`gauss` (PRNG mulberry32, graine dans `S.rng`), `nm`, `P()` (partenaire), `age(y)` |
 | **Fiscalité** | tout vient de `S.pol` : `psRate()`, `ctoRate()` (= `ir` + `ps`), `ctoRateLbl`, `peaCap`, `livretCap`, `envYears` |
 | **État** | `makeThemes`, `themeStage(T,y)` (étape d'une vague à une date, fonction pure), `newGame(arch, goals)`, accesseurs (`net`, `envTotal`, `hv`, `ev`…), `epargneYear`, `mood`, `unlock`, `ext`, registre `lg*` + `irr` (`lgProp` alimente aussi `S.yearProp` pour le repère), `mvRec` (ordres passés en janvier), `propNet`, `benchRef` (repères ETF Monde et Livret A, immobilier compris) |
@@ -136,7 +136,13 @@ story{seed, cast{ami{n,g}, mere{n,born,die,dead}, pere{…}, estate (euros de 20
 
 ## 5. Règles du jeu (valeurs de référence)
 
-### Profil (`SALAIRES`, `EPARGNES`, `CITIES`, choisis au départ ; tout le monde a 25 ans)
+### Départ à 20 ans, genre, statut
+- **20 ans, diplômé·e d'école de commerce** le 1er janvier 2026. « Tu es » : une femme ou un homme (`S.me.g`), « À la sortie de l'école » : salarié·e ou ta boîte. Seul·e avec un profil type, tu vis chez tes parents 2 ou 3 ans (`S.flags.parentsUntil`, pas de fenêtre de logement au départ), puis le dilemme « logement » te fait partir. En couple ou avec tes propres chiffres, la fenêtre « Ton logement » reste.
+- **Chapitres par âge** (`chapOf`) : jusqu'à 34 ans, 35-44, 45-54, 55-64, 65-75. Objectifs, retraite (proposée à 62 ans), indépendance (43-61 ans), mariage, enfants, donation, parents : tout est ancré sur l'âge via `AY()`.
+- **Accords** : un texte qui désigne le joueur s'écrit avec le point spécial « ‧ » (U+2027) : « seul‧e », « fatigué‧e ». `render()` et `shareText()` passent tout par `gTxt(html, S.me.g)` : « seule », « seul », ou « seul·e » pour une partie sans genre. Le conjoint et les enfants s'accordent selon leur prénom (`ge(n)`, listes `FEM`/`MASC`, prénom mixte = inclusif). Les titres de fin et le statut sont écrits en entier (`gw(m,f,x)`) parce qu'ils partent dans le classement.
+- **Statut** (`S.me.rank`, `statusName`, `RANKN`) : chargé·e d'affaires (0) → manager (1, 30 % de chances par an dès 25 ans, +8 %) → directeur·rice (2) → directeur·rice général·e (3) par le dilemme « promo » (+25 %, réservé aux managers et plus). Une partie d'avant la 3.13 compte comme manager. Sinon : « Fondateur·rice de … », « Salarié·e chez … » (start-up), « En recherche d'emploi », « Retraité·e ». Affiché dans le foyer et l'onglet Carrière.
+
+### Profil (`SALAIRES`, `EPARGNES`, `CITIES`, choisis au départ)
 | Fourchette (net/mois) | Salaire retenu | Part épargnée | Carrière avant / après 45 ans |
 |---|---|---|---|
 | 1 500 à 2 000 € | 1 750 € | 10 % | +1 % / +0,4 % par an |
@@ -145,8 +151,8 @@ story{seed, cast{ami{n,g}, mere{n,born,die,dead}, pere{…}, estate (euros de 20
 | 3 400 à 4 500 € | 3 900 € | 20 % | +2 % / +0,7 % |
 | 4 500 à 6 000 € | 5 200 € | 24 % | +2,4 % / +0,8 % |
 
-**Deux modes de profil** : « Profil type » (fourchette de salaire et épargne de départ à choisir) ou « Mes propres chiffres ». **Profil sur mesure** (`S.cust`, bouton « Mes propres chiffres », épargne de départ `cap` saisie aussi, `custDefaults`, `custErr`, `custLeft`) : montants mensuels en euros de 2026. Les valeurs proposées redonnent l'épargne de la fourchette choisie. Saisie refusée si un montant est négatif, si le salaire est sous 500 €, si un autre crédit n'a pas de durée (1 à 30 ans), si les dépenses courantes sont sous le plancher (900 € seul, 1 350 € à deux) ou si les charges dépassent les revenus. Dans le jeu :
-- l'épargne de base devient revenus du foyer − dépenses courantes (indexées sur l'inflation, jamais sous le plancher), le moral jouant sur ce qui reste (`custSave`) ;
+**Deux modes de profil** : « Profil type » (fourchette de salaire et épargne de départ à choisir) ou « Mes propres chiffres ». **Profil sur mesure** (`S.cust`, bouton « Mes propres chiffres », épargne de départ `cap` saisie aussi, `custDefaults`, `custErr`, `custLeft`) : montants mensuels en euros de 2026. Les valeurs proposées redonnent l'épargne de la fourchette choisie. Saisie refusée si un montant est négatif, si le salaire est sous 500 €, si un autre crédit n'a pas de durée (1 à 30 ans), si les dépenses courantes sont sous le minimum vital de tes propres chiffres (300 € seul, 450 € à deux ; `CUSTMIN`, pas le plancher de 900 € des profils types) ou si les charges dépassent les revenus. Dans le jeu :
+- l'épargne de base devient revenus du foyer − dépenses courantes (`custDep` : indexées sur l'inflation, au moins 300 € seul, 450 € à deux, + 450 € si un nouveau conjoint arrive), le moral jouant sur ce qui reste (`custSave`) ;
 - le conjoint de départ gagne ce qui a été saisi (`pRatio`), un nouveau conjoint 60 % de ton salaire ;
 - le logement de départ est `S.home.type = 'perso'` : ton loyer, indexé comme le T2 de ta ville (`persoRent`), et sa taille (`ROOMS` : studio 1, T2 2, T3 4, T4 5, maison 6 personnes). L'accueil le propose en premier (« Rester dans ton … actuel ») et le présélectionne ;
 - la voiture coûte ce qui a été saisi, suivant le prix de l'essence (0 = pas de voiture ; une voiture neuve achetée ensuite coûte le prix standard) ;
@@ -155,10 +161,10 @@ story{seed, cast{ami{n,g}, mere{n,born,die,dead}, pere{…}, estate (euros de 20
 
 Épargne de départ (`EPARGNES`) : presque rien (5 000 €), quelques économies (25 000 €), un héritage (120 000 €). En couple, le conjoint (prénom tiré dans `PARTNERS`) gagne 60 % de ton salaire. Humeur de départ 65, couple 60.
 
-La difficulté (`coefOf`) égalise les scores : potentiel = épargne de départ + 100 000 € (l'héritage attendu des parents, le même pour tous) + 60 × ce que le profil peut mettre de côté par an au départ (`startSave`, même calcul que le jeu, compté à 60 % en couple : vie de famille plus chère et risque de divorce) ; coefficient = (636 000 / potentiel)^1,15, borné entre 0,2 et 5. Référence ×1 : 3 000 €/mois, 25 000 €, célibataire. De « Facile » (< 0,75) à « Très difficile » (≥ 2,4). Contrôle : `npm run balance` (rapport entre 0,75 et 1,33 pour les profils tout faits `PRESETS`).
+La difficulté (`coefOf`) égalise les scores : potentiel = épargne de départ + 100 000 € (l'héritage attendu des parents, le même pour tous) + 90 × ce que le profil peut mettre de côté par an au départ (`startSave`, même calcul que le jeu, compté à 60 % en couple : vie de famille plus chère et risque de divorce) ; coefficient = (891 000 / potentiel)^1,15, borné entre 0,2 et 5. Référence ×1 : 3 000 €/mois, 25 000 €, célibataire. De « Facile » (< 0,75) à « Très difficile » (≥ 2,4). Contrôle : `npm run balance` (rapport entre 0,75 et 1,33 pour les profils tout faits `PRESETS`).
 
 ### Objectifs de vie (`GOALS`, 2 au choix, bonus additifs)
-rp35 : résidence principale achetée au plus tard en 2036 (+20 %) · fire : plus de travail au plus tard en 2056 et jamais ruiné (+40 %) · million : ≥ 2,5 M€ en euros de 2026 en 2076 (+40 %) · famille : finir en couple avec au moins 2 enfants (+30 %) · serein : aucune vente panique, aucun burn-out, jamais une humeur sous 40 en fin d'année (+10 %) · rentier : deux biens locatifs en même temps (+25 %). Chaque objectif a une fonction `st(fin)` qui renvoie 1 (atteint), 0 (en cours) ou −1 (raté).
+rp35 : résidence principale achetée au plus tard à 35 ans (+20 %) · fire : plus de travail au plus tard à 55 ans et jamais ruiné (+40 %) · million : ≥ 2,5 M€ en euros de 2026 à 75 ans (+40 %) · famille : finir en couple avec au moins 2 enfants (+30 %) · serein : aucune vente panique, aucun burn-out, jamais une humeur sous 40 en fin d'année (+10 %) · rentier : deux biens locatifs en même temps (+25 %). Chaque objectif a une fonction `st(fin)` qui renvoie 1 (atteint), 0 (en cours) ou −1 (raté).
 
 ### Score
 `score = (patrimoine net en k€ de 2026 + ce que tu as donné à tes enfants de ton vivant, en k€ de 2026) × (0,4 + 1,2 × bien-être/100) × (1 + Σ bonus des objectifs atteints) × coefficient du profil` (`realNet`, décision de Flo du 8 novembre 2026 : sans cela, donner ferait perdre des points). L'objectif « Transmettre 2,5 millions » compte aussi les donations.
@@ -306,7 +312,19 @@ Coupés par défaut, bouton haut-parleur dans la barre du haut. Synthétisés (W
 - **Décisions** (onglet Ma boîte) : ton salaire (`PAYS` : rien, le minimum 1 400 €/mois indexé, ton ancien salaire, +30 % ; `S.revenu` = ce que verse la boîte, le conjoint et la retraite se calculent sur `S.salRef` via `baseSal()`), embaucher (il faut six mois de salaire en trésorerie) ou licencier (trois mois de salaire), lever des fonds (logiciel et e-commerce : 25 % de la valorisation contre 20 % du capital, 15 % de croissance minimum, tous les 3 ans au plus, pas en crise), dividende (`divAmt` : bénéfice de l'an dernier ou un quart des réserves, au plus la moitié de la trésorerie, flat tax), vendre (90 % de la valorisation, plus-value à la flat tax) ou fermer (part de la trésorerie nette). Vendre ou fermer ramène au salaire de référence.
 - **Sécurités** : si ton compte passe dans le rouge, ta boîte te verse d'abord une prime prise sur sa trésorerie (× 1,45), puis tes parts sont cédées en urgence (−30 %) avant l'immobilier (`raiseCash`). À la retraite (ou à l'indépendance financière), la boîte est cédée (`bizRetire`). Le dirigeant n'est jamais licencié et ne reçoit ni promotion ni dîner d'affaires ; l'indépendance financière se mesure sur le salaire de référence.
 - **Start-up** (`startupJob`, dilemme de 27 à 50 ans, une fois par partie, sans boîte) : salaire −20 %, 0,25 % du capital par an jusqu'à 1 % ; boîte de logiciel de 1,5 M€ de CA, 12 salariés, 2 M€ de trésorerie, 35 % du CA en dépenses de croissance pendant 8 ans. « Revenir à un poste classique » garde les actions (rôle `act`) ; elles se revendent avec 30 % de décote, l'argent arrive par `ext()`.
+- **Budget de l'année** (`B.bud`, `BUD0`, `bizCalc`, `bizForecast`, `budgetModal`, `setBud`, `julyBiz`, `bizBilan`) : chaque janvier, le dirigeant voit le prévisionnel en fenêtre (`budDue`, validé par `B.budY`, rouvert par « Mon budget » ou depuis juillet) et règle : commercial et marketing (0 à 20 % du CA ; croissance + 0,55 × √part × `mkS` × max(0,3 ; 1 − âge/20), comparé à 5 %), produit ou investissement (0 à 15 % ; capital K = 0,8 K + part, 0,25 à l'équilibre : capacité × 1 + 0,6 (K − 0,25) bornée 0,8-1,3, coûts directs × 1 − 0,5 (K − 0,25) bornés 0,75-1,15, valorisation du logiciel et de l'e-commerce × 1 + 0,6 (K − 0,25) bornée 0,8-1,2), prix (−5 à +10 % ; CA × (1 + prix)^(1 − `el`), élasticité : restaurant 3, e-commerce 2,5, BTP 2, logiciel 1,2, conseil 0,8), son salaire et l'équipe. Le budget par défaut (5 %, 5 %, marché) redonne exactement le modèle d'avant (les coûts variables `v` incluent 10 % de commercial et produit). `bizCalc` est pur : le prévisionnel suppose l'économie de l'an dernier, sans aléa ni coup dur ; le réalisé prend l'économie de l'année, un aléa et un éventuel coup dur. Au bilan, « prévu et réalisé » ligne à ligne, et l'écart de CA décomposé (cycle, coup dur, aléas). En juillet, la moitié du CA de l'année (économie réelle) contre le prévu. Calibrage (60 parties par domaine, mêmes mondes) : aucun budget fixe ne domine partout ; le commercial paie dans l'e-commerce (+17 à +35 %) et le conseil (+14 %), pas dans la restauration ni le BTP (−6 à −9 %, plus de faillites) ; sans commercial, −10 à −31 % et beaucoup plus de faillites. Le risque de coup dur baisse avec l'âge de la boîte (×0,6 après 5 ans, ×0,35 après 10).
+- **Ouvrir son capital** (`bizSellPart(f)`) : céder 10 % ou 25 % de ses parts à 85 % de la valorisation, plus-value au prorata de l'apport, tant qu'on garde au moins 30 %. **Plan social** (`bizPlan`) : la moitié de l'équipe part (trois mois de salaire chacun, humeur −6).
+- **Offre de rachat** (Une `rachat`, poids 4, 3 fois au plus, après deux bilans et 20 000 € de valorisation) : un repreneur propose 110 à 150 % de la valeur de ta part ; tout vendre, céder un quart à ce prix, ou refuser. Le nom et le montant sont figés à l'ouverture (`p.name`, `p.v`).
 - **Succès** : « Patron », revendre la boîte qu'on a créée plus d'un million d'euros de 2026.
+
+### Loyer de chaque bien loué (`p.rl`, `RLV`, `vacP`, `vacMo`, `rentExp`, `setRent`, `rentBox`)
+- Dans « Tes biens », chaque bien loué a son niveau de loyer : −10 %, marché, +10 %, +20 % (Paris : loyers encadrés, pas de hausse). Probabilité de vacance × (1 + 8 × hausse)² (bureaux : 3), ou × (1 + 6 × baisse) ; durée de vacance × (1 + 5 × hausse) (bureaux : 1), divisée par deux si on baisse. Le loyer du marché reste le meilleur pari en moyenne : +10 % fait à peu près jeu égal avec plus de risque, +20 % fait perdre de 7 à 27 % (test « Loyers réglables »). La banque compte toujours le loyer du marché.
+
+### Versements automatiques (`S.plans{clé:{e,id,a}}`, `runPlans`)
+- Bouton « Chaque année » dans un ordre : le montant saisi est investi chaque 1er janvier (dès l'année suivante), depuis le compte courant, dans la limite de ce qui s'y trouve (rien sous 100 €) et du plafond du Livret A. Une note de l'année le rappelle. « Arrêter » dans le même ordre. Le reste se gère à la main.
+
+### Changer de ville (`moveCity`, `cityMoveBox`)
+- Dans « Acheter ou louer », le catalogue d'une autre ville propose « Déménager à … » (deux clics). Ta résidence principale est vendue ou mise en location (`oldHome`), tu loues le logement le moins cher assez grand de la nouvelle ville (`bestRental`), 3 000 € de déménagement (indexés), voiture revendue 2 000 € si tu pars à Paris, humeur −2 (couple −2). Une fois par an (`S.flags.cityY`). Le salaire suit ; la carrière prend le bonus de la ville. Ensuite, le dossier d'un logement de la nouvelle ville permet d'y acheter ta résidence.
 
 ### Confort
 - **Annuler le dernier ordre** : l'état d'avant chaque ordre du tour (achat, vente, retrait, placement, rééquilibrage, achat ou vente immobilière, déménagement, renégociation, achat plaisir) est gardé dans `U.undoS` ; le bouton « ↶ Annuler … » de la navigation le restaure. Effacé à la fin de l'année.
@@ -348,7 +366,7 @@ Coupés par défaut, bouton haut-parleur dans la barre du haut. Synthétisés (W
 
 ### Les onglets
 - **Barre d'argent** (`moneyBar`, toujours visible en haut) : date et âge, compte courant, Livret A, placements, immobilier net, patrimoine net. Les montants défilent jusqu'à leur nouvelle valeur et un « +X € » / « −X € » flotte sur ceux qui ont changé.
-- **Navigation** (`navBar`) : les quatre onglets et le bouton « Passer à … », désactivé tant qu'une décision reste à prendre.
+- **Navigation** (`navBar`) : les cinq onglets et le bouton « Passer à … », désactivé tant qu'une décision reste à prendre.
 - **Décisions** (`decisionModal`) : fenêtre bloquante à l'ouverture de l'année, une décision à la fois (vie perso d'abord si elle conditionne le reste : week-end, burn-out, panique, retraite, indépendance, licenciement, logement), puis le résultat et « Décision suivante » / « Voir mon année ».
 - **Profil** (`profilTab`, 6 cartes) : le foyer (`foyerList`, visages, jauges d'humeur et de couple), l'année (notes avec icône, décisions déjà prises), les conseils de Sophie avec un lien vers le bon onglet et les rappels, le budget du mois (`budgetTable` : revenus, dépenses courantes, logement, voiture, enfants, ce qui reste, jauge d'épargne de sécurité), « Se faire du bien » en tuiles, les objectifs.
 - **Portefeuille** (`portefeuilleTab`) : liquidités (compte courant, Livret A, liquidités des enveloppes), carnet d'ordres par enveloppe, outil de répartition (facultatif).
@@ -396,20 +414,20 @@ diamant (≥ 80 % d'actions et ≥ 100 000 € investis à la fin d'une année d
 
 ## 7. Équilibrage : cibles actuelles (`npm run balance`)
 
-| Mesure | Cible | Dernière valeur (graines 11 et 4242, version 3.12) |
+| Mesure | Cible | Dernière valeur (graines 11 et 4242, version 3.13) |
 |---|---|---|
-| Passif PEA / repère ETF Monde sans frais | 0,85 – 1 | 0,93 – 0,93 |
-| Élève de Sophie (suit ses conseils et ses avis sur les événements) / passif à 60 % d'actions | ≥ ×1,0 | ×1,10 – ×1,25 |
-| Élève de Sophie / acheteur naïf de paniques **au même profil** (80 % d'actions) | ≥ ×1,15 (décision de Flo du 8 novembre 2026) | ×1,09 – ×1,17 (**WARN** sur une graine : mesure bruitée sur 100 parties) |
-| Lecteur de fiches / acheteur naïf | ≥ ×1,15 | ×1,22 – ×1,26 |
-| Entrepreneur (boîte créée au départ, un domaine sur cinq) / salarié passif, médiane | 0,75 – 1,33 | ×0,91 – ×1,09 |
-| Entrepreneur / salarié passif, 90e centile | ≥ ×1,3 | ×1,49 – ×1,70 |
-| Entrepreneurs dont la boîte a fait faillite | 15 – 50 % | 45 – 48 % |
+| Passif PEA / repère ETF Monde sans frais | 0,85 – 1 | 0,92 – 0,92 |
+| Élève de Sophie (suit ses conseils et ses avis sur les événements) / passif à 60 % d'actions | ≥ ×1,0 | ×1,21 – ×1,27 |
+| Élève de Sophie / acheteur naïf de paniques **au même profil** (80 % d'actions) | ≥ ×1,15 (décision de Flo du 8 novembre 2026) | ×1,06 – ×1,07 (**WARN** structurel depuis la 3.5, à trancher : voir AUDIT.md) |
+| Lecteur de fiches / acheteur naïf | ≥ ×1,15 | ×1,17 – ×1,29 |
+| Entrepreneur (boîte créée au départ, un domaine sur cinq, budget par défaut) / salarié passif, médiane | 0,75 – 1,33 | ×1,08 – ×1,38 (**WARN** sur une graine : mesure bruitée) |
+| Entrepreneur / salarié passif, 90e centile | ≥ ×1,3 | ×1,27 – ×1,70 (**WARN** sur une graine) |
+| Entrepreneurs dont la boîte a fait faillite | 15 – 50 % | 45 – 51 % |
 | Score du carriériste < score de l'équilibré | vrai | vrai sur les deux graines |
-| 10e centile du patrimoine d'un joueur passif | > 0 | 901 – 946 k€ |
-| Score médian de chaque profil tout fait / héritier | 0,75 – 1,33 | 0,89 – 1,26 |
-| Objectifs visés : rp35 ≥ 80 %, famille ≥ 40 % (infirmier) et ≥ 25 % (héritier) | | 100 / 41-45 / 35-40 % |
-| Sophie ≥ 70 %, Kévin ≤ 60 % | | 79-81 % / ≤ 59 % |
+| 10e centile du patrimoine d'un joueur passif | > 0 | ≈ 1 100 k€ |
+| Score médian de chaque profil tout fait / héritier | 0,75 – 1,33 | 1,10 – 1,31 (difficulté recalée en 3.13 : épargne × 90, constante 891 000) |
+| Objectifs visés : rp35 ≥ 80 %, famille ≥ 40 % (infirmier) et ≥ 25 % (héritier), fire 25 – 70 %, 2,5 millions 15 – 60 % | | 100 / 43-45 / 45-46 / 39 / 44-50 % |
+| Sophie ≥ 70 %, Kévin ≤ 60 % | | 80-82 % / ≤ 60 % |
 
 Si tu modifies un paramètre de jeu, lance `npm run balance` avec deux graines différentes, corrige les WARN et mets à jour ce tableau.
 
@@ -422,7 +440,7 @@ Si tu modifies un paramètre de jeu, lance `npm run balance` avec deux graines d
 - Pas d'incise entre tirets cadratins, pas de formule creuse.
 - Un bouton dit exactement ce qu'il fait, et le message qui suit le confirme (« Placer l'argent qui dort », puis « Placé : … »).
 - Une erreur explique quoi faire (« Il te manque 3 200 €. Vends d'abord une ligne »).
-- Écriture inclusive légère (« marié·e », « président·e ») uniquement là où la personne est désignée.
+- Accords selon le genre du joueur (voir « Départ à 20 ans, genre, statut ») ; écriture inclusive légère (« président·e », « licencié·e ») seulement pour une personne dont on ignore le genre.
 - **Tout est fictif** : entreprises, pays (Méridia), partis, candidats, start-up, jetons. Jamais de vrai nom de personnalité, de parti ou de société.
 
 **Nombres** :

@@ -23,6 +23,7 @@ async function decide(pg) {
   for (let k = 0; k < 8; k++) {
     if (await pg.$('[data-act=quiet-ok]')) { await pg.click('[data-act=quiet-ok]', o); continue; }
     if (await pg.$('[data-act=chap-ok]')) { await pg.click('[data-act=chap-ok]', o); continue; }
+    if (await pg.$('[data-act=bud-ok]')) { await pg.click('[data-act=bud-ok]', o); continue; }
     if (await pg.$('[data-act=dec-ok]')) { await pg.click('[data-act=dec-ok]', o); continue; }
     if (await pg.$('[data-act=life]')) { // une réponse peut être refusée (apport insuffisant) : on essaie les suivantes
       const n = (await pg.$$('[data-act=life]')).length;
@@ -68,6 +69,7 @@ for (const [name, viewport, colorScheme] of [['desktop', { width: 1280, height: 
   await pg.goto(url);
   // création du profil
   await pg.click('[data-act=set][data-k=city][data-v=lyon]');
+  if (name === 'desktop') await pg.click('[data-act=setg][data-v=m]');
   await pg.click('[data-act=set][data-k=sal][data-v="2"]');
   await pg.click('[data-act=set][data-k=couple][data-v=true]');
   await pg.screenshot({ path: join(out, `${name}-0-depart.png`), fullPage: false });
@@ -96,6 +98,9 @@ for (const [name, viewport, colorScheme] of [['desktop', { width: 1280, height: 
     await pg.screenshot({ path: join(out, `${name}-1-${v}.png`), fullPage: false });
     if (v === 'boite') {
       await pg.click('[data-act=biz-create][data-d=conseil]'); await pg.click('[data-act=biz-create][data-d=conseil]'); await pg.waitForTimeout(400);
+      if (!(await pg.$('[data-act=bud-ok]'))) errors.push(`${name} : pas de prévisionnel à la création de la boîte`);
+      await modalFits(pg, name + ' prévisionnel'); await pg.click('[data-act=bud][data-k=mk][data-v="0.1"]'); await pg.waitForTimeout(200);
+      await pg.screenshot({ path: join(out, `${name}-1-budget.png`), fullPage: false }); await pg.click('[data-act=bud-ok]'); await pg.waitForTimeout(300);
       if (!(await pg.$('[data-act=biz-pay]'))) errors.push(`${name} : la création de boîte n’ouvre pas le tableau de bord`);
       await noScroll(pg, name, 'ma boîte'); await pg.screenshot({ path: join(out, `${name}-1-maboite.png`), fullPage: false });
     }
@@ -169,6 +174,7 @@ for (const [name, viewport, colorScheme] of [['petit-1280x600', { width: 1280, h
   const pg = await ctx.newPage();
   pg.on('pageerror', e => errors.push(`${name} : ${e.message}`));
   await pg.goto(url);
+  await pg.click('[data-act=set][data-k=couple][data-v=true]');
   await pg.click('[data-act=start]'); await modalFits(pg, name + ' logement');
   await pg.screenshot({ path: join(out, `${name}-logement.png`) });
   await pg.click('.opt.reco'); await pg.click('[data-act=onb-next]');

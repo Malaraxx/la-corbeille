@@ -1,5 +1,16 @@
 # Journal des versions
 
+## 3.13.0 — Une vie entière (8 novembre 2026)
+- **Tu commences à 20 ans**, diplômé·e d'école de commerce, le 1er janvier 2026 : salarié·e ou à la tête de ta boîte. Seul·e, tu vis deux ou trois ans chez tes parents avant de prendre ton envol. La partie dure jusqu'à tes 75 ans, en 2081. Les parties en cours gardent leurs dates.
+- **Une femme ou un homme** : tous les textes s'accordent (« seule », « fatiguée », « Directrice », « Épargnante équilibrée »…), ceux du conjoint et des enfants aussi.
+- **Ton statut** : chargé·e d'affaires, manager, directeur·rice, directeur·rice général·e ; fondateur·rice de ta boîte, salarié·e d'une start-up, retraité·e.
+- **Changer de ville** : déménage où tu veux, en vendant ou en louant ta résidence.
+- **Ta boîte** : céder une partie de tes parts à un investisseur, plan social quand ça va mal, offres de rachat qui arrivent en Une.
+- **Le budget de ta boîte** : chaque janvier, un prévisionnel ; tu règles le commercial, le produit ou l'investissement, tes prix, ton salaire et ton équipe, et tu vois le résultat et la trésorerie attendus. En juillet, le point du semestre ; au 31 décembre, le prévu contre le réalisé, écart expliqué.
+- **Tes loyers** : fixe le loyer de chaque bien loué, de −10 % à +20 %. Plus cher, il reste vide plus souvent et plus longtemps.
+- **Tes propres chiffres** : tes dépenses courantes peuvent descendre sous 900 € (minimum 300 € seul, 450 € à deux).
+- **Versements automatiques** : « Chaque année » investit le montant choisi chaque 1er janvier ; tu peux toujours investir à la main en plus.
+
 ## 3.12.1 — Plus de confort (8 novembre 2026)
 - **Dossier de crédit** : quand la banque refuse pour le taux d'effort, le dossier propose l'apport et la durée qui passent, en un clic (« Mettre cet apport »).
 - **La page ne remonte plus** après un clic (+500, Effacer…) : chaque zone garde sa position.
