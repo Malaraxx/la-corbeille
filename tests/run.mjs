@@ -521,6 +521,16 @@ test('Immobilier : nouvelle résidence principale en gardant l’ancienne pour l
   check(cashIdentity(S) < 1, 'argent créé ou perdu en changeant de résidence principale');
 });
 
+test('Immobilier : apport au choix, de « frais seuls » à 90 %', () => {
+  T.newGame({ city: 'lyon', sal: 3, cap: 1, couple: true }, []); const S = T.S;
+  const q0 = T.propQuote('lyont2', 25, 'rp', 0), q5 = T.propQuote('lyont2', 25, 'rp', .5), qd = T.propQuote('lyont2', 25, 'rp');
+  check(Math.abs(q0.apport - q0.frais) < 1 && q0.L === q0.price && q5.L < qd.L && q0.eff > q5.eff, 'apport mal pris en compte');
+  check(q0.r > qd.r, 'pas de surcoût de taux sous 10 % d’apport');
+  const dc = q0.apport + 1 - S.cash; S.cash += dc; S.start += dc;
+  const e = T.buyHome('lyont2', 25, 0); check(!e || /effort/.test(e), 'achat avec frais seuls refusé pour une autre raison : ' + e);
+  check(cashIdentity(S) < 1, 'argent créé ou perdu avec un apport réduit');
+});
+
 test('Profils tout faits et immobilier multi-villes', () => {
   for (const a of Object.keys(T.PRESETS)) { const v = T.EPARGNES[T.PRESETS[a].cap].v; T.newGame(a, ['famille']); check(T.S.cash === v && T.S.start === v, `capital de départ faux pour ${a}`); T.turnView(); }
   T.newGame('heritier', []); T.S.cash = 3e6; T.S.start = 3e6;

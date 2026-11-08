@@ -584,6 +584,7 @@ table.sheet td{padding:4px 6px}
 .autot[aria-pressed="true"] i::after{left:14px}
 .broken{max-width:560px;margin:auto}
 .seg.mode{align-self:flex-start}
+.reperes{max-width:420px;font-size:12.5px;flex-basis:100%}
 .opts3.cities{grid-template-columns:repeat(auto-fit,minmax(118px,1fr))}
 .opts3.cities .opt .small{font-size:11.5px;line-height:1.3}
 .lbsend{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:6px 0}
@@ -1171,23 +1172,24 @@ function effort(extraAnn,extraRent){
 // Prêt à taux zéro : premier achat de résidence principale, revenus du foyer sous 60 000 € (en euros de 2026). Il finance 20 % du prix.
 const ptzOk=(type,use)=>(use||(BIENS[type].k==='rp'?'rp':'loc'))==='rp'&&BIENS[type].k==='rp'&&!S.flags.ownedRP&&foyerRev()<=60000*S.defl;
 const DURS=[15,20,25];
-function propQuote(type,n=20,use){
+// apIn : part du prix apportée en plus des frais de notaire (0 = « frais seuls », jusqu'à 90 %). Par défaut 20 %, 10 % avec un PTZ.
+// Sous 10 % d'apport, la banque prend 0,25 point de plus.
+function propQuote(type,n=20,use,apIn){
   if(!DURS.includes(n))n=20;
   use=use||(BIENS[type].k==='rp'?'rp':'loc');
-  // Avec un PTZ, la banque se contente d'un apport de 10 % + frais de notaire ; sinon 20 % + frais.
-  const ix=S.idx[type],price=ix.price,frais=price*0.075,z=ptzOk(type,use)?price*.2:0,ap=z?.1:.2,L=price*(1-ap),r=(curCredit()+(n>=25?.2:n<=15?-.15:0))/100;
+  const ix=S.idx[type],price=ix.price,frais=price*0.075,z0=ptzOk(type,use)?price*.2:0,ap=apIn!=null?clamp(+apIn,0,.9):z0?.1:.2,L=price*(1-ap),z=Math.min(z0,L),r=(curCredit()+(n>=25?.2:n<=15?-.15:0)+(ap<.1?.25:0))/100;
   const annM=annuity(L-z,r,n),annZ=z?z/n:0,ann=annM+annZ;
   return {price,frais,cashNeed:price+frais,apport:price*ap+frais,ap,L,z,r,n,ann,annM,annZ,use,rent:ix.rent,eff:effort(ann,use==='rp'?0:ix.rent)};
 }
 // La plus courte durée qui passe sous les 35 % de taux d'effort.
-function bestDur(type,use){for(const n of DURS)if(propQuote(type,n,use).eff<=.35)return n;return 25;}
-function buyProp(type,mode,n=20,use,meuble){
+function bestDur(type,use,ap){for(const n of DURS)if(propQuote(type,n,use,ap).eff<=.35)return n;return 25;}
+function buyProp(type,mode,n=20,use,meuble,ap){
   if(!BIENS[type])return 'Bien inconnu.';
   use=BIENS[type].k==='bur'?'loc':use||(BIENS[type].k==='rp'?'rp':'loc');
   if(retired(S.year)&&mode==='credit')return 'À la retraite, ta banque ne te prête plus sur 20 ans.';
   const rp=use==='rp';
   if(rp&&S.props.some(isRP))return 'Tu as déjà une résidence principale.';
-  const q=propQuote(type,n,use);
+  const q=propQuote(type,n,use,ap);
   if(mode==='cash'){
     if(S.cash<q.cashNeed)return `Il faut ${fmt(q.cashNeed)} sur ton compte courant (prix + frais de notaire). Tu as ${fmt(S.cash)}.`;
     S.cash-=q.cashNeed;S.props.push({uid:S.uid++,type,use,buyYear:S.year,cost:q.cashNeed,loan:null,rentMult:1,vacantUntil:0,noRent:0,mode:'comptant',flows:[]});lgProp(S.props[S.props.length-1],-q.cashNeed);
@@ -1256,17 +1258,17 @@ function moveTo(type,free){
 // Ancienne résidence principale au moment d'en acheter une autre : vendue, ou mise en location (elle devient un bien locatif).
 function oldHome(how){const o=rpOf();if(!o)return;if(how==='louer'){o.use='loc';o.rentMult=o.rentMult||1;o.vacantUntil=0;}else sellProp(o.uid,undefined,undefined,'Vente pour déménager');}
 // Achète une nouvelle résidence principale en gardant l'ancienne pour la louer (apport complété par le Livret A si besoin).
-function buyHomeKeep(type,n){
-  const go=()=>{oldHome('louer');n=n||bestDur(type,'rp');const q=propQuote(type,n,'rp');if(S.cash<q.apport&&S.liv>0)livOut(Math.min(S.liv,q.apport-S.cash));return buyProp(type,'credit',n,'rp');};
+function buyHomeKeep(type,n,ap){
+  const go=()=>{oldHome('louer');n=n||bestDur(type,'rp',ap);const q=propQuote(type,n,'rp',ap);if(S.cash<q.apport&&S.liv>0)livOut(Math.min(S.liv,q.apport-S.cash));return buyProp(type,'credit',n,'rp',false,ap);};
   const e=dry(go);if(e)return e;return go();
 }
 // Achète une résidence principale en vendant l'ancienne et en complétant l'apport avec le Livret A si besoin.
-function buyHome(type,n){
-  const rp=rpOf(),probe=dry(()=>{if(rp)sellProp(rp.uid);const q=propQuote(type,n,'rp');if(S.cash<q.apport&&S.liv>0)livOut(Math.min(S.liv,q.apport-S.cash));return buyProp(type,'credit',n,'rp');});
+function buyHome(type,n,ap){
+  const rp=rpOf(),probe=dry(()=>{if(rp)sellProp(rp.uid);const q=propQuote(type,n,'rp',ap);if(S.cash<q.apport&&S.liv>0)livOut(Math.min(S.liv,q.apport-S.cash));return buyProp(type,'credit',n,'rp',false,ap);});
   if(probe)return probe;
   if(rp)sellProp(rp.uid,undefined,undefined,'Vente pour déménager');
-  const q=propQuote(type,n,'rp');if(S.cash<q.apport&&S.liv>0)livOut(Math.min(S.liv,q.apport-S.cash));
-  return buyProp(type,'credit',n,'rp');
+  const q=propQuote(type,n,'rp',ap);if(S.cash<q.apport&&S.liv>0)livOut(Math.min(S.liv,q.apport-S.cash));
+  return buyProp(type,'credit',n,'rp',false,ap);
 }
 
 /* ===================== CHOCS ===================== */
@@ -2549,7 +2551,7 @@ function decisionModal(){
     :life?`<div class="choices">${v.choices.map(c=>`<button class="choice" data-act="life" data-c="${c.id}"><b>${c.label}</b><small>${c.desc}</small></button>`).join('')}</div>${U.lifeErr?`<p class="err">${U.lifeErr}</p>`:''}`:eventDecision(v,o);
   return `<div class="overlay" role="dialog" aria-modal="true" aria-labelledby="dec-t"><div class="dmodal split ${life?'life':''}">
     <div class="dm-head"><div class="dm-ico">${icon(KICK[v.kicker]||'journal',44)}</div><div><span class="lbl">${life?'Vie perso · ':''}${v.kicker}${n>1?` · décision ${i} sur ${n}`:''}</span><h2 id="dec-t">${v.title}</h2></div></div>
-    <div class="dm-body"><p>${v.body}</p>${shocks?`<div class="shocks">${shocks}</div>`:''}${!life&&o.fiche&&!o.answered?`<details><summary>La fiche de l’analyste</summary>${ficheHtml(o.fiche)}</details>`:''}${!life&&!o.answered?advHtml():''}</div>
+    <div class="dm-body"><p>${v.body}</p>${shocks?`<div class="shocks">${shocks}</div>`:''}${!life&&o.fiche&&!o.answered?`<details open><summary>La fiche de l’analyste</summary>${ficheHtml(o.fiche)}</details>`:''}${!life&&!o.answered?advHtml():''}</div>
     ${o.answered?'':'<p class="must">Choix obligatoire pour continuer</p>'}<div class="decision">${act}</div></div></div>`;
 }
 // ----- années calmes : passées d'affilée dans l'animation, résumées ici avant la prochaine décision -----
@@ -2668,9 +2670,13 @@ function dossierHtml(){
   const t=U.dossier.t,B=BIENS[t],bur=B.k==='bur',use=bur?'loc':U.dossier.use||'rp',ret=retired(S.year),rp=rpOf(),inCity=B.v===S.city;
   // Déjà propriétaire de sa résidence : on simule les deux options (vendre ou louer l'ancienne) sur une copie de la partie.
   const sw=use==='rp'&&rp&&rp.type!==t&&inCity,old=U.dossier.old||'vendre';
-  const n=U.dur||(sw?dry(()=>{oldHome(old);return bestDur(t,'rp');}):bestDur(t,use));
-  const sim=sw?dry(()=>{oldHome(old);return {q:propQuote(t,n,'rp'),cash:Math.max(0,S.cash)+S.liv};}):null;
-  const q=sim?sim.q:propQuote(t,n,use),ix=S.idx[t],cash=sim?sim.cash:Math.max(0,S.cash)+S.liv;
+  // Apport choisi : U.dossier.ap (null = apport standard), « max » = tout ce dont tu disposes.
+  const cash0=sw?dry(()=>{oldHome(old);return Math.max(0,S.cash)+S.liv;}):Math.max(0,S.cash)+S.liv,price0=S.idx[t].price,apMax=clamp((cash0-price0*.075)/price0,0,.9);
+  const ap=U.dossier.ap==='max'?apMax:U.dossier.ap;
+  const n=U.dur||(sw?dry(()=>{oldHome(old);return bestDur(t,'rp',ap);}):bestDur(t,use,ap));
+  const sim=sw?dry(()=>{oldHome(old);return {q:propQuote(t,n,'rp',ap),cash:Math.max(0,S.cash)+S.liv};}):null;
+  const q=sim?sim.q:propQuote(t,n,use,ap),ix=S.idx[t],cash=sim?sim.cash:Math.max(0,S.cash)+S.liv;
+  const apBtn=(v,l)=>`<button data-act="dos-ap" data-v="${v}" aria-pressed="${String(U.dossier.ap??'')===String(v)}">${l}</button>`;
   const oix=rp&&S.idx[rp.type],oRent=sw&&old==='louer'?oix.rent*.9-oix.rent*.22-Math.max(0,oix.rent*.9-oix.rent*.22-(rp.loan?rp.loan.p*rp.loan.r:0))*(S.pol.irLoyer+psRate())-loanAnn(rp):0;
   const oSale=sw?propSaleCalc(rp,propValue(rp)*.95,S.year).net:0;
   const mb=use==='loc'&&!bur&&U.dossier.meuble;
@@ -2684,6 +2690,8 @@ function dossierHtml(){
     ${bur?'':`<div class="btns"><div class="seg" role="group" aria-label="Usage"><button data-act="dos-use" data-u="rp" aria-pressed="${use==='rp'}">Pour y vivre</button><button data-act="dos-use" data-u="loc" aria-pressed="${use==='loc'}">Pour le louer</button></div>${use==='loc'?`<div class="seg" role="group" aria-label="Type de location"><button data-act="dos-meuble" data-m="0" aria-pressed="${!mb}">Vide</button><button data-act="dos-meuble" data-m="1" aria-pressed="${mb}">Meublé (${gl('LMNP')})</button></div>`:''}</div>`}
     ${sw?`<div class="btns"><span class="small">${homeName()}, ton logement actuel :</span><div class="seg" role="group" aria-label="Ton logement actuel"><button data-act="dos-old" data-o="vendre" aria-pressed="${old==='vendre'}">Le vendre</button><button data-act="dos-old" data-o="louer" aria-pressed="${old==='louer'}">Le mettre en location</button></div>
       <span class="small mut">${old==='vendre'?`Vente estimée : ${fmt(oSale)} net, ajoutés à ton apport.`:`Loué environ ${fmt(oix.rent/12)} par mois ; son crédit continue et compte pour la banque.`}</span></div>`:''}
+    <div class="btns"><span class="small">Ton apport, en plus des frais de notaire :</span><div class="seg" role="group" aria-label="Apport">${apBtn('','Standard')}${apBtn(0,'Frais seuls')}${apBtn(.1,'10 %')}${apBtn(.3,'30 %')}${apBtn(.5,'50 %')}${apBtn('max',`Tout mon disponible (${pc0(apMax)})`)}</div>
+      <span class="small mut">Moins d’apport : un crédit plus gros et un taux d’effort plus haut (+0,25 point de taux sous 10 %). Plus d’apport : des mensualités plus légères.</span></div>
     <div class="dgrid"><table><tbody>
       ${r('Prix',fmt(q.price))}${r('Frais de notaire (7,5 %)',fmt(q.frais))}${r(`Apport demandé (${pc0(q.ap)} + frais)`,fmt(q.apport),'strong')}
       ${r('Montant emprunté',fmt(q.L))}${q.z?r(`dont ${gl('PTZ','prêt à taux zéro')}`,fmt(q.z)):''}
@@ -2736,8 +2744,17 @@ function toastsHtml(){
   const seen=U.shownAch||[],n=(S.achNew||[]).filter(id=>!seen.includes(id));if(!n.length)return '';
   return `<div class="toasts" role="status">${n.map(id=>`<div class="toast"><span class="lbl">Succès débloqué</span><b>${ACHM[id].n}</b><span class="small mut">${ACHM[id].d}</span></div>`).join('')}</div>`;
 }
+// Repères d'une valeur cotée : cours, variation sur 1 et 5 ans, dividende, sensibilité au marché (fonction pure).
+function reperes(id){
+  if(!META[id]||META[id].k!=='mkt'||!S.px[id])return '';
+  const h=S.ph[id]||[],px=S.px[id],v=k=>h.length>k?px/h[h.length-1-k]-1:null,sp=SP[id];
+  const rows=[['Cours',fmtPx(px)],['Sur 1 an',v(1)==null?'—':pct(v(1))],['Sur 5 ans',v(5)==null?'—':pct(v(5))]];
+  if(DIVY[id])rows.push(['Dividende',`${f1(DIVY[id]*100)} % par an`]);
+  if(sp)rows.push(['Face au marché',sp.b>1.15?'amplifie les hausses et les baisses':sp.b<.85?'plus calme que le marché':'suit le marché'],['Secteur',META[id].c]);
+  return `<div class="kv reperes">${rows.map(([a,b])=>`<span>${a}</span><span>${b}</span>`).join('')}</div>`;
+}
 function ficheHtml(f){
-  return `<div class="fiche"><span class="lbl">Fiche analyste · ${nm(f.a)}</span>
+  return `<div class="fiche"><span class="lbl">Fiche analyste · ${nm(f.a)}</span>${reperes(f.a)}
     <div class="tbl-wrap"><table><thead><tr><th>Indicateur</th><th class="n">Valeur</th><th class="n">Repère sain</th></tr></thead><tbody>
     ${f.rows.map(r=>`<tr><td>${gl(r.k)}</td><td class="n">${r.v}</td><td class="n mut">${r.r}</td></tr>`).join('')}</tbody></table></div>
     <p class="mut small">Chaque indicateur peut tromper, rarement tous à la fois. Le consensus des analystes, lui, suit la foule.</p></div>`;
@@ -2758,7 +2775,7 @@ function investForm(inv){
   const envSel=envs.length>1?`<select id="ev-env" aria-label="Enveloppe">${envs.map(e=>`<option value="${e}" ${e===U.evEnv?'selected':''}>${ENVS[e].n}</option>`).join('')}</select>`:`<span class="mut small">${ENVS[envs[0]].n}</span>`;
   const avail=S.cash+(U.evEnv!=='cto'?S.acc[U.evEnv].cash:0);
   return `<div class="invest">${sel}${envSel}<input id="ev-amt" type="number" inputmode="numeric" min="0" step="100" placeholder="Montant €" value="${esc(U.evAmt)}" aria-label="Montant à investir">
-    <div class="minis">${[.1,.25,.5,1].map(f=>`<button class="mini" data-act="ev-fill" data-f="${f}">${f===1?'Tout':Math.round(f*100)+' %'}</button>`).join('')}</div></div>
+    <div class="minis">${[500,1000,5000].map(v=>`<button class="mini" data-act="ev-add" data-v="${v}">+${NF.format(v)}</button>`).join('')}${[.1,.25,.5,1].map(f=>`<button class="mini" data-act="ev-fill" data-f="${f}">${f===1?'Tout':Math.round(f*100)+' %'}</button>`).join('')}</div></div>
     <p class="mut small">Disponible : ${fmt(avail)}${U.evEnv!=='cto'&&S.acc[U.evEnv].cash>0.5?` (dont ${fmt(S.acc[U.evEnv].cash)} déjà dans l’enveloppe)`:''}. Vends d’abord dans le carnet d’ordres si tu veux plus.</p>
     <div class="btns"><button class="primary" data-act="ev-invest">${inv.cta||'Investir'}</button></div>`;
 }
@@ -2803,9 +2820,9 @@ function bookRow(e,id){
       :`Achat : utilise d’abord les liquidités de l’enveloppe (${fmt(S.acc[e].cash)}), puis ton compte courant${e==='pea'?`, dans la limite du plafond (reste ${fmt(Math.max(0,peaCap()-S.acc.pea.vers))})`:''}. Vente : sans impôt, l’argent reste dans l’enveloppe.`;
     const buyL=e==='liv'?'Verser':'Acheter',sellL=e==='liv'?'Retirer':'Vendre';
     row+=`<div class="order"><label for="amt-${key}">Montant</label><input id="amt-${key}" type="number" inputmode="numeric" min="0" step="100" value="${esc(a)}" data-amt="${key}">
-      <div class="minis"><button class="mini" data-act="fill" data-key="${key}" data-f=".25">25 % dispo</button><button class="mini" data-act="fill" data-key="${key}" data-f="1">Tout le dispo</button>${h.v>0?`<button class="mini" data-act="fill" data-key="${key}" data-f="pos">Toute la position</button>`:''}</div>
+      <div class="minis">${[500,1000,5000].map(v=>`<button class="mini" data-act="add" data-key="${key}" data-v="${v}">+${NF.format(v)}</button>`).join('')}<button class="mini" data-act="add" data-key="${key}" data-v="0">Effacer</button><button class="mini" data-act="fill" data-key="${key}" data-f=".25">25 % dispo</button><button class="mini" data-act="fill" data-key="${key}" data-f="1">Tout le dispo</button>${h.v>0?`<button class="mini" data-act="fill" data-key="${key}" data-f="pos">Toute la position</button>`:''}</div>
       <div class="btns"><button class="primary" data-act="buy" data-key="${key}">${buyL}</button>${h.v>0?`<button class="secondary sell" data-act="sell" data-key="${key}">${sellL}</button>`:''}</div>
-      <p class="note">${note}</p>
+      ${reperes(id)}<p class="note">${note}</p>
       ${U.msg[key]?`<p class="${U.msg[key].ok?'ok':'err'}" style="flex-basis:100%">${U.msg[key].t}</p>`:''}</div>`;
   }
   return row;
@@ -3246,13 +3263,16 @@ function onClick(ev_){
     case 'dossier':U.dossier={t:t.dataset.t,use:BIENS[t.dataset.t].k==='bur'?'loc':'rp'};U.dur=null;U.fx=true;break;
     case 'dos-close':U.dossier=null;break;
     case 'dos-old':if(U.dossier){U.dossier.old=t.dataset.o;U.dur=null;}break;
+    case 'dos-ap':if(U.dossier){const v=t.dataset.v;U.dossier.ap=v===''?null:v==='max'?'max':+v;U.dur=null;}break;
     case 'dos-meuble':if(U.dossier)U.dossier.meuble=t.dataset.m==='1';break;
     case 'dos-use':if(U.dossier){U.dossier.use=t.dataset.u;U.dur=null;}break;
-    case 'dos-buy':{const d=U.dossier;if(!d)break;const B=BIENS[d.t],use=B.k==='bur'?'loc':d.use,n=U.dur||bestDur(d.t,use),m=t.dataset.m;let er;
+    case 'dos-buy':{const d=U.dossier;if(!d)break;const B=BIENS[d.t],use=B.k==='bur'?'loc':d.use,m=t.dataset.m;let er;
+      const ap=d.ap==='max'?clamp((Math.max(0,S.cash)+S.liv+(use==='rp'&&rpOf()&&(d.old||'vendre')==='vendre'?Math.max(0,propSaleCalc(rpOf(),propValue(rpOf())*.95,S.year).net):0)-S.idx[d.t].price*.075)/S.idx[d.t].price,0,.9):d.ap;
+      const n=U.dur||bestDur(d.t,use,ap);
       const keep=use==='rp'&&rpOf()&&(d.old||'vendre')==='louer',oldN=keep?homeName():'';
-      if(use==='rp'&&m==='credit')er=keep?buyHomeKeep(d.t,U.dur||null):buyHome(d.t,n);
+      if(use==='rp'&&m==='credit')er=keep?buyHomeKeep(d.t,U.dur||null,ap):buyHome(d.t,n,ap);
       else if(use==='rp'&&m==='cash'&&rpOf()){const go=()=>{oldHome('vendre');const q=propQuote(d.t,n,'rp');if(S.cash<q.cashNeed&&S.liv>0)livOut(Math.min(S.liv,q.cashNeed-S.cash));return buyProp(d.t,'cash',n,'rp');};er=dry(go);if(!er)go();}
-      else{const mb=use==='loc'&&B.k!=='bur'&&d.meuble,q=propQuote(d.t,n,use),need=(m==='cash'?q.cashNeed:q.apport)+(mb?Math.round(5000*S.defl/10)*10:0),go=()=>{if(S.cash<need&&S.liv>0)livOut(Math.min(S.liv,need-S.cash));if(mb&&S.cash<need)return `Il faut ${fmt(need)} sur ton compte courant et ton Livret A, mobilier compris.`;return buyProp(d.t,m,n,use,mb);};er=dry(go);if(!er)go();}
+      else{const mb=use==='loc'&&B.k!=='bur'&&d.meuble,q=propQuote(d.t,n,use,ap),need=(m==='cash'?q.cashNeed:q.apport)+(mb?Math.round(5000*S.defl/10)*10:0),go=()=>{if(S.cash<need&&S.liv>0)livOut(Math.min(S.liv,need-S.cash));if(mb&&S.cash<need)return `Il faut ${fmt(need)} sur ton compte courant et ton Livret A, mobilier compris.`;return buyProp(d.t,m,n,use,mb,ap);};er=dry(go);if(!er)go();}
       if(!er&&use==='rp')spend(moveCost(),true);
       if(er)U.dosMsg={t:er};else{U.toast=use==='rp'?`${B.n} acheté : tu y emménages${keep?`. ${oldN} est mis en location`:''}.`:`${B.n} acheté : il sera loué dès cette année.`;U.dossier=null;U.dosMsg=null;}save();break;}
     case 'onb-home':U.onbErr=onbHome(+t.dataset.i)||'';save();break;
@@ -3279,6 +3299,8 @@ function onClick(ev_){
     case 'wd-all':U.wd[t.dataset.env]=Math.floor(S.acc[t.dataset.env].cash*100)/100;break;
     case 'wd':{const en=t.dataset.env,v=+(U.wd[en]||S.acc[en].cash);const r=withdraw(en,v);U.envMsg[en]=r.err?{t:r.err}:{t:`Retrait de ${fmt(r.amt)} vers ton compte courant${r.tax>0.5?`, impôt ${fmt(r.tax)}`:''}.`,ok:true};U.wd[en]='';save();break;}
     case 'pea-close':if(U.confirmClose){const r=withdraw('pea',0);U.envMsg.pea=r.err?{t:r.err}:{t:`PEA clôturé : ${fmt(r.amt-r.tax)} net sur ton compte courant (impôt ${fmt(r.tax)}).`,ok:true};U.confirmClose=false;save();}else U.confirmClose=true;break;
+    case 'add':{const v=+t.dataset.v;U.amt[key]=v?(Math.floor(+U.amt[key]||0)+v):'';break;}
+    case 'ev-add':{const v=+t.dataset.v;U.evAmt=Math.floor(+U.evAmt||0)+v;break;}
     case 'ev-fill':U.evAmt=Math.floor(availFor(U.evEnv)*+t.dataset.f);break;
     case 'ev-invest':{U.evErr=answerEvent('invest',U.evAsset,+(U.evAmt||0),U.evEnv)||'';if(!U.evErr)U.evAmt='';if(S.event&&S.event.answered)U.fresh.event=true;break;}
     case 'ev-pass':U.evErr=answerEvent('pass')||'';if(S.event&&S.event.answered)U.fresh.event=true;break;

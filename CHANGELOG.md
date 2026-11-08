@@ -1,5 +1,10 @@
 # Journal des versions
 
+## 3.9.1 — Plus de souplesse (8 novembre 2026)
+- **Apport au choix** dans le dossier de crédit : frais seuls, 10, 30, 50 % ou tout ton disponible. Moins d'apport, c'est un crédit plus gros (et 0,25 point de taux en plus sous 10 %) ; plus d'apport, des mensualités plus légères. Fini les achats bloqués faute du bon apport.
+- **Boutons +500, +1 000, +5 000** pour saisir un montant d'investissement.
+- **Fiche d'une société** : cours, variation sur 1 et 5 ans, dividende et comportement face au marché, dans la fiche de l'analyste (ouverte d'office) et dans le carnet d'ordres.
+
 ## 3.9.0 — Plus de placements, deux villes, un classement (8 novembre 2026)
 - **Nouveaux placements** : SCPI (pierre-papier, loyers versés, 8 % de frais d'entrée) et obligations d'entreprise (rendement au-dessus de l'OAT, défauts en crise), au compte-titres et en assurance-vie.
 - **Location meublée (LMNP)** dans le dossier de crédit : loyer plus élevé, la moitié seulement des loyers imposée.
