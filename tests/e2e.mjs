@@ -43,13 +43,18 @@ async function noScroll(pg, name, where) {
   if (over.length) console.log(`  ${name} · ${where} : défilement interne dans ${over.join(', ')}`);
 }
 
+// Fin d'année : passer par le point de juillet s'il est proposé, puis au 31 décembre.
+async function endYear(pg, shot) {
+  if (await pg.$('[data-act=july]')) { await pg.click('[data-act=july]'); if (shot) { await pg.waitForTimeout(450); await pg.screenshot({ path: shot, fullPage: false }); } if (await pg.$('[data-act=july-ok]')) await pg.click('[data-act=july-ok]'); }
+  await pg.click('[data-act=end]');
+}
 async function step(pg) {
   const o = { timeout: 3000 };
   if (await pg.$('[data-act=skip-anim]')) return pg.click('[data-act=skip-anim]', o);
   if (await pg.$('[data-act=next]')) return pg.click('[data-act=next]', o);
   await decide(pg);
   if (await pg.$('[data-act=achat]:not([disabled])') && Math.random() < .3) await pg.click('[data-act=achat]:not([disabled]) >> nth=0', o);
-  await pg.click('[data-act=end]', o);
+  await endYear(pg);
 }
 
 const errors = [];
@@ -92,7 +97,7 @@ for (const [name, viewport, colorScheme] of [['desktop', { width: 1280, height: 
     if (v === 'immo') { await pg.click('[data-act=dossier] >> nth=1'); await pg.waitForTimeout(400); await pg.screenshot({ path: join(out, `${name}-1-dossier.png`), fullPage: false }); await pg.click('[data-act=dos-close]'); }
   }
   await pg.click('[data-act=view][data-view=profil]');
-  await pg.click('[data-act=end]');
+  await endYear(pg, join(out, `${name}-1f-juillet.png`));
   await pg.waitForTimeout(600);
   await pg.screenshot({ path: join(out, `${name}-2-animation.png`) });
   if (await pg.$('[data-act=skip-anim]')) await pg.click('[data-act=skip-anim]');
@@ -170,7 +175,7 @@ for (const [name, viewport, colorScheme] of [['petit-1280x600', { width: 1280, h
     if (!life && await pg.$('.dmodal.life [data-act=life]')) { life = true; await modalFits(pg, name + ' vie perso'); await pg.screenshot({ path: join(out, `${name}-vie.png`) }); }
     if (await pg.$('.dmodal')) await modalFits(pg, name + ' ' + await pg.evaluate("S.year+' '+(S.event?S.event.id:'')"));
     await decide(pg);
-    await pg.click('[data-act=end]');
+    await endYear(pg);
   }
   await pg.click('[data-act=view][data-view=profil]').catch(() => {});
   await pg.screenshot({ path: join(out, `${name}-profil.png`) });

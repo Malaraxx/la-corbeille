@@ -1,5 +1,8 @@
 # Journal des versions
 
+## 3.11.0 — Le point de juillet (8 novembre 2026)
+- **Point de juillet** : au milieu de chaque année, « Passer à juillet » ouvre les comptes du semestre (revenus, dépenses, ce qui a été mis de côté, placements depuis janvier). La moitié de l'épargne de l'année arrive dès juillet et tu peux passer de nouveaux ordres aux cours de juillet. Le monde et le total de l'année ne changent pas. Case « Faire le point chaque juillet » pour le couper.
+
 ## 3.10.0 — Un style de journal financier (8 novembre 2026)
 - **Refonte visuelle** : angles droits, rubriques soulignées d'un filet d'encre, sélections à l'encre, plus d'ombres décoratives ni d'animations à rebond (seulement des fondus courts), case à cocher sobre pour les années calmes.
 

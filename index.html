@@ -2148,7 +2148,7 @@ function pickLife(crash){
 }
 const evDef=()=>S.event?EVT[S.event.id]:null;
 function startTurn(y){
-  S.year=y;S.clk={t:y,y};S.phase='turn';S.turnShock={};S.lock=false;S.month='Janvier';S.moves=[];
+  S.year=y;S.clk={t:y,y};S.phase='turn';S.turnShock={};S.lock=false;S.month='Janvier';S.moves=[];S.half=0;S.h1=null;
   S.nextY=Math.min(y+1,YN+1);
   if(!S.fut[y])S.fut[y]=withWorld(()=>genYear(y));
   const f=S.fut[y];
@@ -2280,6 +2280,27 @@ function movesGain(b,r,mac){
   let t=0;for(const m of mv){if(m.tax)t-=m.tax;if(m.id)t+=m.a*g(m.e,m.id);}
   return t;
 }
+// ----- point de juillet : la moitié de l'année est jouée, on fait les comptes, on peut passer des ordres -----
+const H1K=['monde','tracker',...STOCKS,'or','oat','scpi','corp',...THEMES];
+// Part du rendement de l'année vécue au premier semestre : fixée par la graine du monde, l'année et l'actif (aucun tirage),
+// si bien que le monde reste le même pour tous et que le total de l'année ne change pas.
+function h1Split(k,y,r){
+  if(!r)return 0;
+  let h=2166136261;for(const c of `${S.wseed||0}:${y}:${k}`){h^=c.charCodeAt(0);h=Math.imul(h,16777619);}
+  const u=((h>>>0)%10000)/10000,vol=k==='oat'||k==='corp'?.02:k==='or'||k==='scpi'?.04:.08;
+  return Math.max(-.6,Math.sqrt(Math.max(.01,1+r))*Math.exp((u-.5)*2*vol)-1);
+}
+function halfYear(){
+  if(S.half||!turnReady())return;
+  const y=S.year,r1={},sv={},n0=net();
+  for(const k of H1K)r1[k]=h1Split(k,y,peekR(k,y)??0);
+  for(const e of ['cto','pea','av'])for(const id in S.acc[e].hold){const h=S.acc[e].hold[id];sv[e+':'+id]=h.v;if(r1[id]&&h.v>0)h.v*=1+r1[id];}
+  for(const k of H1K)if(r1[k]&&S.px[k]!=null)S.px[k]*=1+r1[k];
+  // La moitié de ce que tu mets de côté dans l'année arrive dès juillet (le reste au 31 décembre).
+  const x=Math.max(0,Math.round(yearlySave()/2));if(x)ext(x);
+  S.h1={y,r:r1,sv,cash:x,net0:n0};S.half=1;S.month='Juillet';S.clk={t:y+.5,y};
+  save();
+}
 function simulateYear(y){
   S.clk={t:y+1,y};
   const f=S.fut[y],mac=f.mac;
@@ -2295,13 +2316,16 @@ function simulateYear(y){
     else r.jeton=Math.min(20,Math.exp(-.35+gauss()*1.0)-1);
   }
   S.lastR={...r};
-  for(const id in PX0)if(r[id]!=null&&META[id].k!=='special')S.px[id]=r[id]===-1?0:S.px[id]*(1+r[id]);
+  // Point de juillet passé : le second semestre applique le reste du rendement de l'année.
+  const H=S.h1&&S.h1.y===y?S.h1:null,r2=k=>H&&H.r[k]?(1+r[k])/(1+H.r[k])-1:r[k];
+  if(H&&H.net0!=null)b.netStart=H.net0;
+  for(const id in PX0)if(r[id]!=null&&META[id].k!=='special')S.px[id]=r[id]===-1?0:S.px[id]*(1+r2(id));
   for(const id in PX0)if(S.ph[id]){S.ph[id].push(S.px[id]);if(S.ph[id].length>14)S.ph[id].shift();}
   if(S.liv>0){const sv=S.liv;S.liv*=1+mac.livret/100;b.lines.push({id:'livret',env:'liv',sv,ev:S.liv,r:mac.livret/100});}
   for(const e of ['cto','pea','av'])for(const id of ORDER){
-    const h=S.acc[e].hold[id];if(!h||h.v<=0)continue;const sv=h.v;let rr;
+    const h=S.acc[e].hold[id];if(!h||h.v<=0)continue;const sv=H&&H.sv[e+':'+id]!=null?H.sv[e+':'+id]:h.v;let rr;
     if(id==='euros'){rr=mac.euros/100;const it=h.v*rr,ps=it*psRate();h.v+=it-ps;b.flows.impots+=ps;}
-    else{rr=r[id]||0;h.v=Math.max(0,h.v*(1+rr));
+    else{rr=r[id]||0;h.v=Math.max(0,h.v*(1+(r2(id)||0)));
       if(e==='cto'&&DIVY[id]&&h.v>0){const t=Math.min(h.v,sv*DIVY[id]*(id==='scpi'?S.pol.irLoyer+psRate():ctoRate()));h.v-=t;b.flows.impots+=t;}
       const fee=h.v*((FEES[id]||0)+(e==='av'?.006:0));if(fee>0){h.v-=fee;b.flows.frais+=fee;}}
     b.lines.push({id,env:e,sv,ev:h.v,r:rr});
@@ -2352,6 +2376,7 @@ function simulateYear(y){
     ext(ep+ref+cref);b.flows.epargne=ep+ref+cref;
     if(humeurMult()<1&&ep>0)b.notes.push('Moral en berne : dépenses compulsives, ton épargne de l’année baisse de 30 %.');
   }
+  if(H&&H.cash)ext(-H.cash); // déjà versé en juillet
   ext(-hc);b.flows.logement=-hc;if(cc){ext(-cc);b.flows.voiture=-cc;}if(kc){ext(-kc);b.flows.enfants=-kc;}if(fc){ext(-fc);b.flows.famille=-fc;}if(dc){ext(-dc);b.flows.autres=-dc;}
   b.save=b.flows.epargne+b.flows.retraite+b.flows.logement+b.flows.voiture+b.flows.enfants+(b.flows.autres||0)+(b.flows.famille||0)+rpFlow;
   // Affichage : un propriétaire ne paie pas de loyer. La valeur locative (débitée côté vie, recréditée côté bien pour le TRI) s'annule, on ne la montre pas.
@@ -2493,7 +2518,7 @@ function moneyVals(){return {cash:S.cash,liv:S.liv,fin:envTotal('cto')+envTotal(
 function moneyBar(blk=''){
   if(!S)return '';
   const end=S.phase==='end',bil=S.phase==='bilan',y=bil?S.bilans[0].y:S.year,v=moneyVals(),prev=U.prevMoney||v;
-  const date=end?`31 déc. ${YN}`:bil?`31 déc. ${y}`:`Janvier ${y}`,ag=end?75:age(bil?y+1:y);
+  const date=end?`31 déc. ${YN}`:bil?`31 déc. ${y}`:`${S.half?'Juillet':'Janvier'} ${y}`,ag=end?75:age(bil?y+1:y);
   const chip=(k,l)=>{const to=Math.round(v[k]),from=Math.round(prev[k]??to),d=to-from;
     return `<div class="mchip ${k==='net'?'net':''} ${to<0?'neg':''}"><span>${l}</span><b class="num" data-count="${to}" data-from="${from}">${fmt(from)}</b>${Math.abs(d)>=1?`<em class="delta ${d>0?'up':'down'}">${d>0?'+':'−'}${fmt(Math.abs(d))}</em>`:''}</div>`;};
   const reset=`<button class="ghost sm ${U.confirmReset?'danger':''}" data-act="reset">${U.confirmReset?'Tout effacer ?':'<span class="hide-m">Nouvelle partie</span><span class="show-m">Nouvelle</span>'}</button>`;
@@ -2509,7 +2534,7 @@ const VIEWS=[['profil','Profil'],['portefeuille','Portefeuille'],['immo','Immobi
 function navBar(blk=''){
   const v=U.view||'profil',ready=turnReady(),last=S.year>=YN;
   return `<nav class="navbar"${blk}><div class="vtabs" role="tablist" aria-label="Sections">${VIEWS.map(([k,l])=>`<button role="tab" aria-selected="${v===k}" data-act="view" data-view="${k}">${l}</button>`).join('')}</div>
-    <div class="nextbox">${U.undo?`<button class="ghost sm" data-act="undo" title="Annuler ${U.undo}">↶ Annuler ${U.undo}</button>`:''}${ready&&isIdle()&&!S.lock?`<span class="hint">${fmt(idleAmt())} dorment</span>`:''}<button class="primary next" data-act="end" ${ready?'':'disabled'}>${last?'Voir la fin':`Passer à ${S.year+1}`} →</button></div></nav>`;
+    <div class="nextbox">${U.undo?`<button class="ghost sm" data-act="undo" title="Annuler ${U.undo}">↶ Annuler ${U.undo}</button>`:''}${ready&&isIdle()&&!S.lock?`<span class="hint">${fmt(idleAmt())} dorment</span>`:''}${!S.half&&S.julyOn!==false?`<button class="primary next" data-act="july" ${ready?'':'disabled'}>Passer à juillet →</button>`:`<button class="primary next" data-act="end" ${ready?'':'disabled'}>${last?'Voir la fin':`Passer à ${S.year+1}`} →</button>`}</div></nav>`;
 }
 // ----- fenêtre des décisions obligatoires : une à la fois, rien d'autre n'est accessible tant qu'elles ne sont pas prises -----
 const GATE=['weekend','burnout','panique','retraite','fire','licenciement','logement'];
@@ -2542,6 +2567,25 @@ function decisionModal(){
     <div class="dm-head"><div class="dm-ico">${icon(KICK[v.kicker]||'journal',44)}</div><div><span class="lbl">${life?'Vie perso · ':''}${v.kicker}${n>1?` · décision ${i} sur ${n}`:''}</span><h2 id="dec-t">${v.title}</h2></div></div>
     <div class="dm-body"><p>${v.body}</p>${shocks?`<div class="shocks">${shocks}</div>`:''}${!life&&o.fiche&&!o.answered?`<details open><summary>La fiche de l’analyste</summary>${ficheHtml(o.fiche)}</details>`:''}${!life&&!o.answered?advHtml():''}</div>
     ${o.answered?'':'<p class="must">Choix obligatoire pour continuer</p>'}<div class="decision">${act}</div></div></div>`;
+}
+// ----- point de juillet : les comptes du semestre -----
+const julyBtn=()=>`<button class="ghost sm autot" data-act="julyon" aria-pressed="${S.julyOn!==false}"><i aria-hidden="true"></i>Faire le point chaque juillet</button>`;
+function julyModal(){
+  const H=S.h1,ret=retired(S.year),inc=(ret?pensionYear():foyerRev())/2,hs=housingOut()/2,car=carCost()/2,kc=kidsCost()/2,dc=debtCost()/2,fc=famCost()/2,save=yearlySave()/2;
+  const dep=inc-save-hs-car-kc-dc-fc;
+  const r=(l,v)=>Math.abs(v)<.5?'':`<tr><td>${l}</td><td class="n ${v<0?'':'up'}">${v<0?'−':'+'}${fmt(Math.abs(v))}</td></tr>`;
+  const lines=[];for(const k in H.sv){const [e,id]=k.split(':'),h=S.acc[e].hold[id],v0=H.sv[k];if(h&&v0>50)lines.push({id,e,v0,v:h.v});}
+  const t0=lines.reduce((a,x)=>a+x.v0,0),t1=lines.reduce((a,x)=>a+x.v,0),g=t0>0?t1/t0-1:0;
+  const top=lines.sort((a,b)=>b.v-a.v).slice(0,4).map(x=>`<tr><td>${nm(x.id)} <small>${x.e==='cto'?'CTO':x.e==='pea'?'PEA':'AV'}</small></td><td class="n">${fmt(x.v)}</td><td class="n ${cls(x.v/x.v0-1)}">${pct(x.v/x.v0-1)}</td></tr>`).join('');
+  return `<div class="overlay" role="dialog" aria-modal="true" aria-labelledby="jul-t"><div class="dmodal split wide">
+    <div class="dm-head"><div class="dm-ico">${icon('journal',44)}</div><div><span class="lbl">Point d’étape · 1er juillet ${S.year}</span><h2 id="jul-t">Les comptes du semestre</h2></div></div>
+    <div class="dm-body"><div class="dgrid"><div><h3>Ton budget, de janvier à juin</h3><table><tbody>
+      ${r(ret?'Pension':'Revenus du foyer',inc)}${r('Dépenses courantes',-dep)}${r(rpOf()?'Crédit et charges':'Loyer',-hs)}${r('Voiture',-car)}${r('Enfants',-kc)}${r('Autre crédit',-dc)}${r('Famille',-fc)}
+      <tr class="tot"><td>Mis de côté, versé sur ton compte</td><td class="n up">${fmt(H.cash)}</td></tr></tbody></table>
+      ${S.page&&(S.page.spent||S.page.imp)?`<p class="small mut">Déjà payés en janvier : ${S.page.imp?`${S.page.imp.t.toLowerCase()} (${fmt(S.page.imp.c)})`:''}${S.page.imp&&S.page.spent?', ':''}${S.page.spent?`plaisirs (${fmt(S.page.spent)})`:''}.</p>`:''}</div>
+      <div><h3>Tes placements depuis janvier</h3>${lines.length?`<p>${fmt(t0)} → <b>${fmt(t1)}</b> <span class="${cls(g)}">${pct(g)}</span></p><table><tbody>${top}</tbody></table>`:'<p class="mut">Aucun placement pour l’instant.</p>'}
+      <p class="small mut">Le reste de l’année se joue au second semestre. Tu peux encore passer des ordres avant le 31 décembre.</p></div></div></div>
+    <div class="decision"><div class="btns end">${julyBtn()}<button class="ghost" data-act="july-ok" data-v="portefeuille">Voir mon portefeuille</button><button class="primary" data-act="july-ok">Continuer →</button></div></div></div></div>`;
 }
 // ----- années calmes : passées d'affilée dans l'animation, résumées ici avant la prochaine décision -----
 const autoBtn=()=>`<button class="ghost sm autot" data-act="auto" aria-pressed="${S.autoPass!==false}"><i aria-hidden="true"></i>Passer les années calmes</button>`;
@@ -2724,7 +2768,7 @@ function onbView(){
 }
 function turnView(){
   if(S.onb)return `${moneyBar(' inert')}<main class="stage" inert></main>${onbView()}`;
-  const v=U.view||'profil',modal=U.quiet?quietModal():chapDue()?chapModal():decisionModal(),dos=U.dossier&&BIENS[U.dossier.t]&&v==='immo'?`<div class="overlay" role="dialog" aria-modal="true" aria-label="Dossier de crédit"><div class="dmodal wide">${dossierHtml()}</div></div>`:'';
+  const v=U.view||'profil',modal=U.quiet?quietModal():U.july&&S.half?julyModal():chapDue()?chapModal():decisionModal(),dos=U.dossier&&BIENS[U.dossier.t]&&v==='immo'?`<div class="overlay" role="dialog" aria-modal="true" aria-label="Dossier de crédit"><div class="dmodal wide">${dossierHtml()}</div></div>`:'';
   const body=v==='portefeuille'?portefeuilleTab():v==='immo'?immoTab():v==='patrimoine'?patrimoineTab():profilTab();
   const t=U.toast?`<div class="toast2" role="status">${U.toast}</div>`:'',blk=modal||dos?' inert':'';
   return `${moneyBar(blk)}${navBar(blk)}<main class="stage"${blk}>${body}</main>${toastsHtml()}${t}${modal||dos}`;
@@ -2922,7 +2966,7 @@ function bilanView(){
         <div><span class="lbl">Sur l’année</span><div class="v num ${cls(d)}">${pct(d)}</div></div>
         <div><span class="lbl">Inflation</span><div class="v num">${f1(b.infl)} %</div></div>
         <div class="moodv">${figure('me',m1)}<div><span class="lbl">Humeur · couple</span><div class="v num">${Math.round(b.me.humeur)} · ${b.me.relation==null?'—':Math.round(b.me.relation)}</div></div></div></div>
-      <div class="btns">${autoBtn()}<button class="primary next" data-act="next">${nextLbl}</button></div></div>
+      <div class="btns">${autoBtn()}${julyBtn()}<button class="primary next" data-act="next">${nextLbl}</button></div></div>
     <div class="g-bilan">
       <section class="card b-why"><div class="ch"><h3>Ce qui s’est passé</h3></div>${b.why?`<p class="pourquoi">${b.why}</p>`:''}
         ${b.choice!=null&&Math.abs(b.choice)>=50?`<p class="choix ${b.choice>0?'good':'bad'}"><b>Tes choix de placement cette année : <span class="num">${b.choice>0?'+':'−'}${fmt(Math.abs(b.choice))}</span></b> par rapport à ne rien toucher en janvier${b.choice>0?'.':' (impôts de vente compris).'}</p>`:''}
@@ -3228,7 +3272,7 @@ function onClick(ev_){
   // Annuler le dernier ordre du tour : on garde l'état d'avant chaque ordre (non sauvegardé, effacé à la fin de l'année).
   const UNDO={buy:'l’achat',sell:'la vente',wd:'le retrait','pea-close':U.confirmClose&&'la clôture du PEA',place:'le placement',['rebal-ok']:'le rééquilibrage',['dos-buy']:'l’achat immobilier',['home-rent']:'le déménagement',['prop-sell']:U.confirmSell===+t.dataset.u&&'la vente du bien',reneg:'la renégociation',achat:'l’achat plaisir'}[a];
   const snap=UNDO&&S&&S.phase==='turn'?JSON.stringify(S):null;
-  if(['end','next','start','reset','replay','broken-new'].includes(a)){U.undo=null;U.undoS=null;}
+  if(['end','next','start','reset','replay','broken-new','july'].includes(a)){U.undo=null;U.undoS=null;}
   if(a!=='reset')U.confirmReset=false;
   if(a!=='prop-sell')U.confirmSell=null;
   if(a!=='pea-close')U.confirmClose=false;
@@ -3304,6 +3348,9 @@ function onClick(ev_){
       sfx(S.phase==='turn'&&S.event&&EVT[S.event.id].crash?'krach':'bell');
       if(q.length&&canAnim()){U.animList=q;U.anim={i:0};render();runAnim();return;}break;}
     case 'quiet-ok':U.quiet=null;U.fx=true;break;
+    case 'july':halfYear();if(S.half){U.july=true;U.fx=true;U.open=null;U.msg={};U.dossier=null;sfx('bell');}break;
+    case 'july-ok':U.july=false;if(t.dataset.v)U.view=t.dataset.v;U.fx=true;break;
+    case 'julyon':S.julyOn=S.julyOn===false;save();break;
     case 'undo':break;
     case 'rules':U.rules=true;break;
     case 'lb-open':U.lb=true;lbInit();break;

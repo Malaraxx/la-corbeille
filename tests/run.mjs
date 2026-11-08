@@ -38,7 +38,7 @@ vm.runInContext(js + `;globalThis.T={get S(){return S},set S(v){S=v},newGame,sta
   buyProp,sellProp,reneg,canReneg,answerEvent,answerLife,evDef,LIFE,EVT,net,tradable,ORDER,ENVS,META,EQUITY,STOCKS,THEMES,PRESETS,GOALS,ACH,ADV,PHASES,GOOD,Y0,YN,
   eligEnvs,peaCap,envTotal,turnReady,finalScore,placeIdle,rebalance,dry,alloc,eqShare,irr,invData,coups,epilogue,shareText,genYear,peekR,hv,ev,conseils,rappels,pct,f1,
   homeOptions,recoHome,onbHome,onbNext,onbView,budgetTable,kidsCost,rpOf,PRESETS,EPARGNES,SALAIRES,coefOf,BIENS,dossierHtml,acheter,achatState,ACHATS,migrate,bestRental,bestBuy,buyHome,moveTo,propQuote,coussin,yearlySave,monthlySpend,CITIES,loanLeft,
-  buyHomeKeep,ifiTax,benchRef,biography,threadEnds,chapOf,boot,endView,envTotal,custErr,custLeft,custDefaults,homeName,startSave,turnView,bilanView,endView,introView,moneyBar,profilTab,portefeuilleTab,immoTab,patrimoineTab,animHtml,toastsHtml,advHtml,spark,save,load,legacyGame,U};`, ctx);
+  halfYear,buyHomeKeep,ifiTax,benchRef,biography,threadEnds,chapOf,boot,endView,envTotal,custErr,custLeft,custDefaults,homeName,startSave,turnView,bilanView,endView,introView,moneyBar,profilTab,portefeuilleTab,immoTab,patrimoineTab,animHtml,toastsHtml,advHtml,spark,save,load,legacyGame,U};`, ctx);
 const T = ctx.T;
 
 // ---------- mini framework
@@ -529,6 +529,21 @@ test('Immobilier : apport au choix, de « frais seuls » à 90 %', () => {
   const dc = q0.apport + 1 - S.cash; S.cash += dc; S.start += dc;
   const e = T.buyHome('lyont2', 25, 0); check(!e || /effort/.test(e), 'achat avec frais seuls refusé pour une autre raison : ' + e);
   check(cashIdentity(S) < 1, 'argent créé ou perdu avec un apport réduit');
+});
+
+test('Point de juillet : le semestre ne change ni le monde ni l’argent de l’année', () => {
+  for (let g = 0; g < 6; g++) {
+    T.newGame({ city: 'lyon', sal: 3, cap: 2, couple: g % 2 === 0, seed: 1000 + g }, []); const S = T.S;
+    for (let i = 0; i < 6 + g; i++) { if (S.life) for (const c of S.life.v.choices) if (!S.life.answered) T.answerLife(c.id); if (S.event) T.answerEvent('pass'); if (S.cash > 3000) { T.buyIn('pea', 'monde', 2000); T.buyIn('cto', 'scpi', 1000); } T.endTurn(); T.nextBilan(); }
+    if (S.life) for (const c of S.life.v.choices) if (!S.life.answered) T.answerLife(c.id); if (S.event) T.answerEvent('pass');
+    const snap = JSON.stringify(S), pred = T.yearlySave();
+    T.endTurn(); const A = { net: T.net(), px: S.px.monde, save: S.bilans[0].save, start: S.bilans[0].netStart };
+    T.S = JSON.parse(snap); T.halfYear(); check(T.S.half === 1 && T.S.cash >= JSON.parse(snap).cash, 'juillet sans versement');
+    T.endTurn(); const B = T.S;
+    check(Math.abs(T.net() - A.net) < 1 && Math.abs(B.px.monde - A.px) < 1e-6, `juillet change le résultat de l’année (${Math.round(T.net())} au lieu de ${Math.round(A.net)})`);
+    check(Math.abs(B.bilans[0].save - pred) < 1 && Math.abs(B.bilans[0].netStart - A.start) < 1, 'budget ou bilan faussés par juillet');
+    check(cashIdentity(B) < 1 || B.me.ruptures, 'argent créé ou perdu en juillet');
+  }
 });
 
 test('Profils tout faits et immobilier multi-villes', () => {

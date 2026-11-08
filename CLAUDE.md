@@ -120,7 +120,7 @@ props[{uid,type (clé de BIENS),buyYear,cost,loan:{p,r,n,ann,z:{p,ann}|null}|nul
 idx{bien:{price,rent}}
 city ('lille'|'lyon'|'paris'), home{type (clé de BIENS, 'parents', 'coloc' ou 'perso'), own, since}, cust{sal,salP,partner,rent,rooms,dep,car,debt,debtN}|absent (profil sur mesure, p.custom = true), onb (étape de l'accueil ou null), onbAns[], onbHome, buyHist{achat:[années]}
 lossCarry, flags{rpYear,twoRent,struct,souvY,startup,lastPand,fireAsked,pretAmi,panicSold,lowMood,faillite…}, pending{année:{actif:%}}, jeton{name,alive,born}, avAb
-revenu, tauxEp, defl (indice des prix), bench{liv,trk} (placements des repères, sans l'immobilier), benchV:2, yearExt, yearProp, yearRuin, extTot, moves[{e,id,a,tax}] (ordres de janvier), autoPass
+revenu, tauxEp, defl (indice des prix), bench{liv,trk} (placements des repères, sans l'immobilier), benchV:2, yearExt, yearProp, yearRuin, extTot, moves[{e,id,a,tax}] (ordres de janvier), autoPass, half (0/1 : juillet joué), h1{y,r,sv,cash,net0}|null, julyOn
 hist[{x,net,liv,trk}], bilans[], event{id,p,answered,result,fiche?,adv?}|null, life{id,v,answered,result,name?}|null, nextY
 usedFut[], usedLife[], uid, log[{y,t,r}], turnShock, lock, well{sum,n}, profile
 lg{lines{clé:{env,id,label,first,lastSell,flows[{t,y,a}]}}, env{pea[],av[]}, props[]}
@@ -279,6 +279,12 @@ Le monde (`genYear`, `makeThemes`, dérives `S.drift`) tire son hasard dans un f
 
 ### Sons
 Coupés par défaut, bouton haut-parleur dans la barre du haut. Synthétisés (WebAudio, aucun fichier) : cloche à chaque nouvelle année, grondement à l'ouverture d'un krach, carillon pour un succès. Réglage rangé dans la partie (`S.sound`), pas dans le navigateur.
+
+### Point de juillet (`halfYear`, `h1Split`, `julyModal`)
+- Le bouton « Passer à juillet → » remplace « Passer à … » tant que le semestre n'est pas joué (`S.half`), sauf si `S.julyOn === false` (case « Faire le point chaque juillet », dans la fenêtre et au bilan).
+- `halfYear()` applique à chaque actif la part de son rendement de l'année vécue au premier semestre : `h1Split(k,y,r)` = √(1+r) × e^(±vol) − 1, fixé par un hachage de la graine du monde, de l'année et de l'actif (aucun tirage, vol 2 % pour OAT et obligations d'entreprise, 4 % or et SCPI, 8 % actions et fonds). Il verse la moitié de `yearlySave()` (`ext`) et garde dans `S.h1` les valeurs de janvier, les rendements du semestre, l'épargne versée et le patrimoine de départ.
+- `simulateYear` applique ensuite le reste : (1+r)/(1+r₁) − 1 par actif, le gain de l'année se mesure depuis la valeur de janvier, l'épargne déjà versée est retirée du versement de décembre. Une année jouée avec ou sans juillet finit au centime près au même endroit si l'on ne touche à rien (test « Point de juillet »).
+- `julyModal()` : budget du semestre (moitié de chaque poste annuel), placements depuis janvier (4 plus grosses lignes), « Voir mon portefeuille » ou « Continuer ». L'annulation d'ordre est effacée au passage en juillet. `startTurn` remet `S.half = 0` et `S.h1 = null`. Champs nouveaux sans migration : absents, ils valent « pas encore juillet » et « point activé ».
 
 ### Confort
 - **Annuler le dernier ordre** : l'état d'avant chaque ordre du tour (achat, vente, retrait, placement, rééquilibrage, achat ou vente immobilière, déménagement, renégociation, achat plaisir) est gardé dans `U.undoS` ; le bouton « ↶ Annuler … » de la navigation le restaure. Effacé à la fin de l'année.
