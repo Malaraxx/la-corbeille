@@ -22,6 +22,7 @@ let seed = seedArg ? +seedArg.split('=')[1] : (Date.now() % 1e9);
 // ---------- PRNG déterministe partagé par le jeu et les stratégies de test
 function mulberry(a) { return () => { a = (a + 0x6D2B79F5) | 0; let t = Math.imul(a ^ (a >>> 15), a | 1); t ^= t + Math.imul(t ^ (t >>> 7), t | 61); return ((t ^ (t >>> 14)) >>> 0) / 4294967296; }; }
 const R = mulberry(seed);
+let RR = R; // l'équilibrage rejoue les mêmes mondes pour chaque stratégie (voir run, plus bas)
 
 // ---------- chargement du moteur
 const html = readFileSync(join(root, 'src', 'la-corbeille.html'), 'utf8');
@@ -29,7 +30,7 @@ const js = html.split('<script>')[1].split('</script>')[0];
 const store = {};
 const ctx = {
   console, Intl, JSON, performance: { now: () => 0 },
-  Math: Object.assign(Object.create(Math), { random: R }),
+  Math: Object.assign(Object.create(Math), { random: () => RR() }),
   Date: { now: () => 1 },
   localStorage: { getItem: k => store[k] ?? null, setItem: (k, v) => { store[k] = String(v); }, removeItem: k => { delete store[k]; } },
 };
@@ -384,7 +385,7 @@ test('Rééquilibrage : aperçu pur, conservation de l’argent, aperçu = exéc
 
 test('Déterminisme : même graine, même partie', () => {
   // newGame tire sa graine de Date.now() et Math.random() : on les fige pour rejouer deux fois la même partie.
-  const once = () => { const a = R; let k = 7; ctx.Math.random = () => (k = (k * 16807) % 2147483647) / 2147483647; T.newGame('ingenieure', ['fire']);
+  const once = () => { const a = ctx.Math.random; let k = 7; ctx.Math.random = () => (k = (k * 16807) % 2147483647) / 2147483647; T.newGame('ingenieure', ['fire']);
     for (let i = 0; i < 25; i++) { const S = T.S; if (S.life) T.answerLife(S.life.v.choices[0].id); if (S.event) T.answerEvent('pass'); T.placeIdle(.7, []); T.endTurn(); T.nextBilan(); }
     ctx.Math.random = a; return JSON.stringify(T.S); };
   check(once() === once(), 'deux parties à graine égale divergent');
@@ -676,6 +677,14 @@ test('Loyers réglables et versements automatiques', () => {
   S.cash = 50; check(T.runPlans().every(t => /sauté/.test(t)), 'versement sans argent');
 });
 
+test('Sophie lit le prix de la Bourse : 100 % d’actions quand elle est bradée, retour à 80 % ensuite', () => {
+  T.newGame('heritier', []); const S = T.S; S.profile = .8; T.placeIdle(.8, []);
+  const prof = () => T.conseils().map(c => c.btn).find(b => b && b.k === 'prof'), r0 = S.rng;
+  S.w.pe = 10; const b = prof(); check(b && b.p === 1, 'pas de conseil « tout en actions » quand la Bourse est bradée');
+  S.profile = 1; T.placeIdle(1, []); S.w.pe = 18; const c = prof(); check(c && c.p === .8, 'pas de retour à 80 % quand la Bourse redevient normale');
+  S.w.pe = 14; check(!prof(), 'conseil de profil sans raison'); check(S.rng === r0, 'conseils impurs');
+});
+
 test('Fiscalité 2026 : 31,4 % au compte-titres, 18,6 % au PEA, 30 % pour l’assurance-vie, 17,2 % pour l’immobilier', () => {
   T.newGame({ city: 'lille', sal: 2, cap: 2, couple: false, seed: 800 }, []); const S = T.S, eq = (a, b) => Math.abs(a - b) < 1e-9;
   check(eq(T.ctoRate(), .314) && eq(T.psRate(), .186) && eq(T.avRate(), .30) && eq(T.psFRate(), .172), 'taux 2026 faux');
@@ -751,7 +760,8 @@ if (BALANCE) {
   const BAL = { diner: 'rdv', promo: 'oui', vacances: 'oui', mariage: 'oui', enfant: 'non', sport: 'oui', ami: 'non', weekend: 'partir', burnout: 'arret', rupture: 'ok', panique: 'tenir', rencontre: 'oui', logement: 'louer', panne: 'reparer', fire: 'non', licenciement: 'chercher', startupJob: 'non' };
   const MONEY = { ...BAL, diner: 'diner', vacances: 'non', mariage: 'non', sport: 'non', weekend: 'ecrans', rencontre: 'non' };
   const peaMonde = S => { const room = T.peaCap() - S.acc.pea.vers, a = Math.min(S.cash + S.acc.pea.cash, Math.max(0, room) + S.acc.pea.cash); if (a > 1) T.buyIn('pea', 'monde', a); if (S.cash > 1) T.buyIn('cto', 'monde', S.cash); };
-  const run = (arch, pol, n = 100) => { const r = []; for (let i = 0; i < n; i++) { const S = play(arch, [], pol); r.push({ real: T.finalScore().real, score: T.finalScore().score, ratio: T.benchRef().trk > 1000 ? T.net() / T.benchRef().trk : 1 }); } return r; };
+  // Partie i de chaque stratégie : même graine, donc même monde et même départ. Les écarts mesurés viennent des choix, pas de la chance.
+  const run = (arch, pol, n = 100) => { const r = []; for (let i = 0; i < n; i++) { RR = mulberry(seed * 7919 + i); const S = play(arch, [], pol); r.push({ real: T.finalScore().real, score: T.finalScore().score, ratio: T.benchRef().trk > 1000 ? T.net() / T.benchRef().trk : 1 }); } return r; };
 
   const passive = run('heritier', { life: choose(BAL), port: peaMonde });
   const career = run('heritier', { life: choose(MONEY), port: peaMonde });
@@ -810,7 +820,7 @@ if (BALANCE) {
     }
     peaMonde(S);
   };
-  const ent = []; for (let i = 0; i < 100; i++) { play('heritier', [], { life: choose(BAL), port: founder }); ent.push(T.finalScore().real); if ((T.S.bizPast || []).some(x => x.txt === 'en faillite')) bizFail++; }
+  const ent = []; for (let i = 0; i < 100; i++) { RR = mulberry(seed * 7919 + i); play('heritier', [], { life: choose(BAL), port: founder }); ent.push(T.finalScore().real); if ((T.S.bizPast || []).some(x => x.txt === 'en faillite')) bizFail++; }
   const er = med(ent) / med(passive.map(x => x.real)), e90 = ent.sort((a, b) => a - b)[90] / passive.map(x => x.real).sort((a, b) => a - b)[90];
   warn(er >= .75 && er <= 1.33, 'Entrepreneur / salarié passif (médiane)', '×' + er.toFixed(2), '0,75 – 1,33');
   warn(e90 >= 1.3, 'Entrepreneur / salarié passif (90e centile)', '×' + e90.toFixed(2), '≥ ×1,3');

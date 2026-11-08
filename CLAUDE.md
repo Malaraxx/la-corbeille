@@ -356,7 +356,7 @@ Coupés par défaut, bouton haut-parleur dans la barre du haut. Synthétisés (W
 
 ### L'année (onglet Profil)
 - **Gros titre** (`headline`) : le fait marquant (krach, choc, phase du cycle, présidentielle, inflation, Bourse chère, crédit), repris dans les notes (« Au journal : … »), jamais le même deux ans de suite.
-- **Conseils de Sophie** (`conseils()`, au plus 3) : ils ne lisent jamais le futur, seulement l'état connu et le portefeuille. Krach (ne pas vendre au plus bas), coussin sous 3 mois, argent qui dort (et ce que l'inflation lui coûte), logement trop petit, voyants à l'orange (`crisisRisk` ≥ 10 % avec plus de 65 % d'actions : chiffrage d'une chute de 35 %), Bourse bradée, renégociation possible, PEA pas encore ouvert, OAT quand la BCE monte ses taux, crédit bon marché pour la résidence principale, ligne qui pèse plus de 25 %, fonds thématique en bulle, inflation qui ronge l'épargne garantie. Également : argent qui dort depuis longtemps (à partir de 32 ans, moins de 20 % d'actions et plus de 2 ans de dépenses sur le compte : le risque d'être à court d'argent à la retraite), profil selon l'horizon (avant 50 ans, viser 80 % d'actions ; à partir de 55 ans, réduire à 50 %), et une action isolée gardée plus d'un an à rebasculer sur l'ETF Monde. Chaque conseil a un lien vers le bon onglet (`act:'view'` ou `'tip-tab'`), jamais un achat automatique. Le bouton peut porter `k:'prof'` (profil conseillé `p`) ou `k:'sell'` (`e`, `id`) pour le joueur-type des tests.
+- **Conseils de Sophie** (`conseils()`, au plus 3) : ils ne lisent jamais le futur, seulement l'état connu et le portefeuille. Krach (ne pas vendre au plus bas), coussin sous 3 mois, argent qui dort (et ce que l'inflation lui coûte), logement trop petit, voyants à l'orange (`crisisRisk` ≥ 10 % avec plus de 65 % d'actions : chiffrage d'une chute de 35 %), Bourse bradée (PER < 12, moins de 55 ans : « je passerais à 100 % d'actions », bouton `k:'prof'`, `p:1`) puis Bourse revenue à un prix normal (PER > 16 avec un profil au-delà de 85 % : retour à 80 %) : c'est son vrai avantage, la lecture des prix ; renégociation possible, PEA pas encore ouvert, OAT quand la BCE monte ses taux, crédit bon marché pour la résidence principale, ligne qui pèse plus de 25 %, fonds thématique en bulle, inflation qui ronge l'épargne garantie. Également : argent qui dort depuis longtemps (à partir de 32 ans, moins de 20 % d'actions et plus de 2 ans de dépenses sur le compte : le risque d'être à court d'argent à la retraite), profil selon l'horizon (avant 50 ans, viser 80 % d'actions ; à partir de 55 ans, réduire à 50 %), et une action isolée gardée plus d'un an à rebasculer sur l'ETF Monde. Chaque conseil a un lien vers le bon onglet (`act:'view'` ou `'tip-tab'`), jamais un achat automatique. Le bouton peut porter `k:'prof'` (profil conseillé `p`) ou `k:'sell'` (`e`, `id`) pour le joueur-type des tests.
 - **Notes de l'année** (`makeNotes`, au plus 6, à la première personne, ton tendre) : le gros titre au journal, l'augmentation ou le gel du salaire et le surcoût des courses, un enfant (phrase selon son âge), le couple ou la vie de célibataire, le logement (trop petit, chez les parents, mensualité restante, loyer), l'imprévu, la fatigue si l'humeur est basse.
 - **Pense-bête** (`rappels()`) : prêt à un ami, revente de la start-up, produit bloqué, 5 ans du PEA, 8 ans de l'assurance-vie, âge de la retraite.
 - **Se faire du bien** (`ACHATS`, `achatState`, `acheter`) : restos et sorties, week-end à deux (en couple, baby-sitting en plus avec des enfants), vacances (1 500 € par personne du foyer), sport, cadeau (en couple), sortie en famille (avec enfants), voiture neuve (peu utile à Paris : effet × 0,4). Une fois par an chacun, payé tout de suite (compte courant puis Livret A), prix en euros de 2026 indexés. L'effet sur l'humeur et le couple est divisé par 1 + le nombre de fois où l'achat a été fait les deux années précédentes. Des sorties en célibataire font passer la chance de rencontre de 25 à 45 % l'année suivante.
@@ -388,6 +388,8 @@ Sur les événements où l'on peut investir, deux conseillers donnent leur avis 
 | Mamie Odette | 0,15 | 0,05 | ≈ 63 % |
 | Sophie (l'analyste) | 0,8 | 0,2 | ≈ 78 % |
 
+Régler `a` et `b` ne change presque rien au patrimoine (mesuré en 3.14 : même une Sophie à 0,95 / 0,05 présente à chaque Une laisse son élève à ×1,06 face à l'acheteur naïf) : les Unes où l'on peut investir sont rares et l'élève n'y met que 10 % de son patrimoine. L'avantage de Sophie passe par ses conseils de profil (voir « Conseils de Sophie »). Mamie Odette garde 0,15 / 0,05 : elle a souvent raison quand ne rien faire est le bon choix.
+
 Le verdict « bien vu / raté » est donné au bilan, et l'historique de chacun est affiché dans la Une.
 
 ### Fiches analyste
@@ -414,20 +416,22 @@ diamant (≥ 80 % d'actions et ≥ 100 000 € investis à la fin d'une année d
 
 ## 7. Équilibrage : cibles actuelles (`npm run balance`)
 
-| Mesure | Cible | Dernière valeur (graines 11 et 4242, version 3.13) |
+**Mondes appariés (depuis la 3.14)** : la partie n° i de chaque stratégie rejoue la même graine (`RR = mulberry(seed × 7919 + i)` dans `run` et dans la boucle des entrepreneurs). Les rapports mesurent donc l'effet des choix, pas la chance du tirage ; avant, deux échantillons de 100 parties indépendants donnaient environ ±10 % de bruit. Un test qui remplace `ctx.Math.random` doit remettre la valeur qu'il a trouvée (voir « Déterminisme »), sinon l'appariement saute pour tout le rapport.
+
+| Mesure | Cible | Dernière valeur (graines 11 et 4242, version 3.14, mondes appariés) |
 |---|---|---|
-| Passif PEA / repère ETF Monde sans frais | 0,85 – 1 | 0,92 – 0,92 |
-| Élève de Sophie (suit ses conseils et ses avis sur les événements) / passif à 60 % d'actions | ≥ ×1,0 | ×1,21 – ×1,27 |
-| Élève de Sophie / acheteur naïf de paniques **au même profil** (80 % d'actions) | ≥ ×1,15 (décision de Flo du 8 novembre 2026) | ×1,06 – ×1,07 (**WARN** structurel depuis la 3.5, à trancher : voir AUDIT.md) |
-| Lecteur de fiches / acheteur naïf | ≥ ×1,15 | ×1,17 – ×1,29 |
-| Entrepreneur (boîte créée au départ, un domaine sur cinq, budget par défaut) / salarié passif, médiane | 0,75 – 1,33 | ×1,08 – ×1,38 (**WARN** sur une graine : mesure bruitée) |
-| Entrepreneur / salarié passif, 90e centile | ≥ ×1,3 | ×1,27 – ×1,70 (**WARN** sur une graine) |
-| Entrepreneurs dont la boîte a fait faillite | 15 – 50 % | 45 – 51 % |
+| Passif PEA / repère ETF Monde sans frais | 0,85 – 1 | 0,92 – 0,91 |
+| Élève de Sophie (suit ses conseils et ses avis sur les événements) / passif à 60 % d'actions | ≥ ×1,0 | ×1,24 – ×1,22 |
+| Élève de Sophie / acheteur naïf de paniques **au même profil** (80 % d'actions) | ≥ ×1,15 (décision de Flo du 8 novembre 2026) | ×1,17 – ×1,19 (graine 7 : ×1,16 ; médiane des rapports partie par partie : ×1,13) |
+| Lecteur de fiches / acheteur naïf | ≥ ×1,15 | ×1,15 – ×1,30 (**WARN** à l'arrondi sur la graine 11 ; partie par partie : ×1,21 – ×1,25) |
+| Entrepreneur (boîte créée au départ, un domaine sur cinq, budget par défaut) / salarié passif, médiane | 0,75 – 1,33 | ×1,10 – ×1,11 |
+| Entrepreneur / salarié passif, 90e centile | ≥ ×1,3 | ×2,19 – ×2,13 |
+| Entrepreneurs dont la boîte a fait faillite | 15 – 50 % | 47 – 48 % |
 | Score du carriériste < score de l'équilibré | vrai | vrai sur les deux graines |
-| 10e centile du patrimoine d'un joueur passif | > 0 | ≈ 1 100 k€ |
-| Score médian de chaque profil tout fait / héritier | 0,75 – 1,33 | 1,10 – 1,31 (difficulté recalée en 3.13 : épargne × 90, constante 891 000) |
-| Objectifs visés : rp35 ≥ 80 %, famille ≥ 40 % (infirmier) et ≥ 25 % (héritier), fire 25 – 70 %, 2,5 millions 15 – 60 % | | 100 / 43-45 / 45-46 / 39 / 44-50 % |
-| Sophie ≥ 70 %, Kévin ≤ 60 % | | 80-82 % / ≤ 60 % |
+| 10e centile du patrimoine d'un joueur passif | > 0 | ≈ 860 – 1 060 k€ |
+| Score médian de chaque profil tout fait / héritier | 0,75 – 1,33 | 0,92 – 1,13 (difficulté recalée en 3.13 : épargne × 90, constante 891 000) |
+| Objectifs visés : rp35 ≥ 80 %, famille ≥ 40 % (infirmier) et ≥ 25 % (héritier), fire 25 – 70 %, 2,5 millions 15 – 60 % | | 100 / 54 / 45 / 44-51 / 49-53 % |
+| Sophie ≥ 70 %, Kévin ≤ 60 % | | 78-80 % / 58-61 % (Kévin se mesure sur des joueurs aléatoires, non appariés : 61 % sur la graine 4242 est du bruit) |
 
 Si tu modifies un paramètre de jeu, lance `npm run balance` avec deux graines différentes, corrige les WARN et mets à jour ce tableau.
 

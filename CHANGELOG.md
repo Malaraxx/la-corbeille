@@ -3,6 +3,8 @@
 ## 3.14.0 — Les décisions de Flo (8 novembre 2026)
 - **Le prévisionnel de ta boîte** s'ouvre de lui-même la première année, puis seulement quand ta boîte va mal (perte l'an dernier, trésorerie dans le rouge, ou perte prévue). Le reste du temps, ton budget continue ; « Mon budget » le rouvre quand tu veux.
 - **Fiscalité 2026** : la CSG sur les revenus du capital augmente. Compte-titres : flat tax de 31,4 % (prélèvements sociaux 18,6 %) ; PEA après 5 ans : 18,6 %. L'assurance-vie, les loyers et les plus-values immobilières restent à 17,2 % de prélèvements sociaux (flat tax de l'assurance-vie : 30 %). Les parties en cours passent aux nouveaux taux.
+- **Sophie a un vrai avantage** : elle lit le prix de la Bourse. Quand elle est bradée, elle conseille de passer à 100 % d'actions (nouveau profil « Offensif ») ; quand la Bourse retrouve un prix normal, de revenir à 80 %. Ses élèves font désormais ×1,17 à ×1,19 face à un acheteur de paniques au même profil (contre ×1,06).
+- **Équilibrage plus fiable** : chaque stratégie joue les mêmes mondes, le rapport mesure les choix et plus la chance.
 
 ## 3.13.0 — Une vie entière (8 novembre 2026)
 - **Tu commences à 20 ans**, diplômé·e d'école de commerce, le 1er janvier 2026 : salarié·e ou à la tête de ta boîte. Seul·e, tu vis deux ou trois ans chez tes parents avant de prendre ton envol. La partie dure jusqu'à tes 75 ans, en 2081. Les parties en cours gardent leurs dates.
