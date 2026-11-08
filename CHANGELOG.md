@@ -1,5 +1,8 @@
 # Journal des versions
 
+## 3.14.0 — Les décisions de Flo (8 novembre 2026)
+- **Le prévisionnel de ta boîte** s'ouvre de lui-même la première année, puis seulement quand ta boîte va mal (perte l'an dernier, trésorerie dans le rouge, ou perte prévue). Le reste du temps, ton budget continue ; « Mon budget » le rouvre quand tu veux.
+
 ## 3.13.0 — Une vie entière (8 novembre 2026)
 - **Tu commences à 20 ans**, diplômé·e d'école de commerce, le 1er janvier 2026 : salarié·e ou à la tête de ta boîte. Seul·e, tu vis deux ou trois ans chez tes parents avant de prendre ton envol. La partie dure jusqu'à tes 75 ans, en 2081. Les parties en cours gardent leurs dates.
 - **Une femme ou un homme** : tous les textes s'accordent (« seule », « fatiguée », « Directrice », « Épargnante équilibrée »…), ceux du conjoint et des enfants aussi.

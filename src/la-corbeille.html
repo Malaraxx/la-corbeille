@@ -3066,8 +3066,10 @@ function patrimoineTab(){
     <section class="card a-mix"><div class="ch"><h3>Répartition</h3></div><div class="dn">${donut(a,120)}${legendHtml(a)}</div></section>
     <section class="card a-inv"><div class="ch"><h3>Tes investissements</h3></div>${invBody()}</section></div>`;
 }
-// ----- prévisionnel de la boîte (fenêtre de janvier, rouverte depuis Ma boîte ou en juillet) -----
-const budDue=()=>S.phase==='turn'&&bizBoss()&&(U.budEdit||(S.biz.budY!==S.year&&!S.half));
+// ----- prévisionnel de la boîte : imposé en janvier la première année, puis seulement quand la boîte va mal
+// (perte l'an dernier, trésorerie dans le rouge, ou perte prévue cette année). Toujours ouvrable depuis Ma boîte ou en juillet. -----
+const bizBad=()=>{const B=S.biz,h=B.hist[B.hist.length-1];if(!h)return true;const F=bizForecast();return h.res<0||B.tre<0||F.res<0||F.tre<0;};
+const budDue=()=>S.phase==='turn'&&bizBoss()&&(U.budEdit||(S.biz.budY!==S.year&&!S.half&&bizBad()));
 const prLbl=dom=>['resto','btp'].includes(dom)?'Équipement et investissement':'Produit et innovation';
 function budgetModal(){
   const B=S.biz,D=DOMS[B.dom],bu=budOf(B),F=bizForecast(),F0=bizForecast(BUD0),d=S.defl,gm=m=>.55*Math.sqrt(m)*D.mkS*Math.max(.3,1-(S.year-B.born)/20);
@@ -3133,7 +3135,7 @@ function boiteTab(){
     const er=canRaise(),hd=divAmt(),cl=B.share*Math.max(0,B.tre-B.debt);
     dec=`<h4>Ton salaire</h4><div class="paygrid" role="group" aria-label="Ton salaire">${PAYS.map(([k,l])=>`<button class="pchip" data-act="biz-pay" data-v="${k}" aria-pressed="${B.pay===k}">${l}<small>${k==='zero'?'0 €':fmt(payOf(k)/12)+'/mois'}</small></button>`).join('')}</div>
       <p class="small mut">Ta boîte paie ce salaire avec les charges (× 1,45). Ce que tu ne te verses pas reste dans sa trésorerie.</p>
-      <div class="btns"><button class="primary" data-act="bud-open">Mon budget ${S.year} : prévisionnel →</button></div>
+      <div class="btns"><button class="primary" data-act="bud-open">Mon budget ${S.year} : prévisionnel →</button></div>${S.biz.budY!==S.year&&S.phase==='turn'?'<p class="small mut">Tout va bien : ton budget de l’an dernier continue. Le prévisionnel s’ouvrira de lui-même si la boîte perd de l’argent.</p>':''}
       <p class="small mut">Commercial ${Math.round(budOf(B).mk*100)} % · ${prLbl(B.dom).split(' ')[0].toLowerCase()} ${Math.round(budOf(B).pr*100)} % · prix ${budOf(B).px?pct(budOf(B).px,0):'du marché'}. Résultat prévu : ${sgn(bizForecast().res)}.</p>
       <h4>Ton équipe</h4><div class="btns"><button class="secondary" data-act="biz-hire" data-v="1">Embaucher · ${fmt(D.sc*d)}/an</button><button class="ghost" data-act="biz-hire" data-v="-1" ${B.staff<1?'disabled':''}>Réduire l’équipe</button></div>
       <p class="small mut">À ${B.staff+1}, ta boîte peut faire jusqu’à ${fmt(D.cpp*(B.staff+1)*d)} de chiffre d’affaires par an. Licencier coûte trois mois de salaire.</p>

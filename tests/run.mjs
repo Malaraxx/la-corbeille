@@ -38,7 +38,7 @@ vm.runInContext(js + `;globalThis.T={get S(){return S},set S(v){S=v},newGame,sta
   buyProp,sellProp,reneg,canReneg,answerEvent,answerLife,evDef,LIFE,EVT,net,tradable,ORDER,ENVS,META,EQUITY,STOCKS,THEMES,PRESETS,GOALS,ACH,ADV,PHASES,GOOD,Y0,get YN(){return YN},get A0(){return A0},setA0,age,AY,gTxt,
   eligEnvs,peaCap,envTotal,turnReady,finalScore,placeIdle,rebalance,dry,alloc,eqShare,irr,invData,coups,epilogue,shareText,genYear,peekR,hv,ev,conseils,rappels,pct,f1,
   homeOptions,recoHome,onbHome,onbNext,onbView,budgetTable,kidsCost,rpOf,PRESETS,EPARGNES,SALAIRES,coefOf,BIENS,dossierHtml,acheter,achatState,ACHATS,migrate,bestRental,bestBuy,buyHome,moveTo,propQuote,coussin,yearlySave,monthlySpend,CITIES,loanLeft,
-  halfYear,bizCalc,bizForecast,setBud,budgetModal,BUD0,setRent,rentExp,vacP,runPlans,moveCity,immoTab,bizSellPart,bizPlan,statusName,bizCreate,bizSell,bizRaise,bizDiv,bizHire,bizPay,bizLeave,bizStake,bizOffer,canRaise,DOMS,
+  halfYear,bizCalc,bizForecast,setBud,budgetModal,budDue,bizBad,BUD0,setRent,rentExp,vacP,runPlans,moveCity,immoTab,bizSellPart,bizPlan,statusName,bizCreate,bizSell,bizRaise,bizDiv,bizHire,bizPay,bizLeave,bizStake,bizOffer,canRaise,DOMS,
   halfYear,buyHomeKeep,ifiTax,benchRef,biography,threadEnds,chapOf,boot,endView,envTotal,custErr,custLeft,custDefaults,homeName,startSave,turnView,bilanView,endView,introView,moneyBar,profilTab,portefeuilleTab,immoTab,patrimoineTab,animHtml,toastsHtml,advHtml,spark,save,load,legacyGame,U};`, ctx);
 const T = ctx.T;
 
@@ -674,6 +674,21 @@ test('Loyers réglables et versements automatiques', () => {
   check(S.acc.pea.vers - v0 >= 6000 - 1 && S.liv >= 4500 - 1 && cashIdentity(S) < 1, `versements automatiques non faits (${S.acc.pea.vers - v0}, ${S.liv})`);
   check(S.page.notes.some(n => /versements automatiques/.test(n.t)), 'versements absents des notes');
   S.cash = 50; check(T.runPlans().every(t => /sauté/.test(t)), 'versement sans argent');
+});
+
+test('Prévisionnel : imposé la première année, puis seulement quand la boîte va mal', () => {
+  let calm = 0;
+  for (const dom of Object.keys(T.DOMS)) for (const seed of [701, 702]) {
+    T.newGame({ city: 'lille', sal: 2, cap: 2, couple: false, seed }, []); let S = T.S;
+    check(!T.bizCreate(dom), 'création ' + dom);
+    check(T.budDue(), `pas de prévisionnel la première année (${dom})`);
+    if (S.life) for (const c of S.life.v.choices) if (!S.life.answered) T.answerLife(c.id); if (S.event) T.answerEvent('pass'); T.endTurn(); T.nextBilan(); S = T.S;
+    if (!S.biz || !S.biz.alive || S.phase !== 'turn' || S.half) continue;
+    check(T.budDue() === T.bizBad(), `prévisionnel ouvert sans raison (${dom})`);
+    if (!T.budDue()) calm++;
+    S.biz.hist[S.biz.hist.length - 1].res = -1; check(T.budDue(), `pas de prévisionnel après une perte (${dom})`);
+  }
+  check(calm > 0, 'le prévisionnel s’ouvre toujours, même quand tout va bien');
 });
 
 test('Budget de ta boîte : prévisionnel pur, leviers, prévu contre réalisé', () => {

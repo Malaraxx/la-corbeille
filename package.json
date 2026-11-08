@@ -1,6 +1,6 @@
 {
   "name": "la-corbeille",
-  "version": "3.13.0",
+  "version": "3.14.0",
   "description": "Simulateur de gestion de patrimoine au tour par tour, de 2026 à 2076, dans un monde inventé à chaque partie.",
   "private": true,
   "type": "module",
