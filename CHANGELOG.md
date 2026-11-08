@@ -1,5 +1,8 @@
 # Journal des versions
 
+## 3.10.0 — Un style de journal financier (8 novembre 2026)
+- **Refonte visuelle** : angles droits, rubriques soulignées d'un filet d'encre, sélections à l'encre, plus d'ombres décoratives ni d'animations à rebond (seulement des fondus courts), case à cocher sobre pour les années calmes.
+
 ## 3.9.1 — Plus de souplesse (8 novembre 2026)
 - **Apport au choix** dans le dossier de crédit : frais seuls, 10, 30, 50 % ou tout ton disponible. Moins d'apport, c'est un crédit plus gros (et 0,25 point de taux en plus sous 10 %) ; plus d'apport, des mensualités plus légères. Fini les achats bloqués faute du bon apport.
 - **Boutons +500, +1 000, +5 000** pour saisir un montant d'investissement.
