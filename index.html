@@ -1564,7 +1564,7 @@ function pickEvent(y,f){
   if(f.exo==='energie'||f.exo==='guerre')return f.exo;
   const last=S.usedFut[S.usedFut.length-1];
   const el=Object.keys(EVT).filter(id=>!EVT[id].forced&&id!==last).map(id=>({id,w:EVT[id].w(y,f)})).filter(x=>x.w>0);
-  el.push({id:null,w:8});
+  el.push({id:null,w:25});
   return pickW(el);
 }
 
@@ -1725,7 +1725,9 @@ function conseils(){
   const crash=S.event&&EVT[S.event.id].crash,risk=crisisRisk(w),cs=coussin();
   if(crash)add('Krach : la Bourse remonte en général avant l’économie, souvent dès l’année suivante. Vendre maintenant fige la perte.',{act:'view',view:'portefeuille',label:'Voir mon portefeuille'});
   if(cs<3&&!retired(y))add(`Ton coussin de sécurité ne couvre que ${f1(cs)} mois de dépenses. Vise 3 à 6 mois sur le Livret A avant d’investir : un pépin ne t’obligera pas à vendre au mauvais moment.`,{act:'tip-tab',tab:'liv',label:'Aller au Livret A'});
-  if(isIdle()&&!S.lock&&cs>=3){const idle=idleAmt();add(`${fmt(idle)} dorment sans rien rapporter.${w.infl>2?` Avec ${f1(w.infl)} % d’inflation, ils perdent environ ${fmt(idle*w.infl/100)} par an.`:''}`,
+  // Argent qui dort depuis longtemps : sans placement, la retraite le videra (on finit ruiné dans un cas sur trois).
+  {const idle=idleAmt(),sp=monthlySpend(),ag=age(y);if(!S.lock&&!retired(y)&&ag>=32&&eqs<.2&&idle>24*sp)add(`${fmt(idle)} dorment sur ton compte, soit ${Math.round(idle/sp/12)} ans de dépenses. L’inflation en ronge ${fmt(idle*Math.max(1,w.infl)/100)} par an, et à la retraite tu devras y puiser pendant vingt ans : sans placement, beaucoup finissent à court d’argent.`,{act:'view',view:'portefeuille',label:'Placer mon argent'});}
+  if(isIdle()&&!S.lock&&cs>=3&&!(age(y)>=32&&eqShare()<.2&&idleAmt()>24*monthlySpend())){const idle=idleAmt();add(`${fmt(idle)} dorment sans rien rapporter.${w.infl>2?` Avec ${f1(w.infl)} % d’inflation, ils perdent environ ${fmt(idle*w.infl/100)} par an.`:''}`,
     {act:'view',view:'portefeuille',label:'Voir où investir'});}
   // Profil selon l'horizon : beaucoup d'actions quand on a le temps, moins à l'approche de la retraite (règle classique, sans lire l'avenir).
   if(!retired(y)&&T>5000&&cs>=3){const ag=age(y);
@@ -2084,7 +2086,7 @@ function pickLife(crash){
   // La famille a sa propre chance chaque année, pour que l'histoire ne la fasse pas disparaître.
   if(LIFE.mariage.can()&&count('mariage')<2&&rnd()<.3)return 'mariage';
   if(LIFE.enfant.can()&&S.me.enfants<2&&count('enfant')<5&&rnd()<.35)return 'enfant';
-  if(rnd()>0.25)return null;
+  if(rnd()>0.18)return null;
   const recent=S.usedLife.slice(-2),ch=chapOf(y),cap=id=>({enfant:5,ami:1,donation:1,ados:2}[id]||2);
   const el=Object.keys(LIFE).filter(id=>!LIFE[id].story&&!['burnout','rupture','weekend','panique','retraite','rencontre','fire','licenciement'].includes(id)&&!recent.includes(id)&&count(id)<cap(id)&&(!LIFE[id].can||LIFE[id].can()))
     .map(id=>({id,w:(id==='enfant'&&S.me.enfants<2?3:id==='mariage'?3:id==='logement'?1.5:id==='panne'?1.2:1)*(CHW[id]?CHW[id][ch]:1)})).filter(x=>x.w>0);
