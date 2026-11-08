@@ -80,7 +80,7 @@ Le script est découpé en sections balisées par `/* ===== NOM ===== */`. Dans 
 |---|---|
 | **Données du monde** | `Y0` (2026), `A0`/`YN` (âge de départ et dernière année de la partie en cours, posés par `setA0` dans `newGame` et `boot`), `AY(a)` (l'année de tes « a » ans : toute règle d'âge s'écrit avec, jamais `Y0+n`), `SALAIRES`, `EPARGNES`, `PARTNERS`, `PRESETS`, `coefOf`, `prof()`, `STOCKS`, `THEMES` (`th1`-`th3`), `EQUITY`, `SP` (paramètres des actions), `DIVY`, `META`, `ORDER`, `ENVS`, `PX0`, `BIENS` (immobilier par ville, `k` = loc/bur/rp), `GOALS`, `ADV`, `ACH`, `PHASES` et `TRANS` (cycle économique), `W0` (France fin 2025), `THEME_POOL` et `TR` (vagues d'innovation), `PARTIS`, `PRENOMS`, `NOMS`, `PORTRAITS`, `PROG` (programmes), `STARTUPS`, `JETONS` |
 | **Outils** | `S` (état global), formats `fmt` `fmtPx` `pct` `rate` `pc0` `f1`, `rnd`/`gauss` (PRNG mulberry32, graine dans `S.rng`), `nm`, `P()` (partenaire), `age(y)` |
-| **Fiscalité** | tout vient de `S.pol` : `psRate()`, `ctoRate()` (= `ir` + `ps`), `ctoRateLbl`, `peaCap`, `livretCap`, `envYears` |
+| **Fiscalité** | tout vient de `S.pol` : `psRate()` (compte-titres, PEA, parts de société), `psFRate()` (assurance-vie, foncier, plus-values immobilières), `ctoRate()` (= `ir` + `ps`), `avRate()` (= `ir` + `psF`), `ctoRateLbl`, `peaCap`, `livretCap`, `envYears` |
 | **État** | `makeThemes`, `themeStage(T,y)` (étape d'une vague à une date, fonction pure), `newGame(arch, goals)`, accesseurs (`net`, `envTotal`, `hv`, `ev`…), `epargneYear`, `mood`, `unlock`, `ext`, registre `lg*` + `irr` (`lgProp` alimente aussi `S.yearProp` pour le repère), `mvRec` (ordres passés en janvier), `propNet`, `benchRef` (repères ETF Monde et Livret A, immobilier compris) |
 | **Ordres** | `buyIn`, `sellIn`, `livIn`/`livOut`, `wdCalc`/`withdraw`, `raiseCash` (ventes forcées), `spend` |
 | **Immobilier** | `annuity`, `loanAnn`/`loanLeft`/`payLoan` (prêt principal + PTZ), `effort`, `ptzOk(type, use)`, `propQuote(type, n, use)`, `bestDur`, `buyProp(type, mode, n, use)` (use : 'rp' pour y vivre, 'loc' pour louer), `pvImmoTax`, `propSaleCalc`, `sellProp`, `canReneg`/`reneg`, et pour se loger : `cityRP`, `canRent`, `bestRental`, `bestBuy`, `moveTo`, `buyHome` |
@@ -114,7 +114,7 @@ acc.pea / acc.av : {hold, cash, vers (versements nets), open (année)}
 px{id}, ph{id:[prix fin d'année…]} (courbes), pxPrev, lastR
 w{phase,g,infl,rate,r10,spread,credit,livret,euros,u,cg,oil,fx,pe,debt,gH,gB,rg}   // état connu (fin d'année précédente)
 wPrev (l'année d'avant), fut{année:{y,phase,exo,cause,d,shock,elec,r,mac}} (années tirées)
-pol{ir,ps,peaCap,livCap,ageLegal,deficit,irLoyer,spreadAdj,pres{name,party,desc,since}}
+pol{ir,ps,psF,peaCap,livCap,ageLegal,deficit,irLoyer,spreadAdj,pres{name,party,desc,since}}
 th[3]{k,n,f,start,ok,dr,da,db}, drift{mkt, actions, b_ville}
 page{head{t,c},notes[{i,t}],imp{t,c,note}|null,spent}, shockEur (perte ou gain du choc de janvier)
 props[{uid,type (clé de BIENS),buyYear,cost,loan:{p,r,n,ann,z:{p,ann}|null}|null,rentMult,vacantUntil,noRent,mode,flows[]}]
@@ -199,23 +199,23 @@ La « valeur en chute » (`geant`) et la « bulle » (`bulle`) arrivent **au plu
 ### Politique (`PROG`, `applyProg`)
 Une présidentielle tous les cinq ans (2027, 2032… 2072), entre deux candidats fictifs de partis différents. Le sondage du favori suit N(50 ; 4), sa probabilité de victoire est logistique. Chaque parti vise des niveaux précis, appliqués dès le 1er janvier suivant :
 
-| Parti | Flat tax (dont PS) | Plafond PEA | Livret A | Retraite | Loyers | Déficit | Réaction des marchés |
+| Parti | Flat tax compte-titres / assurance-vie | Plafond PEA | Livret A | Retraite | Loyers | Déficit | Réaction des marchés |
 |---|---|---|---|---|---|---|---|
-| Alliance libérale | 27,2 % | 300 000 € | — | 66 ans | 25 % | −1,5 pt | Bourse +5 %, banques +8 %, écart de taux −0,2 |
-| Les Modérés | 30 % | 200 000 € | — | 64 ou 65 ans | — | −0,5 pt | +2 %, +3 %, −0,1 |
-| Union populaire | 36,2 % (PS 18,2 %) | — | 30 600 € | 62 ans | 35 % | +1,5 pt | −6 %, −12 %, +0,4 |
-| Écologie solidaire | 32,2 % | — | 30 600 € | 63 ans | — | +1 pt | −2 %, −3 %, +0,2, taxe carbone (pétrole −15 %, aéro −8 %) |
+| Alliance libérale | 28,6 % / 27,2 % | 300 000 € | — | 66 ans | 25 % | −1,5 pt | Bourse +5 %, banques +8 %, écart de taux −0,2 |
+| Les Modérés | 31,4 % / 30 % | 200 000 € | — | 64 ou 65 ans | — | −0,5 pt | +2 %, +3 %, −0,1 |
+| Union populaire | 37,6 % / 36,2 % (PS 19,6 % / 18,2 %) | — | 30 600 € | 62 ans | 35 % | +1,5 pt | −6 %, −12 %, +0,4 |
+| Écologie solidaire | 33,6 % / 32,2 % | — | 30 600 € | 63 ans | — | +1 pt | −2 %, −3 %, +0,2, taxe carbone (pétrole −15 %, aéro −8 %) |
 | Rassemblement des territoires | — | — | 30 600 € | 62 ans | — | +2 pts | −10 %, −18 %, +0,9 |
 
-Les plafonds du PEA et du Livret A ne baissent jamais. La Une d'une présidentielle propose de purger les plus-values du compte-titres au taux actuel si l'un des candidats veut relever la flat tax.
+Un programme sauvegardé avant la 3.14 (un seul taux `ps`) est converti par `applyProg` : `psF` = ce taux, `ps` = ce taux + 1,4 point. Les plafonds du PEA et du Livret A ne baissent jamais. La Une d'une présidentielle propose de purger les plus-values du compte-titres au taux actuel si l'un des candidats veut relever la flat tax.
 
 ### Fiscalité française (règles de départ, modifiables par les élections)
-- **Prélèvements sociaux** : 17,2 %. **Flat tax** : 12,8 % + PS = 30 %.
-- **Compte-titres** : plus-values et dividendes (rendement `DIVY`, taxés chaque année) à la flat tax ; moins-values reportables. L'ETF Monde et les fonds thématiques capitalisent.
-- **PEA** : actions européennes, Tracker et ETF Monde. Plafond 150 000 €. Avant 5 ans, tout retrait clôture le PEA et les gains sont taxés à la flat tax. Après 5 ans, seuls les PS. Vendre une ligne garde l'argent dans l'enveloppe.
-- **Assurance-vie** : fonds euros (PS prélevés chaque année sur les intérêts), ETF Monde, Tracker, OAT et fonds thématiques. Avant 8 ans, gains taxés à la flat tax. Après 8 ans, abattement de 4 600 € (9 200 € en couple marié) puis 7,5 % + PS.
+- **Prélèvements sociaux (depuis 2026, hausse de la CSG à 10,6 %)** : 18,6 % pour le compte-titres, le PEA et les parts de ta boîte (`ps`) ; 17,2 % pour l'assurance-vie, les revenus fonciers et les plus-values immobilières (`psF`). **Flat tax** : 12,8 % + PS = 31,4 % au compte-titres, 30 % pour l'assurance-vie. Une partie d'avant la 3.14 est migrée dans `boot()` (`psF` = ancien `ps`, `ps` + 1,4 point).
+- **Compte-titres** : plus-values et dividendes (rendement `DIVY`, taxés chaque année) à la flat tax de 31,4 % ; moins-values reportables. Dividendes, vente et cession de parts de ta boîte aussi. L'ETF Monde et les fonds thématiques capitalisent.
+- **PEA** : actions européennes, Tracker et ETF Monde. Plafond 150 000 €. Avant 5 ans, tout retrait clôture le PEA et les gains sont taxés à la flat tax (31,4 %). Après 5 ans, seuls les PS (18,6 %). Vendre une ligne garde l'argent dans l'enveloppe.
+- **Assurance-vie** : fonds euros (PS prélevés chaque année sur les intérêts), ETF Monde, Tracker, OAT et fonds thématiques. Avant 8 ans, gains taxés à 30 % (12,8 % + 17,2 %). Après 8 ans, abattement de 4 600 € (9 200 € en couple marié) puis 7,5 % + 17,2 %. Les PS du fonds euros sont à 17,2 %.
 - **Livret A** : exonéré, plafond 22 950 €.
-- **Immobilier locatif** : revenus (loyer − charges − intérêts) taxés à 30 % + PS. Plus-value à 19 % + PS, avec abattements pour durée de détention (exonération d'impôt à 22 ans, de PS à 30 ans). La résidence principale est exonérée.
+- **Immobilier locatif** : revenus (loyer − charges − intérêts) taxés à 30 % + 17,2 % (SCPI au compte-titres aussi). Plus-value à 19 % + 17,2 %, avec abattements pour durée de détention (exonération d'impôt à 22 ans, de PS à 30 ans). La résidence principale est exonérée.
 
 ### Immobilier (`BIENS`, prix de janvier 2026)
 | Bien | Prix | Loyer | Rendement brut (locatif) ou capacité (RP) | Vacance | Sensibilité |

@@ -38,7 +38,7 @@ vm.runInContext(js + `;globalThis.T={get S(){return S},set S(v){S=v},newGame,sta
   buyProp,sellProp,reneg,canReneg,answerEvent,answerLife,evDef,LIFE,EVT,net,tradable,ORDER,ENVS,META,EQUITY,STOCKS,THEMES,PRESETS,GOALS,ACH,ADV,PHASES,GOOD,Y0,get YN(){return YN},get A0(){return A0},setA0,age,AY,gTxt,
   eligEnvs,peaCap,envTotal,turnReady,finalScore,placeIdle,rebalance,dry,alloc,eqShare,irr,invData,coups,epilogue,shareText,genYear,peekR,hv,ev,conseils,rappels,pct,f1,
   homeOptions,recoHome,onbHome,onbNext,onbView,budgetTable,kidsCost,rpOf,PRESETS,EPARGNES,SALAIRES,coefOf,BIENS,dossierHtml,acheter,achatState,ACHATS,migrate,bestRental,bestBuy,buyHome,moveTo,propQuote,coussin,yearlySave,monthlySpend,CITIES,loanLeft,
-  halfYear,bizCalc,bizForecast,setBud,budgetModal,budDue,bizBad,BUD0,setRent,rentExp,vacP,runPlans,moveCity,immoTab,bizSellPart,bizPlan,statusName,bizCreate,bizSell,bizRaise,bizDiv,bizHire,bizPay,bizLeave,bizStake,bizOffer,canRaise,DOMS,
+  halfYear,bizCalc,bizForecast,setBud,budgetModal,budDue,bizBad,psRate,psFRate,ctoRate,avRate,wdCalc,pvImmoTax,applyProg,PROG,BUD0,setRent,rentExp,vacP,runPlans,moveCity,immoTab,bizSellPart,bizPlan,statusName,bizCreate,bizSell,bizRaise,bizDiv,bizHire,bizPay,bizLeave,bizStake,bizOffer,canRaise,DOMS,
   halfYear,buyHomeKeep,ifiTax,benchRef,biography,threadEnds,chapOf,boot,endView,envTotal,custErr,custLeft,custDefaults,homeName,startSave,turnView,bilanView,endView,introView,moneyBar,profilTab,portefeuilleTab,immoTab,patrimoineTab,animHtml,toastsHtml,advHtml,spark,save,load,legacyGame,U};`, ctx);
 const T = ctx.T;
 
@@ -674,6 +674,23 @@ test('Loyers réglables et versements automatiques', () => {
   check(S.acc.pea.vers - v0 >= 6000 - 1 && S.liv >= 4500 - 1 && cashIdentity(S) < 1, `versements automatiques non faits (${S.acc.pea.vers - v0}, ${S.liv})`);
   check(S.page.notes.some(n => /versements automatiques/.test(n.t)), 'versements absents des notes');
   S.cash = 50; check(T.runPlans().every(t => /sauté/.test(t)), 'versement sans argent');
+});
+
+test('Fiscalité 2026 : 31,4 % au compte-titres, 18,6 % au PEA, 30 % pour l’assurance-vie, 17,2 % pour l’immobilier', () => {
+  T.newGame({ city: 'lille', sal: 2, cap: 2, couple: false, seed: 800 }, []); const S = T.S, eq = (a, b) => Math.abs(a - b) < 1e-9;
+  check(eq(T.ctoRate(), .314) && eq(T.psRate(), .186) && eq(T.avRate(), .30) && eq(T.psFRate(), .172), 'taux 2026 faux');
+  // retraits : PEA de plus de 5 ans au seul taux de 18,6 %, assurance-vie de moins de 8 ans à 30 %
+  for (const e of ['pea', 'av']) { S.acc[e].open = S.year - (e === 'pea' ? 6 : 3); S.acc[e].vers = 1000; S.acc[e].cash = 2000; }
+  const tot = e => T.envTotal(e), w = e => T.wdCalc(e, 2000), gain = e => 2000 * (1 - 1000 / tot(e));
+  check(eq(w('pea').tax, gain('pea') * .186), 'PEA de plus de 5 ans mal taxé');
+  check(eq(w('av').tax, gain('av') * .30), 'assurance-vie de moins de 8 ans mal taxée');
+  check(eq(T.pvImmoTax(10000, 3), 10000 * (.19 + .172)), 'plus-value immobilière mal taxée');
+  // l'Union populaire relève les deux taux d'un point ; un programme d'avant la 3.14 garde l'écart de 1,4 point
+  T.applyProg(T.PROG.gauche()); check(eq(S.pol.ps, .196) && eq(S.pol.psF, .182), 'programme de gauche mal appliqué');
+  T.applyProg({ ps: .2 }); check(eq(S.pol.ps, .214) && eq(S.pol.psF, .2), 'ancien programme mal converti');
+  // partie d'avant la 3.14 : un seul taux, la hausse de 2026 ne touche que le compte-titres et le PEA
+  const old = JSON.parse(JSON.stringify(S)); old.pol.ps = .172; delete old.pol.psF; T.boot({ S: old });
+  check(eq(T.S.pol.ps, .186) && eq(T.S.pol.psF, .172), 'migration des prélèvements sociaux');
 });
 
 test('Prévisionnel : imposé la première année, puis seulement quand la boîte va mal', () => {

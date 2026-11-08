@@ -864,7 +864,7 @@ const PORTRAITS={ // [au masculin, au féminin]
 const PROG={
   liberal:()=>({ir:.10,peaCap:300000,age:66,irLoyer:.25,deficit:-1.5,react:{t:.05,b:.08,sp:-.2}}),
   centre:()=>({ir:.128,peaCap:200000,age:rnd()<.5?64:65,deficit:-.5,react:{t:.02,b:.03,sp:-.1}}),
-  gauche:()=>({ir:.18,ps:.182,livCap:30600,age:62,irLoyer:.35,deficit:1.5,react:{t:-.06,b:-.12,sp:.4}}),
+  gauche:()=>({ir:.18,ps:.196,psF:.182,livCap:30600,age:62,irLoyer:.35,deficit:1.5,react:{t:-.06,b:-.12,sp:.4}}),
   ecolo:()=>({ir:.15,livCap:30600,age:63,deficit:1,carbon:true,react:{t:-.02,b:-.03,sp:.2}}),
   souv:()=>({age:62,livCap:30600,deficit:2,react:{t:-.1,b:-.18,sp:.9}}),
 };
@@ -904,8 +904,12 @@ const age=y=>A0+(y-Y0);
 
 /* ===================== FISCALITÉ ===================== */
 // Les règles vivent dans S.pol et changent après chaque présidentielle.
+// Depuis 2026, deux taux de prélèvements sociaux : ps (18,6 %) pour le compte-titres, le PEA et les parts de société ;
+// psF (17,2 %) pour l'assurance-vie, les revenus fonciers et les plus-values immobilières.
 const psRate=()=>S.pol.ps;
+const psFRate=()=>S.pol.psF;
 const ctoRate=()=>S.pol.ir+S.pol.ps;
+const avRate=()=>S.pol.ir+S.pol.psF;
 const ctoRateLbl=()=>`flat tax de ${f1(ctoRate()*100)} % (dont ${f1(S.pol.ps*100)} % de prélèvements sociaux)`;
 const peaCap=()=>S.pol.peaCap;
 const livretCap=()=>S.pol.livCap;
@@ -951,7 +955,7 @@ function newGame(spec,goals,guided){
   if(pp.couple){const n=pick(PARTNERS);S.me.partner=n;S.me.first=n;}
   S.wseed=ws;S.wr=(ws*40503+12345)|0;
   withWorld(()=>{S.drift={mkt:gauss()*.01};for(const s of STOCKS)S.drift[s]=gauss()*.03;for(const k in BIENS)S.drift['b_'+k]=gauss()*.006;});
-  S.pol={ir:.128,ps:.172,peaCap:150000,livCap:22950,ageLegal:64,deficit:5,irLoyer:.30,spreadAdj:0,pres:{...newPres('centre'),since:Y0-4}};
+  S.pol={ir:.128,ps:.186,psF:.172,peaCap:150000,livCap:22950,ageLegal:64,deficit:5,irLoyer:.30,spreadAdj:0,pres:{...newPres('centre'),since:Y0-4}};
   S.th=withWorld(makeThemes);
   if(spec&&spec.cust){const c=spec.cust;S.cust={sal:+c.sal,salP:pp.couple?+c.salP||0:0,partner:S.me.partner,rent:+c.rent||0,rooms:clamp(+c.rooms||1,1,5),dep:+c.dep||0,car:+c.car||0,debt:+c.debt||0,debtN:+c.debtN>0&&+c.debt>0?Math.round(+c.debtN):0};
     S.p.custom=true;S.p.sal=nearSal(S.cust.sal);S.revenu=S.cust.sal*12;S.me.car=S.cust.car>0;S.coef=coefOf({...pp,cust:S.cust});}
@@ -1302,8 +1306,8 @@ function wdCalc(e,amt){
   if(!(amt>0.005)||tot<=0)return {amt:0,tax:0,close,taxable:0};
   const taxable=amt*Math.max(0,1-A.vers/tot);let tax;
   if(e==='pea')tax=taxable*(close?ctoRate():psRate());
-  else if(envYears('av')>=8)tax=Math.max(0,taxable-avAbattLeft())*.075+taxable*psRate();
-  else tax=taxable*ctoRate();
+  else if(envYears('av')>=8)tax=Math.max(0,taxable-avAbattLeft())*.075+taxable*psFRate();
+  else tax=taxable*avRate();
   return {amt,tax,close,taxable};
 }
 function withdraw(e,amt){
@@ -1420,7 +1424,7 @@ function pvImmoTax(gain,d){
   if(gain<=0)return 0;
   const abIR=d<=5?0:d>=22?1:.06*(d-5);
   const abPS=d<=5?0:d>=30?1:d<=21?.0165*(d-5):d===22?.28:.28+.09*(d-22);
-  return gain*(1-abIR)*.19+gain*(1-abPS)*psRate();
+  return gain*(1-abIR)*.19+gain*(1-abPS)*psFRate();
 }
 function propSaleCalc(p,gross,y){
   const repay=(p.loan&&p.loan.p>0?p.loan.p*1.03:0)+(p.loan&&p.loan.z?p.loan.z.p:0);
@@ -1752,7 +1756,8 @@ function progText(pr){
 }
 function applyProg(pr){
   const p=S.pol;
-  if(pr.ir!=null)p.ir=pr.ir;if(pr.ps!=null)p.ps=pr.ps;if(pr.age!=null)p.ageLegal=pr.age;if(pr.irLoyer!=null)p.irLoyer=pr.irLoyer;
+  if(pr.ir!=null)p.ir=pr.ir;if(pr.ps!=null){if(pr.psF==null){p.psF=pr.ps;p.ps=pr.ps+.014;}else p.ps=pr.ps;}if(pr.psF!=null)p.psF=pr.psF; // programme d'avant la 3.14 : un seul taux
+  if(pr.age!=null)p.ageLegal=pr.age;if(pr.irLoyer!=null)p.irLoyer=pr.irLoyer;
   p.peaCap=Math.max(p.peaCap,pr.peaCap||0);p.livCap=Math.max(p.livCap,pr.livCap||0);
   p.deficit=clamp(p.deficit+(pr.deficit||0),0,8);
 }
@@ -2281,9 +2286,9 @@ function closeStory(){if(!S.story)return;if(S.page)chapFill(true); // partie fin
   for(const id in S.story.th){const T=S.story.th[id];if(!T.end){T.end=true;T.endT=T.endT||LASTW[T.k]||'';}}}
 // ----- présidentielle : ce que l'écart entre les programmes représente chez toi -----
 function elecStake(E){
-  const A=E.A.prog,B=E.B.prog,dT=Math.abs(progTax(A)-progTax(B)),dPS=Math.abs((A.ps??S.pol.ps)-(B.ps??S.pol.ps));
+  const A=E.A.prog,B=E.B.prog,dT=Math.abs(progTax(A)-progTax(B)),dPS=Math.abs((A.ps??S.pol.ps)-(B.ps??S.pol.ps)),dPF=Math.abs((A.psF??A.ps??S.pol.psF)-(B.psF??B.ps??S.pol.psF));
   const gain=e=>Math.max(0,envTotal(e)-S.acc[e].vers);
-  let s=dT*ctoLatent()+dPS*(gain('pea')+gain('av'));
+  let s=dT*ctoLatent()+dPS*gain('pea')+dPF*gain('av');
   const rents=S.props.filter(p=>!isRP(p)).reduce((a,p)=>a+S.idx[p.type].rent*p.rentMult*.6,0);
   s+=Math.abs((A.irLoyer??S.pol.irLoyer)-(B.irLoyer??S.pol.irLoyer))*rents*5;
   if(!retired(S.year)&&age(S.year)>=50)s+=Math.abs((A.age??S.pol.ageLegal)-(B.age??S.pol.ageLegal))*S.revenu*.3;
@@ -2563,7 +2568,7 @@ function ifiTax(){
 function movesGain(b,r,mac){
   const mv=S.moves||[];if(!mv.length)return null;
   const g=(e,id)=>{const l=b.lines.find(x=>x.env===e&&x.id===id&&x.sv>0);if(l)return l.ev/l.sv-1;
-    if(id==='livret')return mac.livret/100;if(id==='euros')return mac.euros/100*(1-psRate());return r[id]||0;};
+    if(id==='livret')return mac.livret/100;if(id==='euros')return mac.euros/100*(1-psFRate());return r[id]||0;};
   let t=0;for(const m of mv){if(m.tax)t-=m.tax;if(m.id)t+=m.a*g(m.e,m.id);}
   return t;
 }
@@ -2611,9 +2616,9 @@ function simulateYear(y){
   if(S.liv>0){const sv=S.liv;S.liv*=1+mac.livret/100;b.lines.push({id:'livret',env:'liv',sv,ev:S.liv,r:mac.livret/100});}
   for(const e of ['cto','pea','av'])for(const id of ORDER){
     const h=S.acc[e].hold[id];if(!h||h.v<=0)continue;const sv=H&&H.sv[e+':'+id]!=null?H.sv[e+':'+id]:h.v;let rr;
-    if(id==='euros'){rr=mac.euros/100;const it=h.v*rr,ps=it*psRate();h.v+=it-ps;b.flows.impots+=ps;}
+    if(id==='euros'){rr=mac.euros/100;const it=h.v*rr,ps=it*psFRate();h.v+=it-ps;b.flows.impots+=ps;}
     else{rr=r[id]||0;h.v=Math.max(0,h.v*(1+(r2(id)||0)));
-      if(e==='cto'&&DIVY[id]&&h.v>0){const t=Math.min(h.v,sv*DIVY[id]*(id==='scpi'?S.pol.irLoyer+psRate():ctoRate()));h.v-=t;b.flows.impots+=t;}
+      if(e==='cto'&&DIVY[id]&&h.v>0){const t=Math.min(h.v,sv*DIVY[id]*(id==='scpi'?S.pol.irLoyer+psFRate():ctoRate()));h.v-=t;b.flows.impots+=t;}
       const fee=h.v*((FEES[id]||0)+(e==='av'?.006:0));if(fee>0){h.v-=fee;b.flows.frais+=fee;}}
     b.lines.push({id,env:e,sv,ev:h.v,r:rr});
   }
@@ -2643,7 +2648,7 @@ function simulateYear(y){
     months=Math.max(0,months);
     const rent=ix.rent*p.rentMult*(1+(p.rl||0))*(p.meuble?1.15:1)*months/12,charges=ix.rent*(B.k==='bur'?.12:p.meuble?.27:.22);
     const {ann,it:interest}=payLoan(p);
-    const tax=(p.meuble?.5*rent:Math.max(0,rent-charges-interest))*(S.pol.irLoyer+psRate());
+    const tax=(p.meuble?.5*rent:Math.max(0,rent-charges-interest))*(S.pol.irLoyer+psFRate());
     S.cash+=rent-charges-ann-tax;lgProp(p,rent-charges-ann-tax);
     b.flows.loyers+=rent;b.flows.charges+=charges;b.flows.credit+=ann;b.flows.impots+=tax;
     if(months<12)b.notes.push(months===0?`${B.n} (en location) : aucun loyer encaissé cette année.`:`${B.n} : ${12-months} mois de vacance locative.`);
@@ -3019,11 +3024,11 @@ function dossierHtml(){
   const sim=sw?dry(()=>{oldHome(old);return {q:propQuote(t,n,'rp',ap),cash:Math.max(0,S.cash)+S.liv};}):null;
   const q=sim?sim.q:propQuote(t,n,use,ap),ix=S.idx[t],cash=sim?sim.cash:Math.max(0,S.cash)+S.liv;
   const apBtn=(v,l)=>`<button data-act="dos-ap" data-v="${v}" aria-pressed="${String(U.dossier.ap??'')===String(v)}">${l}</button>`;
-  const oix=rp&&S.idx[rp.type],oRent=sw&&old==='louer'?oix.rent*.9-oix.rent*.22-Math.max(0,oix.rent*.9-oix.rent*.22-(rp.loan?rp.loan.p*rp.loan.r:0))*(S.pol.irLoyer+psRate())-loanAnn(rp):0;
+  const oix=rp&&S.idx[rp.type],oRent=sw&&old==='louer'?oix.rent*.9-oix.rent*.22-Math.max(0,oix.rent*.9-oix.rent*.22-(rp.loan?rp.loan.p*rp.loan.r:0))*(S.pol.irLoyer+psFRate())-loanAnn(rp):0;
   const oSale=sw?propSaleCalc(rp,propValue(rp)*.95,S.year).net:0;
   const mb=use==='loc'&&!bur&&U.dossier.meuble;
   const ch=ix.rent*(use==='rp'?.15:bur?.12:mb?.27:.22),vac=B.vac||.1,rentIn=use==='loc'?ix.rent*(1-vac)*(mb?1.15:1):0;
-  const tax=use==='loc'?(mb?.5*rentIn:Math.max(0,rentIn-ch-q.L*q.r))*(S.pol.irLoyer+psRate()):0;
+  const tax=use==='loc'?(mb?.5*rentIn:Math.max(0,rentIn-ch-q.L*q.r))*(S.pol.irLoyer+psFRate()):0;
   const after=use==='rp'?yearlySave()+housingOut()-(q.ann+ch)+oRent:yearlySave()-q.ann-ch+rentIn-tax;
   const why=ret?'À la retraite, la banque ne prête plus sur ces durées.':use==='rp'&&rp&&rp.type===t?'Tu y vis déjà.':use==='rp'&&!inCity?`Pour y vivre, il faudrait habiter ${CITIES[B.v].n} : ferme ce dossier et clique sur « Déménager à ${CITIES[B.v].n} ». Tu vis à ${CITIES[S.city].n}.`:cash<q.apport?`Il te manque ${fmt(q.apport-cash)} d’apport (compte courant + Livret A).`:q.eff>.35?`Taux d’effort de ${f1(q.eff*100)} % : au-delà de 35 %, la banque refuse.`:'';
   // Refus pour le taux d'effort alors que l'apport est là : on cherche le plus petit apport (par pas de 5 %) qui passe, avec la durée qui va avec.
@@ -3249,7 +3254,7 @@ function envHead(e){
   if(e==='cto')return `<div class="envhead"><p>Tous les placements cotés, sans plafond ni blocage. Plus-values taxées à la vente : ${ctoRateLbl()}. Les dividendes sont taxés chaque année.${S.lossCarry>0.5?` Moins-values reportables : ${fmt(S.lossCarry)}.`:''}</p></div>`;
   const lim=e==='pea'?5:8,yrs=envYears(e),open=A.open!=null;
   const fisc=e==='pea'?(yrs>=5?`Plus de 5 ans : retraits soumis aux seuls prélèvements sociaux (${f1(psRate()*100)} %) sur les gains.`:`Avant 5 ans${open?` (jusqu’en ${A.open+5})`:''} : tout retrait clôture le PEA, gains taxés comme au compte-titres. Ensuite, seuls les prélèvements sociaux.`)
-    :(yrs>=8?`Plus de 8 ans : 7,5 % d’impôt sur les gains après un abattement de ${fmt(S.me.marie?9200:4600)} par an, plus ${f1(psRate()*100)} % de prélèvements sociaux.`:`Avant 8 ans${open?` (jusqu’en ${A.open+8})`:''} : gains retirés taxés comme au compte-titres. Après 8 ans : abattement annuel et 7,5 % d’impôt.`);
+    :(yrs>=8?`Plus de 8 ans : 7,5 % d’impôt sur les gains après un abattement de ${fmt(S.me.marie?9200:4600)} par an, plus ${f1(psFRate()*100)} % de prélèvements sociaux.`:`Avant 8 ans${open?` (jusqu’en ${A.open+8})`:''} : gains retirés taxés à ${f1(avRate()*100)} % (flat tax de l’assurance-vie, dont ${f1(psFRate()*100)} % de prélèvements sociaux). Après 8 ans : abattement annuel et 7,5 % d’impôt.`);
   if(!open)return `<div class="envhead"><p><b>${ENVS[e].n} pas encore ouvert.</b> Ton premier achat l’ouvre et lance le compteur de ${lim} ans. ${e==='pea'?`Actions européennes, Tracker et ETF Monde, versements plafonnés à ${fmt(peaCap())}.`:'Fonds euros, ETF Monde, Tracker, fonds OAT et fonds thématiques. Pas de plafond.'}</p><p class="mut">${fisc}</p>${msg}</div>`;
   const c=wdCalc(e,+(U.wd[e]||A.cash));
   const close=e==='pea'&&yrs<5;
@@ -3578,11 +3583,11 @@ const GLOSS={
   'Taux d’effort':'La part de tes revenus qui part dans les mensualités de crédit. Les banques refusent au-delà de 35 %.',
   'PTZ':'Prêt à taux zéro : pour un premier achat de résidence principale sous conditions de revenus. Il finance une partie du prix sans intérêts.',
   'Courbe des taux inversée':'Quand les taux à 10 ans passent sous les taux courts de la banque centrale. Signal souvent suivi d’une récession.',
-  'Flat tax':'Prélèvement forfaitaire unique sur les gains du compte-titres : impôt plus prélèvements sociaux, 30 % au départ.',
+  'Flat tax':'Prélèvement forfaitaire unique sur les gains : impôt plus prélèvements sociaux, 31,4 % au départ au compte-titres, 30 % pour l’assurance-vie.',
   'Fonds euros':'Support garanti de l’assurance-vie : le capital ne baisse pas, le rendement suit les taux d’intérêt.',
   'ETF':'Fonds coté qui réplique un indice entier (par exemple les grandes entreprises du monde), avec des frais très faibles.',
   'OAT':'Obligations assimilables du Trésor : la dette de l’État français. Leur valeur baisse quand les taux montent.',
-  'Prélèvements sociaux':'Contribution de 17,2 % au départ sur la plupart des revenus du capital, même dans le PEA et l’assurance-vie.',
+  'Prélèvements sociaux':'Contribution sur les revenus du capital, même dans le PEA et l’assurance-vie : 18,6 % au départ pour le compte-titres et le PEA, 17,2 % pour l’assurance-vie et l’immobilier.',
   'SCPI':'Société civile de placement immobilier : tu achètes des parts d’un parc de bureaux et de commerces, qui te verse des loyers.',
   'LMNP':'Loueur en meublé non professionnel : louer meublé rapporte un loyer plus élevé et seule la moitié des loyers est imposée (micro-BIC).',
   'IFI':'Impôt sur la fortune immobilière : dû chaque année au-delà de 1,3 million d’euros d’immobilier net, de 0,5 % à 1,5 %.',
@@ -3600,7 +3605,7 @@ function rulesModal(){
       <div class="warnbox"><b>Ce jeu n’est pas la vraie vie</b><p>${WARN_TXT}</p></div>
       <h3>Le principe</h3>${li([`Tu as ${A0} ans le 1er janvier ${Y0}, ton diplôme d’école de commerce en poche. Un tour = une année, jusqu’à tes 75 ans en ${YN}.`,'Le monde est inventé à chaque partie : cycles, krachs, élections, innovations. Connaître l’histoire réelle ne donne aucun avantage.','Ta vie se déroule en cinq chapitres, avec des personnages qui reviennent et se souviennent de tes choix.'])}
       <h3>Chaque année</h3>${li(['Les décisions obligatoires s’ouvrent en fenêtre : rien d’autre n’est possible tant qu’elles ne sont pas prises.','Ton salaire tombe, ton budget est payé (logement, voiture, enfants, imprévus) et ce qui reste est épargné sur ton compte courant.','Rien n’est placé à ta place : c’est toi qui investis, dans l’onglet Portefeuille ou Immobilier.','Les années sans décision peuvent défiler toutes seules (interrupteur au bilan).'])}
-      <h3>L’argent</h3>${li(['Livret A : sans risque, sans impôt, plafonné.','Compte-titres : tout est possible, plus-values taxées à la flat tax (30 % au départ).','PEA : actions européennes et ETF, presque sans impôt après 5 ans. Assurance-vie : avantage fiscal après 8 ans.','Immobilier : 20 % d’apport plus les frais de notaire, crédit refusé au-delà de 35 % de taux d’effort.','Les élections peuvent changer la fiscalité dès l’année suivante.'])}
+      <h3>L’argent</h3>${li(['Livret A : sans risque, sans impôt, plafonné.','Compte-titres : tout est possible, plus-values taxées à la flat tax (31,4 % au départ, 30 % pour l’assurance-vie).','PEA : actions européennes et ETF, presque sans impôt après 5 ans. Assurance-vie : avantage fiscal après 8 ans.','Immobilier : 20 % d’apport plus les frais de notaire, crédit refusé au-delà de 35 % de taux d’effort.','Les élections peuvent changer la fiscalité dès l’année suivante.'])}
       <h3>Ta carrière</h3>${li(['Salarié‧e : ton salaire suit l’inflation et ta carrière ; promotions et licenciements arrivent avec la vie. Une start-up peut te recruter : salaire −20 %, mais 1 % du capital en quatre ans.','Ta boîte (onglet Carrière, ou dès le départ) : logiciel, e-commerce, restauration, conseil ou bâtiment, chacun avec son apport, sa croissance, sa marge et ses risques. Tu fixes ton salaire, tu embauches, tu lèves des fonds, tu te verses des dividendes, tu vends ou tu fermes.','Ta part compte dans ton patrimoine à sa valorisation. Deux ans à découvert, c’est le dépôt de bilan : tu retrouves un poste avec 10 % de salaire en moins. À la retraite, ta boîte est cédée.'])}
       <h3>La vie</h3>${li(['Ton humeur et ton couple vont de 0 à 100. Trop bas : burn-out, rupture, ventes paniquées.','Se faire du bien coûte de l’argent mais remonte le moral ; les décisions de vie ont des conséquences des années plus tard.'])}
       <h3>Glossaire</h3><dl class="gloss">${Object.entries(GLOSS).map(([k,v])=>`<dt>${k}</dt><dd>${v}</dd>`).join('')}</dl>
@@ -3871,6 +3876,8 @@ function boot(data){
   if(S&&!S.story){storyMigrate();}
   if(S&&!S.benchV){const f=net()-propNet();S.bench={liv:f,trk:f};S.yearProp=0;S.benchV=2;}
   if(S&&!S.moves)S.moves=[];
+  // Partie d'avant la 3.14 : un seul taux de prélèvements sociaux. La hausse de 2026 (+1,4 point) touche le compte-titres et le PEA.
+  if(S&&S.pol&&S.pol.psF==null){S.pol.psF=S.pol.ps;S.pol.ps=Math.round((S.pol.ps+.014)*1000)/1000;}
   if(!S)U.legacy=legacyGame();
   U.sound=!!(S&&S.sound); // réglage rangé dans la partie : localStorage reste réservé à la sauvegarde
   try{const m=typeof location!=='undefined'&&/graine-(\d{1,6})/.exec(location.hash||'');if(m){U.setup.seed=+m[1];U.setup.world='lien';}}catch(e){}
