@@ -583,6 +583,14 @@ table.sheet td{padding:4px 6px}
 .autot[aria-pressed="true"] i{background:var(--accent)}
 .autot[aria-pressed="true"] i::after{left:14px}
 .broken{max-width:560px;margin:auto}
+.seg.mode{align-self:flex-start}
+.opts3.cities{grid-template-columns:repeat(auto-fit,minmax(118px,1fr))}
+.opts3.cities .opt .small{font-size:11.5px;line-height:1.3}
+.lbsend{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:6px 0}
+.lbsend input,.lbsend textarea{font:inherit;font-size:14px;background:var(--paper);color:var(--ink);border:1px solid var(--rule);border-radius:4px;padding:7px 9px;min-width:0}
+.lbsend textarea{flex-basis:100%;min-height:64px}
+table.lbt tr.me td{font-weight:600;background:var(--paper)}
+.lbadd{margin-top:8px}
 abbr.gl{text-decoration:none;border-bottom:1px dotted currentColor;cursor:help;position:relative}
 abbr.gl:hover::after,abbr.gl:focus::after{content:attr(data-def);position:absolute;left:0;top:calc(100% + 6px);z-index:30;width:min(280px,70vw);background:var(--ink);color:var(--paper);font:400 12.5px/1.4 var(--f-body);letter-spacing:0;text-transform:none;padding:8px 10px;border-radius:6px;box-shadow:0 8px 20px rgba(0,0,0,.25);white-space:normal;text-align:left}
 dl.gloss{margin:0;display:grid;grid-template-columns:minmax(0,180px) minmax(0,1fr);gap:4px 14px;font-size:13.5px}
@@ -659,7 +667,7 @@ const STOCKS=['telecom','luxe','banque','petro','aero','pharma'];
 const THEMES=['th1','th2','th3'];
 const EQUITY=['monde','tracker',...STOCKS,...THEMES];
 const SP={telecom:{d:.035,b:.8,v:.15},luxe:{d:.07,b:1.15,v:.2},banque:{d:.05,b:1.35,v:.2},petro:{d:.05,b:.85,v:.2},aero:{d:.065,b:1.25,v:.2},pharma:{d:.06,b:.6,v:.13}};
-const DIVY={tracker:.03,telecom:.045,luxe:.02,banque:.055,petro:.055,aero:.015,pharma:.03}; // l'ETF Monde et les fonds thématiques capitalisent
+const DIVY={scpi:.045,corp:.04,tracker:.03,telecom:.045,luxe:.02,banque:.055,petro:.055,aero:.015,pharma:.03}; // l'ETF Monde et les fonds thématiques capitalisent
 const META={
   livret:{n:'Livret A',c:'Épargne réglementée · exonéré',k:'rate'},
   euros:{n:'Fonds euros',c:'Capital garanti',k:'rate'},
@@ -673,6 +681,8 @@ const META={
   aero:{n:'AéroNef',c:'Aéronautique',k:'mkt'},
   pharma:{n:'Pharma Lumière',c:'Santé',k:'mkt'},
   or:{n:'Or physique',c:'Métal précieux · once',k:'mkt'},
+  scpi:{n:'SCPI Bureaux & Commerces',c:'Pierre-papier · loyers versés chaque année · 8 % de frais d’entrée',k:'mkt'},
+  corp:{n:'Fonds Obligations d’entreprise',c:'Prêts aux entreprises · rendement et risque de défaut',k:'mkt'},
   th1:{n:'Fonds thématique',c:'Fonds sectoriel',k:'mkt'},
   th2:{n:'Fonds thématique',c:'Fonds sectoriel',k:'mkt'},
   th3:{n:'Fonds thématique',c:'Fonds sectoriel',k:'mkt'},
@@ -681,13 +691,13 @@ const META={
   souv:{n:'Obligations de Méridia',c:'Dette souveraine · remboursée ou effacée fin d’année',k:'special'},
   startup:{n:'Parts de start-up',c:'Non coté · bloqué',k:'special'},
 };
-const ORDER=['euros','oat','monde','tracker',...STOCKS,'or',...THEMES,'jeton','struct','souv','startup'];
+const ORDER=['euros','oat','corp','monde','tracker',...STOCKS,'or','scpi',...THEMES,'jeton','struct','souv','startup'];
 const ENVS={
-  cto:{n:'Compte-titres',el:['monde','tracker',...STOCKS,'oat','or',...THEMES,'jeton']},
+  cto:{n:'Compte-titres',el:['monde','tracker',...STOCKS,'oat','corp','or','scpi',...THEMES,'jeton']},
   pea:{n:'PEA',el:['monde','tracker',...STOCKS]},
-  av:{n:'Assurance-vie',el:['euros','monde','tracker','oat',...THEMES]},
+  av:{n:'Assurance-vie',el:['euros','monde','tracker','oat','corp','scpi',...THEMES]},
 };
-const PX0={oat:100,monde:100,tracker:80,telecom:15,luxe:600,banque:70,petro:55,aero:200,pharma:90,or:3500,th1:100,th2:100,th3:100,jeton:0.1,struct:100,souv:100,startup:100};
+const PX0={scpi:200,corp:100,oat:100,monde:100,tracker:80,telecom:15,luxe:600,banque:70,petro:55,aero:200,pharma:90,or:3500,th1:100,th2:100,th3:100,jeton:0.1,struct:100,souv:100,startup:100};
 // Immobilier : k = loc (locatif), bur (bureaux), rp (résidence principale, à louer ou à acheter). beta = sensibilité au cycle immobilier national.
 // Pour les résidences principales : v = ville, cap = nombre de personnes qu'on y loge confortablement, rent = loyer annuel de marché.
 const BIENS={
@@ -706,18 +716,28 @@ const BIENS={
   rpparis:{n:'Appartement familial à Paris',k:'rp',v:'paris',cap:4,vac:.05,price:620000,rent:27600,beta:1.3,rentG:-.003},
   lyonbureaux:{n:'Bureaux à Lyon Part-Dieu',k:'bur',v:'lyon',price:500000,rent:35000,vac:.18,beta:1.15,rentG:-.005,d:'Quartier d’affaires actif, risque de locaux vides.'},
   parisbureaux:{n:'Bureaux dans Paris',k:'bur',v:'paris',price:900000,rent:54000,vac:.12,beta:1.3,rentG:-.005,d:'Locataires solides, prix très élevés.'},
+  bdxstudio:{n:'Studio à Bordeaux',k:'rp',v:'bordeaux',cap:1,vac:.07,price:150000,rent:7560,beta:1.15,rentG:0},
+  bdxt2:{n:'T2 à Bordeaux',k:'rp',v:'bordeaux',cap:2,vac:.07,price:230000,rent:10440,beta:1.15,rentG:0},
+  bdxmaison:{n:'Maison près de Bordeaux',k:'rp',v:'bordeaux',cap:5,vac:.07,price:400000,rent:17400,beta:1.15,rentG:0},
+  bdxbureaux:{n:'Bureaux à Bordeaux Euratlantique',k:'bur',v:'bordeaux',price:450000,rent:31500,vac:.18,beta:1.15,rentG:-.005,d:'Quartier neuf, locataires encore rares.'},
+  mrsstudio:{n:'Studio à Marseille',k:'rp',v:'marseille',cap:1,vac:.1,price:100000,rent:6360,beta:1.05,rentG:0},
+  mrst2:{n:'T2 à Marseille',k:'rp',v:'marseille',cap:2,vac:.1,price:160000,rent:8640,beta:1.05,rentG:0},
+  mrsmaison:{n:'Maison près de Marseille',k:'rp',v:'marseille',cap:5,vac:.09,price:350000,rent:15600,beta:1.05,rentG:0},
+  mrsbureaux:{n:'Bureaux à Marseille Euroméditerranée',k:'bur',v:'marseille',price:400000,rent:30000,vac:.2,beta:1.1,rentG:-.005,d:'Rendement élevé, quartier en devenir.'},
 };
 const CITIES={
   lille:{n:'Lille',car:true,t2:'t2rp',d:'Loyers abordables. La voiture reste utile.'},
   lyon:{n:'Lyon',car:true,t2:'lyont2',d:'Logement un peu plus cher. La voiture reste utile.'},
   paris:{n:'Paris',car:false,t2:'parist2',g:.005,d:'Logement hors de prix, mais carrière plus rapide. Pas besoin de voiture.'},
+  bordeaux:{n:'Bordeaux',car:true,t2:'bdxt2',d:'Douceur de vivre, prix élevés pour la province. La voiture reste utile.'},
+  marseille:{n:'Marseille',car:true,t2:'mrst2',d:'Soleil et loyers modérés. Marché immobilier plus heurté.'},
 };
 const isRP=p=>p.use?p.use==='rp':BIENS[p.type].k==='rp';
 const pname=(t,use)=>BIENS[t].n+((use||(BIENS[t].k==='rp'?'rp':'loc'))==='rp'?' (résidence principale)':BIENS[t].k==='rp'?' (en location)':'');
 const pnameP=p=>pname(p.type,isRP(p)?'rp':'loc');
 const KIDS=['Jules','Lina','Gabriel','Jade','Louis','Rose','Arthur','Mia','Nathan','Chloé','Paul','Zoé'];
 // Frais annuels des placements (ETF, fonds) ; l'assurance-vie prélève en plus 0,6 % sur les unités de compte.
-const FEES={monde:.002,tracker:.003,oat:.003,or:.004,th1:.008,th2:.008,th3:.008};
+const FEES={monde:.002,tracker:.003,oat:.003,corp:.005,scpi:.01,or:.004,th1:.008,th2:.008,th3:.008};
 // Profil choisi au départ : salaire (fourchette nette par mois), épargne de départ, ville, couple. Tout le monde a 25 ans.
 const SALAIRES=[
   {n:'1 500 à 2 000 €',m:1750,tx:.10,g:[.010,.004]},
@@ -747,8 +767,9 @@ function startSave(pp){
 }
 // Potentiel = épargne de départ + 60 années de cette épargne (elle se capitalise toute la carrière), étalonné par « npm run balance ».
 // À deux, l'épargne ne compte que pour 60 % : vie de famille plus chère et risque de divorce, qui partage le patrimoine.
-const potential=pp=>EPARGNES[pp.cap].v+60*Math.max(600,startSave(pp)*(pp.couple?.6:1));
-const coefOf=pp=>Math.round(clamp(Math.pow(536000/potential(pp),1.15),.2,5)*100)/100;
+// + 100 000 € : l'héritage attendu des parents (le même pour tous), sinon il avantagerait trop les petits salaires.
+const potential=pp=>(pp.cust&&pp.cust.cap!=null&&pp.cust.cap!==''?Math.max(0,+pp.cust.cap||0):EPARGNES[pp.cap].v)+100000+60*Math.max(600,startSave(pp)*(pp.couple?.6:1));
+const coefOf=pp=>Math.round(clamp(Math.pow(636000/potential(pp),1.15),.2,5)*100)/100;
 const levelOf=c=>c<.75?'Facile':c<1.35?'Normale':c<2.4?'Difficile':'Très difficile';
 const prof=()=>{const pp=S.p||PRESETS.heritier,s=SALAIRES[pp.sal];return {...pp,rev:s.m*12,tx:s.tx,g:s.g};};
 const profLabel=()=>{const pp=prof();return `${CITIES[pp.city].n} · ${S&&S.cust?fmt(S.cust.sal):SALAIRES[pp.sal].n} par mois`;};
@@ -908,7 +929,7 @@ const thd=T=>T.d||'du secteur '+T.n.toLowerCase(); // « de la robotique »
 const themeOpen=i=>{const st=themeStage(S.th[i],S.year);return !!st&&st!=='rumeur';};
 function newPres(party,avoid){const g=rnd()<.5?'f':'m',nom=pick(NOMS.filter(n=>n!==avoid));return {name:pick(PRENOMS[g])+' '+nom,nom,g,party,desc:pick(PORTRAITS[party])[g==='f'?1:0]};}
 function newGame(spec,goals,guided){
-  const key=typeof spec==='string'&&PRESETS[spec]?spec:'perso',pp={...PRESETS.heritier,...(typeof spec==='string'?PRESETS[spec]||{}:spec||{})},sl=SALAIRES[pp.sal],cash=EPARGNES[pp.cap].v;
+  const key=typeof spec==='string'&&PRESETS[spec]?spec:'perso',pp={...PRESETS.heritier,...(typeof spec==='string'?PRESETS[spec]||{}:spec||{})},sl=SALAIRES[pp.sal],cash=spec&&spec.cust&&spec.cust.cap!=null&&spec.cust.cap!==''?Math.max(0,Math.round(+spec.cust.cap)||0):EPARGNES[pp.cap].v;
   // Le monde a sa propre graine (S.wseed) et son propre flux de hasard (S.wr) : même graine, même monde, quels que soient tes choix.
   const ws=spec&&spec.seed!=null?+spec.seed:Math.floor(Math.random()*1e6),seed=(ws*2654435761+97)|0;
   S={v:3,rng:seed,phase:'turn',year:Y0,month:'Janvier',cash,liv:0,arch:key,p:{city:pp.city,sal:pp.sal,cap:pp.cap,couple:!!pp.couple},coef:coefOf(pp),goals:(goals||[]).filter(g=>GOALS[g]).slice(0,2),start:cash,ach:{},achNew:[],advRec:{},flair:0,city:pp.city,home:{type:'t2rp',own:false,since:Y0},onb:guided?1:null,buyHist:{},page:null,
@@ -930,7 +951,7 @@ function newGame(spec,goals,guided){
     S.p.custom=true;S.p.sal=nearSal(S.cust.sal);S.revenu=S.cust.sal*12;S.me.car=S.cust.car>0;S.coef=coefOf({...pp,cust:S.cust});}
   S.home=S.cust?{type:'perso',own:false,since:Y0}:{type:bestRental(),own:false,since:Y0};
   for(const id in PX0)S.ph[id]=[PX0[id]];
-  storyInit();if(S.cust&&S.cust.debtN>0)openTh('creditFin',Y0+S.cust.debtN,{},true);
+  S.sound=!!U.sound;storyInit();if(S.cust&&S.cust.debtN>0)openTh('creditFin',Y0+S.cust.debtN,{},true);
   startTurn(Y0);
 }
 const liquidOf=e=>{let t=0;for(const k in S.acc[e].hold)t+=S.acc[e].hold[k].v;return t;};
@@ -969,7 +990,7 @@ const debtCost=()=>S.cust&&S.cust.debtN>0&&S.year<Y0+S.cust.debtN?S.cust.debt*12
 const foyerRev=()=>S.revenu*(1+pRatio()); // revenus nets du foyer (le conjoint gagne 60 % de ton salaire)
 const cityOf=()=>CITIES[S.city]||CITIES.lille;
 const refRent=()=>{const a=S.idx.t2rp.rent,b=S.idx[cityOf().t2].rent;return a+.5*(b-a);};
-const COLOCS={lille:5400,lyon:6240,paris:9600}; // loyer annuel d'une chambre en colocation, en euros de 2026
+const COLOCS={lille:5400,lyon:6240,paris:9600,bordeaux:5760,marseille:5100}; // loyer annuel d'une chambre en colocation, en euros de 2026
 const colocCost=()=>(COLOCS[S.city]||5400)*S.defl;
 const persoRent=()=>S.cust.rent*12*S.idx[cityOf().t2].rent/BIENS[cityOf().t2].rent; // ton loyer, indexé comme ceux de ta ville
 const persoRoom=()=>ROOMS[clamp((S.cust.rooms||1)-1,0,4)];
@@ -1037,7 +1058,7 @@ function buyIn(e,id,amt){
   if(fromMain>S.cash+0.5)return `Liquidités insuffisantes : il te manque ${fmt(fromMain-S.cash)}. Vends d’abord une ligne ou retire de l’argent d’une enveloppe.`;
   if(e==='pea'&&A.vers+fromMain>peaCap()+0.5)return `Plafond du PEA atteint : tu peux encore y verser ${fmt(Math.max(0,peaCap()-A.vers))}.`;
   if(e!=='cto'){if(A.open==null)A.open=S.year;A.cash-=fromEnv;A.vers+=fromMain;}
-  S.cash-=fromMain;const h=holdOf(e,id);h.v+=amt;h.b+=amt;
+  S.cash-=fromMain;const h=holdOf(e,id);h.v+=id==='scpi'?amt*.92:amt;h.b+=amt;
   lgFlow(e,id,-amt);mvRec({e,id,a:amt});if(e!=='cto')lgEnv(e,-fromMain);
   return null;
 }
@@ -1097,9 +1118,9 @@ function raiseCash(ctx){
     if(S.liv>0.5){add(livOut(Math.min(S.liv,need)));continue;}
     const eCash=['av','pea'].find(e=>S.acc[e].cash>0.5&&!(e==='pea'&&envYears('pea')<5));
     if(eCash){add(withdraw(eCash,Math.min(S.acc[eCash].cash,need)));continue;}
-    let id=['oat','monde','tracker','or','pharma','luxe','telecom','banque','petro','aero',...THEMES,'jeton'].find(k=>ev('cto',k)>0.5);
+    let id=['oat','corp','monde','tracker','or','scpi','pharma','luxe','telecom','banque','petro','aero',...THEMES,'jeton'].find(k=>ev('cto',k)>0.5);
     if(id){add(sellIn('cto',id,Math.min(ev('cto',id),need)));continue;}
-    id=['euros','oat','monde','tracker',...THEMES].find(k=>ev('av',k)>0.5);
+    id=['euros','oat','corp','monde','tracker','scpi',...THEMES].find(k=>ev('av',k)>0.5);
     if(id){sellIn('av',id,Math.min(ev('av',id),need));continue;}
     if(envTotal('pea')>0.5){
       if(envYears('pea')>=5){id=EQUITY.find(k=>ev('pea',k)>0.5);if(id){sellIn('pea',id,Math.min(ev('pea',id),need));continue;}}
@@ -1160,7 +1181,7 @@ function propQuote(type,n=20,use){
 }
 // La plus courte durée qui passe sous les 35 % de taux d'effort.
 function bestDur(type,use){for(const n of DURS)if(propQuote(type,n,use).eff<=.35)return n;return 25;}
-function buyProp(type,mode,n=20,use){
+function buyProp(type,mode,n=20,use,meuble){
   if(!BIENS[type])return 'Bien inconnu.';
   use=BIENS[type].k==='bur'?'loc':use||(BIENS[type].k==='rp'?'rp':'loc');
   if(retired(S.year)&&mode==='credit')return 'À la retraite, ta banque ne te prête plus sur 20 ans.';
@@ -1178,6 +1199,8 @@ function buyProp(type,mode,n=20,use){
   if(rp){S.home={type,own:true,since:S.year};S.flags.ownedRP=true;if(S.flags.rpYear==null)S.flags.rpYear=S.year;if(age(S.year)<30)unlock('proprio');}
   if(S.props.filter(p=>!isRP(p)).length>=2)S.flags.twoRent=true;
   if(S.props.length>=3)unlock('empire');
+  // Location meublée : 5 000 € de mobilier (indexés) au départ, loyer plus élevé, la moitié seulement des loyers imposée.
+  if(meuble&&use!=='rp'&&BIENS[type].k!=='bur'){const p=S.props[S.props.length-1],f=Math.round(5000*S.defl/10)*10;p.meuble=true;S.cash-=f;lgProp(p,-f);}
   return null;
 }
 function pvImmoTax(gain,d){
@@ -1230,6 +1253,13 @@ function moveTo(type,free){
   if(!free)spend(moveCost(),true);
   return null;
 }
+// Ancienne résidence principale au moment d'en acheter une autre : vendue, ou mise en location (elle devient un bien locatif).
+function oldHome(how){const o=rpOf();if(!o)return;if(how==='louer'){o.use='loc';o.rentMult=o.rentMult||1;o.vacantUntil=0;}else sellProp(o.uid,undefined,undefined,'Vente pour déménager');}
+// Achète une nouvelle résidence principale en gardant l'ancienne pour la louer (apport complété par le Livret A si besoin).
+function buyHomeKeep(type,n){
+  const go=()=>{oldHome('louer');n=n||bestDur(type,'rp');const q=propQuote(type,n,'rp');if(S.cash<q.apport&&S.liv>0)livOut(Math.min(S.liv,q.apport-S.cash));return buyProp(type,'credit',n,'rp');};
+  const e=dry(go);if(e)return e;return go();
+}
 // Achète une résidence principale en vendant l'ancienne et en complétant l'apport avec le Livret A si besoin.
 function buyHome(type,n){
   const rp=rpOf(),probe=dry(()=>{if(rp)sellProp(rp.uid);const q=propQuote(type,n,'rp');if(S.cash<q.apport&&S.liv>0)livOut(Math.min(S.liv,q.apport-S.cash));return buyProp(type,'credit',n,'rp');});
@@ -1262,7 +1292,7 @@ const CLASSES=[{k:'safe',n:'Garanti et liquidités',c:'--c1'},{k:'eq',n:'Actions
 function alloc(){
   const a={safe:Math.max(0,S.cash)+S.liv+envCash(),eq:0,bond:0,immo:Math.max(0,propsValue()-debtTotal()),spec:0};
   for(const e in S.acc)for(const k in S.acc[e].hold){const v=S.acc[e].hold[k].v;if(!(v>0))continue;
-    if(k==='euros')a.safe+=v;else if(k==='oat')a.bond+=v;else if(EQUITY.includes(k))a.eq+=v;else a.spec+=v;}
+    if(k==='euros')a.safe+=v;else if(k==='oat'||k==='corp')a.bond+=v;else if(k==='scpi')a.immo+=v;else if(EQUITY.includes(k))a.eq+=v;else a.spec+=v;}
   return a;
 }
 const finT=a=>a.safe+a.eq+a.bond;
@@ -1443,6 +1473,9 @@ function genYear(y){
   for(const k in BIENS){const B=BIENS[k];
     gB[k]=B.k==='bur'?gH*B.beta-.01+gauss()*.04:gH*B.beta+S.drift['b_'+k]+gauss()*.012;
     rg[k]=(B.k==='bur'?(infl-.5)/100:Math.min(infl,3.5)/100)+B.rentG;}
+  const bur=Object.keys(BIENS).filter(k=>BIENS[k].k==='bur');
+  r.scpi=.045+.6*bur.reduce((a,k)=>a+gB[k],0)/bur.length+gauss()*.02+(f.phase==='crise'?-.05:0);
+  r.corp=(w.r10+1.3+(f.phase==='crise'?2:f.phase==='recession'?1:0))/100-4.5*(r10-w.r10)/100-(f.phase==='crise'?.11:f.phase==='recession'?.035:0)+gauss()*.01;
   f.r=r;
   f.mac={phase:f.phase,g,infl,rate,r10,spread,credit,livret,euros,u,cg,oil,fx,pe,debt,gH,gB,rg};
   return f;
@@ -1566,12 +1599,20 @@ const EVT={
   teletravail:{w:()=>S.props.some(p=>BIENS[p.type].k==='bur')?.8:0,make(){shock({bur:-20});return {};},
     view:()=>({kicker:'Bureaux',title:V('teletravail',['Les entreprises rendent leurs bureaux','Le télétravail vide les tours','Ton locataire veut payer moins']),body:V('teletravail',['Avec le travail à distance généralisé, la valeur des bureaux recule de 20 %. Ton locataire demande une baisse de loyer de 25 %.','Les plateaux restent vides trois jours sur cinq. Les bureaux perdent 20 % et ton locataire réclame 25 % de remise.','La moitié des salariés travaille de chez soi : les bureaux valent 20 % de moins, et ton locataire menace de partir sans une baisse de 25 %.']),
       choices:[{id:'baisse',label:'Accepter la baisse',desc:'Revenus sûrs mais plus faibles'},{id:'refus',label:'Refuser',desc:'Risque de bureaux vides pendant deux ans'}]}),act:c=>actBureauxRent(c)},
+  dpe:{w:(y)=>y>=Y0+3&&S.usedFut.filter(x=>x==='dpe').length<2&&S.props.some(p=>!isRP(p)&&BIENS[p.type].k!=='bur'&&!p.dpe)?1.2:0,
+    make(){const p=pick(S.props.filter(p=>!isRP(p)&&BIENS[p.type].k!=='bur'&&!p.dpe));return {uid:p.uid,type:p.type,cost:Math.round(propValue(p)*.08/100)*100};},
+    view:p=>({kicker:'Travaux',title:V('dpe',[`Ton ${BIENS[p.type].n} est une passoire thermique`,`DPE : ton ${BIENS[p.type].n} classé G`,`Interdiction de louer ton ${BIENS[p.type].n} sans travaux`]),body:`Le nouveau ${gl('DPE','diagnostic énergétique')} est tombé : à partir de l’an prochain, interdit de le louer sans isolation ni nouveau chauffage. Devis : ${fmt(p.cost)}.`,
+      choices:[{id:'travaux',label:'Faire les travaux',desc:`${fmt(p.cost)}, loyer +5 % ensuite`},{id:'vendre',label:'Le vendre en l’état',desc:'Décote de 10 %'},{id:'attendre',label:'Attendre',desc:'Plus de loyer l’an prochain'}]}),
+    act(c,p){const pr=S.props.find(x=>x.uid===p.uid);if(!pr)return {msg:'Le bien n’est plus à toi.'};
+      if(c==='travaux'){pr.dpe=true;pr.rentMult*=1.05;pr.cost+=p.cost;lgProp(pr,-p.cost);return {msg:`Travaux lancés pour ${fmt(p.cost)}.`+spend(p.cost,false)};}
+      if(c==='vendre'){const r=sellProp(p.uid,propValue(pr)*.9,undefined,'Vente d’une passoire thermique');return {msg:`Vendu en l’état : ${fmt(r.net)} net.`};}
+      pr.noRent=S.year+1;return {msg:'Tu attends. Pas de loyer l’an prochain.'};}},
   occasion:{w:()=>S.w.credit<2.5&&S.year<YN-10?1.5:0,make(){return {k:pick(['lille','lyon','paris'])};},
     view:p=>({kicker:'Crédit',title:V('occasion',[`Les taux de crédit tombent à ${rate(S.w.credit)}`,`Crédit à ${rate(S.w.credit)} : les agences sont prises d’assaut`,`Emprunter n’a jamais coûté si peu : ${rate(S.w.credit)}`]),body:V('occasion',[`Ton beau-frère répète que « l’immobilier ne baisse jamais ». Un agent te propose un ${BIENS[p.k].n} à ${fmt(S.idx[p.k].price)}, loué ${fmt(S.idx[p.k].rent/12)} par mois.`,`Un agent t’appelle : ${BIENS[p.k].n}, ${fmt(S.idx[p.k].price)}, déjà loué ${fmt(S.idx[p.k].rent/12)} par mois. « À ce taux-là, c’est le locataire qui paie. »`,`${ami()} vient d’acheter son deuxième appartement et t’envoie une annonce : ${BIENS[p.k].n} à ${fmt(S.idx[p.k].price)}, loué ${fmt(S.idx[p.k].rent/12)} par mois.`]),choices:offerBien(p.k)}),
     act(c,p){if(c==='non')return {msg:'Tu laisses passer l’appartement.'};const e=buyProp(p.k,c);if(e)return {err:e};return {msg:`Tu achètes le ${BIENS[p.k].n} ${c==='cash'?'comptant':'à crédit sur 20 ans'}.`};}},
 };
 // Une fenêtre déjà vue autant de fois qu'elle a de versions rappelle les années précédentes : jamais deux fois le même texte.
-const NV={krach:3,pandemie:3,energie:3,guerre:3,taux:3,banque:3,jeton:2,geant:3,bulle:3,offre:3,impaye:3,teletravail:3,occasion:3,theme:3,election:3};
+const NV={dpe:3,krach:3,pandemie:3,energie:3,guerre:3,taux:3,banque:3,jeton:2,geant:3,bulle:3,offre:3,impaye:3,teletravail:3,occasion:3,theme:3,election:3};
 for(const id in EVT){const f=EVT[id].view;EVT[id].view=p=>{const v=f(p),x=S.story?deja(id,NV[id]||1):'';return x?{...v,body:v.body+x}:v;};}
 function pickW(list){const tot=list.reduce((a,x)=>a+x.w,0);let r=rnd()*tot;for(const x of list){r-=x.w;if(r<=0)return x.id;}return list[list.length-1].id;}
 // Une année sur trois environ n'a pas d'événement : la Gazette suffit.
@@ -1640,11 +1681,13 @@ const LIFE={
     const ch=[];
     if(!own&&t!==S.home.type)ch.push({id:'louer',label:`Louer : ${BIENS[t]?BIENS[t].n:'une colocation'}`,desc:`${fmt((BIENS[t]?S.idx[t].rent:colocCost())/12)} par mois, déménagement ${fmt(moveCost())}`});
     if(b&&!retired(S.year))ch.push({id:'acheter',label:`Acheter : ${BIENS[b.type].n}`,desc:b.ok?`Apport ${fmt(b.q.apport)}, ${fmt(b.q.ann/12)} par mois sur ${b.n} ans${b.q.z?' avec un PTZ':''}${own?', en vendant l’actuel':''}`:`Pas encore possible : il faut ${fmt(b.q.apport)} d’apport et un taux d’effort sous 35 %`});
+    if(b&&own&&!retired(S.year)){const ok=!dry(()=>buyHomeKeep(b.type));ch.push({id:'acheterLouer',label:`Acheter : ${BIENS[b.type].n}, et louer l’actuel`,desc:ok?`Apport ${fmt(propQuote(b.type,bestDur(b.type,'rp'),'rp').apport)} sans vendre ; ${homeName()} rapporte un loyer`:'Pas possible sans vendre : apport ou taux d’effort insuffisant'});}
     ch.push({id:'rester',label:'Rester comme on est',desc:why==='small'?'Humeur et couple en baisse tant que c’est trop petit':why==='parents'?'Le couple et l’humeur en souffrent':'Couple en légère baisse'});
     return {kicker:'Logement',title,body,choices:ch};},
     act(c){
       if(c==='rester'){mood(-2,-4);return {msg:'On fait avec. On en reparlera.'};}
       if(c==='louer'){const t=bestRental(),e=moveTo(t);if(e)return {err:e};mood(5,6);return {msg:`On emménage : ${homeName()}, ${fmt(homeCost()/12)} par mois.`};}
+      if(c==='acheterLouer'){const b=bestBuy(),old=homeName();if(!b)return {err:'Rien à acheter pour l’instant.'};const e=buyHomeKeep(b.type);if(e)return {err:e};spend(moveCost(),true);mood(8,10);return {msg:`Nous voilà dans ${BIENS[b.type].n}. ${old} est mis en location.`};}
       const b=bestBuy();if(!b||!b.ok)return {err:b?`Il faut ${fmt(b.q.apport)} d’apport et un taux d’effort sous 35 %.`:'Rien à acheter pour l’instant.'};
       const e=buyHome(b.type,b.n);if(e)return {err:e};spend(moveCost(),true);mood(8,10);return {msg:`Nous voilà propriétaires : ${BIENS[b.type].n}.`};}},
   panne:{can:()=>S.me.car,view:()=>{const c=Math.round(1200*S.defl/10)*10;return {kicker:'Imprévu',title:V('L:panne',['La voiture tombe en panne','Plus rien ne démarre','La voiture rend l’âme sur l’autoroute']),body:V('L:panne',[`Le garagiste annonce ${fmt(c)} de réparations. Elle a fait son temps.`,`Embrayage, courroie, freins : ${fmt(c)} selon le garagiste, qui ajoute qu’elle « n’en a plus pour longtemps ».`,`Dépanneuse, puis devis : ${fmt(c)}. ${P()?`${P()} propose de passer au vélo.`:'Le vélo te tend les bras.'}`]),
@@ -2104,8 +2147,8 @@ function pickLife(crash){
   if(S.story){const e=dueThread(false);if(e){lifeTid=e[0];return e[1].k;}}
   if(!P()&&rnd()<(S.flags.rencBoost===y-1?.4:.18))return 'rencontre';
   // La famille a sa propre chance chaque année, pour que l'histoire ne la fasse pas disparaître.
-  if(LIFE.mariage.can()&&count('mariage')<2&&rnd()<.3)return 'mariage';
-  if(LIFE.enfant.can()&&S.me.enfants<2&&count('enfant')<5&&rnd()<.35)return 'enfant';
+  if(LIFE.mariage.can()&&count('mariage')<2&&rnd()<.4)return 'mariage';
+  if(LIFE.enfant.can()&&S.me.enfants<2&&count('enfant')<5&&rnd()<.45)return 'enfant';
   if(rnd()>0.18)return null;
   const recent=S.usedLife.slice(-2),ch=chapOf(y),cap=id=>({enfant:5,ami:1,donation:1,ados:2}[id]||2);
   const el=Object.keys(LIFE).filter(id=>!LIFE[id].story&&!['burnout','rupture','weekend','panique','retraite','rencontre','fire','licenciement'].includes(id)&&!recent.includes(id)&&count(id)<cap(id)&&(!LIFE[id].can||LIFE[id].can()))
@@ -2228,6 +2271,14 @@ function whyText(y,f,mac,r,b){
   if(S.shockEur&&Math.abs(S.shockEur)>=lim)t+=` En janvier, le choc t’avait déjà ${S.shockEur<0?'coûté':'rapporté'} ${fmt(Math.abs(S.shockEur))}.`;
   return t.trim();
 }
+// IFI : immobilier net (résidence principale abattue de 30 %, crédits déduits) au-delà de 1,3 M€ indexés ; barème de 0,5 % à 1,5 % dès 800 000 €.
+function ifiTax(){
+  const d=S.defl,base=S.props.reduce((a,p)=>a+propValue(p)*(isRP(p)?.7:1)-loanLeft(p),0);
+  if(base<=1300000*d)return 0;
+  const BR=[[800000,.005],[1300000,.007],[2570000,.01],[5000000,.0125],[10000000,.015]];let t=0;
+  BR.forEach(([lo,rt],i)=>{const a=lo*d,b=i<BR.length-1?BR[i+1][0]*d:Infinity;if(base>a)t+=(Math.min(base,b)-a)*rt;});
+  return Math.round(t);
+}
 // Ce que les ordres de janvier ont rapporté (ou coûté) par rapport à ne rien toucher : chaque euro déplacé aurait suivi
 // la ligne d'où il venait. On mesure la croissance réelle de chaque ligne sur l'année (frais, dividendes taxés compris) ;
 // l'argent sorti va sur le compte courant, qui ne rapporte rien. Les impôts payés pour vendre comptent comme un coût.
@@ -2242,7 +2293,7 @@ function simulateYear(y){
   S.clk={t:y+1,y};
   const f=S.fut[y],mac=f.mac;
   const b={y,lines:[],props:[],notes:[],flows:{epargne:0,retraite:0,logement:0,voiture:0,enfants:0,loyers:0,rp:0,charges:0,credit:0,frais:0,impots:0,plaisir:0,imprevu:0},netStart:net()};
-  const r={};for(const k of ['monde','tracker',...STOCKS,'or','oat',...THEMES])r[k]=peekR(k,y)??0;
+  const r={};for(const k of ['monde','tracker',...STOCKS,'or','oat','scpi','corp',...THEMES])r[k]=peekR(k,y)??0;
   const st=S.flags.struct;
   r.struct=0;if(st&&y>=st.y&&y<=st.end&&!st.hit){r.struct=f.phase==='crise'?-.45:f.phase==='recession'?-.12:.05;if(f.phase==='crise'){st.hit=true;if(hv('struct')>0)b.notes.push('Le Fonds Rendement Sérénité est gelé : ses crédits ne valent plus rien, impossible de récupérer ton argent.');}}
   for(const k of ['souv','startup']){const pd=S.pending[y]&&S.pending[y][k];r[k]=pd!=null?pd/100:0;}
@@ -2260,7 +2311,7 @@ function simulateYear(y){
     const h=S.acc[e].hold[id];if(!h||h.v<=0)continue;const sv=h.v;let rr;
     if(id==='euros'){rr=mac.euros/100;const it=h.v*rr,ps=it*psRate();h.v+=it-ps;b.flows.impots+=ps;}
     else{rr=r[id]||0;h.v=Math.max(0,h.v*(1+rr));
-      if(e==='cto'&&DIVY[id]&&h.v>0){const t=Math.min(h.v,sv*DIVY[id]*ctoRate());h.v-=t;b.flows.impots+=t;}
+      if(e==='cto'&&DIVY[id]&&h.v>0){const t=Math.min(h.v,sv*DIVY[id]*(id==='scpi'?S.pol.irLoyer+psRate():ctoRate()));h.v-=t;b.flows.impots+=t;}
       const fee=h.v*((FEES[id]||0)+(e==='av'?.006:0));if(fee>0){h.v-=fee;b.flows.frais+=fee;}}
     b.lines.push({id,env:e,sv,ev:h.v,r:rr});
   }
@@ -2288,9 +2339,9 @@ function simulateYear(y){
     if(p.vacantUntil>=y||p.noRent===y)months=0;
     else if(rnd()<(B.vac||.1))months=12-(B.k!=='bur'?1+Math.floor(rnd()*5):3+Math.floor(rnd()*10));
     months=Math.max(0,months);
-    const rent=ix.rent*p.rentMult*months/12,charges=ix.rent*(B.k!=='bur'?.22:.12);
+    const rent=ix.rent*p.rentMult*(p.meuble?1.15:1)*months/12,charges=ix.rent*(B.k==='bur'?.12:p.meuble?.27:.22);
     const {ann,it:interest}=payLoan(p);
-    const tax=Math.max(0,rent-charges-interest)*(S.pol.irLoyer+psRate());
+    const tax=(p.meuble?.5*rent:Math.max(0,rent-charges-interest))*(S.pol.irLoyer+psRate());
     S.cash+=rent-charges-ann-tax;lgProp(p,rent-charges-ann-tax);
     b.flows.loyers+=rent;b.flows.charges+=charges;b.flows.credit+=ann;b.flows.impots+=tax;
     if(months<12)b.notes.push(months===0?`${B.n} (en location) : aucun loyer encaissé cette année.`:`${B.n} : ${12-months} mois de vacance locative.`);
@@ -2316,6 +2367,7 @@ function simulateYear(y){
   if(b.flows.rp>0){b.flows.logement+=b.flows.rp;b.flows.rp=0;}
   if(S.page){b.flows.plaisir=-(S.page.spent||0);b.flows.imprevu=-(S.page.imp?S.page.imp.c:0);}
   b.choice=movesGain(b,r,mac);
+  {const t=ifiTax();if(t>0.5){ext(-t);b.flows.impots+=t;b.flows.ifi=t;b.notes.push(`Impôt sur la fortune immobilière : ${fmt(t)}. Ton immobilier net dépasse ${fmt(1300000*S.defl)}.`);}}
   const g=1+mac.infl/100;S.defl*=g;
   if(ret)S.me.besoin*=g;
   const ctx=raiseCash({y,retired:ret});if(ctx.ruin){S.me.humeur=clamp(S.me.humeur-15,0,100);S.me.ruined=true;}b.notes.push(...raiseNotes(ctx,ret?'Pour financer ta retraite':'Découvert'));
@@ -2398,7 +2450,7 @@ function legacyGame(){
 function dropLegacy(){try{localStorage.removeItem(OLDKEY);}catch(e){}}
 
 /* ===================== INTERFACE ===================== */
-const U={setup:{city:'lille',sal:2,cap:1,couple:false,goals:['rp35','serein'],custom:false,cust:null,world:'hasard',seed:null},view:'profil',city:null,dossier:null,dosMsg:null,anim:null,animTok:0,copied:null,plan:null,allocMsg:null,tab:'pea',open:null,msg:{},amt:{},wd:{},evAmt:'',evAsset:null,evEnv:null,evErr:'',confirmReset:false,confirmSell:null,confirmClose:false,deskErr:'',envMsg:{},legacy:null,dur:null,lifeErr:'',achErr:'',homeMsg:null,onbErr:'',fresh:{},quiet:null,animList:null,broken:false,rules:false,prevMoney:null,shownAch:[],toast:null,fx:true};
+const U={setup:{city:'lille',sal:2,cap:1,couple:false,goals:['rp35','serein'],custom:false,cust:null,world:'hasard',seed:null},view:'profil',city:null,dossier:null,dosMsg:null,anim:null,animTok:0,copied:null,plan:null,allocMsg:null,tab:'pea',open:null,msg:{},amt:{},wd:{},evAmt:'',evAsset:null,evEnv:null,evErr:'',confirmReset:false,confirmSell:null,confirmClose:false,deskErr:'',envMsg:{},legacy:null,dur:null,lifeErr:'',achErr:'',homeMsg:null,onbErr:'',fresh:{},quiet:null,animList:null,broken:false,rules:false,sound:false,prevMoney:null,shownAch:[],toast:null,fx:true};
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const TICKS=[Y0,Y0+10,Y0+20,Y0+30,Y0+40,YN];
 
@@ -2431,11 +2483,13 @@ const ICONS={
   bebe:'<circle cx="24" cy="18" r="7"/><path d="M12 40c1-8 6-13 12-13s11 5 12 13"/>',
   monde:'<circle cx="24" cy="24" r="16"/><path d="M8 24h32M24 8c6 6 6 26 0 32M24 8c-6 6-6 26 0 32"/>',
   journal:'<rect x="8" y="10" width="32" height="28" rx="2"/><path d="M14 18h20M14 24h20M14 30h12"/>',
+  son:'<path d="M8 19h8l10-8v26l-10-8H8z"/><path d="M32 17c3 4 3 10 0 14M37 12c6 7 6 17 0 24"/>',
+  sonOff:'<path d="M8 19h8l10-8v26l-10-8H8z"/><path d="M33 19l10 10M43 19L33 29"/>',
 };
 const KICK={'Krach':'krach','Valeur en chute libre':'krach','Pandémie':'sante','Choc énergétique':'monde','Géopolitique':'monde','Crise de la dette':'monde','Présidentielle':'urne','Euphorie':'hausse',
   'Banque centrale':'banque','Placement maison':'banque','Après la crise':'banque','Ton ami entrepreneur':'fusee','Innovation':'fusee','Jeton numérique':'piece','Offre d’achat':'maison','Ton locataire':'maison',
   'Bureaux':'immeuble','Crédit':'maison','Logement':'maison','Imprévu':'outil','Famille':'bebe','Couple':'coeur','Dilemme':'coeur','Amitié':'coeur','Rencontre':'coeur','Vacances':'soleil',
-  'Santé':'sante','Moral':'sante','Emploi':'travail','Carrière':'travail','Indépendance financière':'soleil','Retraite':'soleil','Karim':'fusee','Kévin':'piece','Tes parents':'maison','Tes enfants':'bebe','Transmettre':'coeur'};
+  'Santé':'sante','Moral':'sante','Emploi':'travail','Carrière':'travail','Indépendance financière':'soleil','Retraite':'soleil','Travaux':'outil','Karim':'fusee','Kévin':'piece','Tes parents':'maison','Tes enfants':'bebe','Transmettre':'coeur'};
 const icon=(k,s=48)=>`<svg class="ico" width="${s}" height="${s}" viewBox="0 0 48 48" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">${ICONS[k]||ICONS.journal}</svg>`;
 function donut(a,size=120){
   const tot=Object.values(a).reduce((x,y)=>x+y,0)||1,r=44,C=2*Math.PI*r;let off=0;
@@ -2453,7 +2507,7 @@ function moneyBar(blk=''){
     return `<div class="mchip ${k==='net'?'net':''} ${to<0?'neg':''}"><span>${l}</span><b class="num" data-count="${to}" data-from="${from}">${fmt(from)}</b>${Math.abs(d)>=1?`<em class="delta ${d>0?'up':'down'}">${d>0?'+':'−'}${fmt(Math.abs(d))}</em>`:''}</div>`;};
   const reset=`<button class="ghost sm ${U.confirmReset?'danger':''}" data-act="reset">${U.confirmReset?'Tout effacer ?':'Nouvelle partie'}</button>`;
   return `<header class="hud"${blk}><div class="brand"><b class="logo-s">La <i>Corbeille</i></b><span>${date} · ${ag} ans</span></div>
-    <div class="mchips">${chip('cash','Compte courant')}${chip('liv','Livret A')}${chip('fin','Placements')}${chip('immo','Immobilier net')}${chip('net','Patrimoine net')}</div><div class="hudbtns"><button class="ghost sm" data-act="rules" aria-label="Règles du jeu" title="Règles du jeu"><span class="hide-m">Règles</span><span class="show-m" aria-hidden="true">?</span></button>${reset}</div></header>`;
+    <div class="mchips">${chip('cash','Compte courant')}${chip('liv','Livret A')}${chip('fin','Placements')}${chip('immo','Immobilier net')}${chip('net','Patrimoine net')}</div><div class="hudbtns"><button class="ghost sm" data-act="sound" aria-pressed="${!!U.sound}" aria-label="${U.sound?'Couper le son':'Activer le son'}" title="${U.sound?'Couper le son':'Activer le son'}">${icon(U.sound?'son':'sonOff',16)}</button><button class="ghost sm" data-act="rules" aria-label="Règles du jeu" title="Règles du jeu"><span class="hide-m">Règles</span><span class="show-m" aria-hidden="true">?</span></button>${reset}</div></header>`;
 }
 function animateCounters(){
   const go=canAnim();
@@ -2596,7 +2650,7 @@ function portefeuilleTab(){
 function immoTab(){
   const rp=rpOf(),h=S.home,city=U.city||S.city,y=S.year;
   const owned=S.props.map(p=>{const v=propValue(p),c=propSaleCalc(p,v*.95,y),conf=U.confirmSell===p.uid,rn=canReneg(p)?`<button class="ghost sm" data-act="reneg" data-u="${p.uid}" ${S.lock?'disabled':''}>Renégocier</button>`:'';
-    return `<li><div><b>${pnameP(p)}</b><small>${fmt(v)} · ${loanLeft(p)>0?`crédit ${fmt(loanLeft(p))}`:'payé'} · ${fmt(S.idx[p.type].rent*p.rentMult/12)}/mois</small></div><div class="btns">${rn}<button class="ghost sm ${conf?'danger':''}" data-act="prop-sell" data-u="${p.uid}" ${S.lock?'disabled':''}>${conf?`Vendre · ${fmt(c.net)} net`:'Vendre'}</button></div></li>`;}).join('');
+    return `<li><div><b>${pnameP(p)}</b><small>${fmt(v)} · ${loanLeft(p)>0?`crédit ${fmt(loanLeft(p))}`:'payé'} · ${fmt(S.idx[p.type].rent*p.rentMult*(p.meuble?1.15:1)/12)}/mois${p.meuble?' · meublé':''}</small></div><div class="btns">${rn}<button class="ghost sm ${conf?'danger':''}" data-act="prop-sell" data-u="${p.uid}" ${S.lock?'disabled':''}>${conf?`Vendre · ${fmt(c.net)} net`:'Vendre'}</button></div></li>`;}).join('');
   const alt=[age(y)<30&&!rp&&h.type!=='parents'?`<button class="ghost sm" data-act="home-rent" data-t="parents">Retour chez les parents</button>`:'',!P()&&!rp&&h.type!=='coloc'?`<button class="ghost sm" data-act="home-rent" data-t="coloc">Colocation · ${fmt(colocCost()/12)}</button>`:''].join('');
   const types=Object.keys(BIENS).filter(k=>!BIENS[k].hide&&BIENS[k].v===city);
   const tiles=types.map(t=>{const B=BIENS[t],ix=S.idx[t],here=h.type===t;
@@ -2611,27 +2665,36 @@ function immoTab(){
       <div class="btiles">${tiles}</div></section></div>`;
 }
 function dossierHtml(){
-  const t=U.dossier.t,B=BIENS[t],bur=B.k==='bur',use=bur?'loc':U.dossier.use||'rp',ret=retired(S.year),n=U.dur||bestDur(t,use);
-  const q=propQuote(t,n,use),ix=S.idx[t],rp=rpOf(),cash=Math.max(0,S.cash)+S.liv,inCity=B.v===S.city;
-  const ch=ix.rent*(use==='rp'?.15:bur?.12:.22),vac=B.vac||.1,rentIn=use==='loc'?ix.rent*(1-vac):0;
-  const tax=use==='loc'?Math.max(0,rentIn-ch-q.L*q.r)*(S.pol.irLoyer+psRate()):0;
-  const after=use==='rp'?yearlySave()+housingOut()-(q.ann+ch):yearlySave()-q.ann-ch+rentIn-tax;
-  const why=ret?'À la retraite, la banque ne prête plus sur ces durées.':use==='rp'&&rp?'Tu as déjà une résidence principale : vends-la d’abord.':use==='rp'&&!inCity?`Pour y vivre, il faudrait habiter ${CITIES[B.v].n}. Tu vis à ${CITIES[S.city].n}.`:cash<q.apport?`Il te manque ${fmt(q.apport-cash)} d’apport (compte courant + Livret A).`:q.eff>.35?`Taux d’effort de ${f1(q.eff*100)} % : au-delà de 35 %, la banque refuse.`:'';
+  const t=U.dossier.t,B=BIENS[t],bur=B.k==='bur',use=bur?'loc':U.dossier.use||'rp',ret=retired(S.year),rp=rpOf(),inCity=B.v===S.city;
+  // Déjà propriétaire de sa résidence : on simule les deux options (vendre ou louer l'ancienne) sur une copie de la partie.
+  const sw=use==='rp'&&rp&&rp.type!==t&&inCity,old=U.dossier.old||'vendre';
+  const n=U.dur||(sw?dry(()=>{oldHome(old);return bestDur(t,'rp');}):bestDur(t,use));
+  const sim=sw?dry(()=>{oldHome(old);return {q:propQuote(t,n,'rp'),cash:Math.max(0,S.cash)+S.liv};}):null;
+  const q=sim?sim.q:propQuote(t,n,use),ix=S.idx[t],cash=sim?sim.cash:Math.max(0,S.cash)+S.liv;
+  const oix=rp&&S.idx[rp.type],oRent=sw&&old==='louer'?oix.rent*.9-oix.rent*.22-Math.max(0,oix.rent*.9-oix.rent*.22-(rp.loan?rp.loan.p*rp.loan.r:0))*(S.pol.irLoyer+psRate())-loanAnn(rp):0;
+  const oSale=sw?propSaleCalc(rp,propValue(rp)*.95,S.year).net:0;
+  const mb=use==='loc'&&!bur&&U.dossier.meuble;
+  const ch=ix.rent*(use==='rp'?.15:bur?.12:mb?.27:.22),vac=B.vac||.1,rentIn=use==='loc'?ix.rent*(1-vac)*(mb?1.15:1):0;
+  const tax=use==='loc'?(mb?.5*rentIn:Math.max(0,rentIn-ch-q.L*q.r))*(S.pol.irLoyer+psRate()):0;
+  const after=use==='rp'?yearlySave()+housingOut()-(q.ann+ch)+oRent:yearlySave()-q.ann-ch+rentIn-tax;
+  const why=ret?'À la retraite, la banque ne prête plus sur ces durées.':use==='rp'&&rp&&rp.type===t?'Tu y vis déjà.':use==='rp'&&!inCity?`Pour y vivre, il faudrait habiter ${CITIES[B.v].n}. Tu vis à ${CITIES[S.city].n}.`:cash<q.apport?`Il te manque ${fmt(q.apport-cash)} d’apport (compte courant + Livret A).`:q.eff>.35?`Taux d’effort de ${f1(q.eff*100)} % : au-delà de 35 %, la banque refuse.`:'';
   const r=(l,v,c='')=>`<tr class="${c}"><td>${l}</td><td class="n">${v}</td></tr>`;
   return `<div class="dossier" id="dossier"><div class="dm-head"><div class="dm-ico">${icon(bur?'immeuble':B.cap>=4?'maison':'immeuble',40)}</div><div><span class="lbl">Dossier de crédit</span><h2>${B.n}</h2></div>
       <button class="ghost sm close" data-act="dos-close" aria-label="Fermer le dossier">Fermer</button></div>
-    ${bur?'':`<div class="seg" role="group" aria-label="Usage"><button data-act="dos-use" data-u="rp" aria-pressed="${use==='rp'}">Pour y vivre</button><button data-act="dos-use" data-u="loc" aria-pressed="${use==='loc'}">Pour le louer</button></div>`}
+    ${bur?'':`<div class="btns"><div class="seg" role="group" aria-label="Usage"><button data-act="dos-use" data-u="rp" aria-pressed="${use==='rp'}">Pour y vivre</button><button data-act="dos-use" data-u="loc" aria-pressed="${use==='loc'}">Pour le louer</button></div>${use==='loc'?`<div class="seg" role="group" aria-label="Type de location"><button data-act="dos-meuble" data-m="0" aria-pressed="${!mb}">Vide</button><button data-act="dos-meuble" data-m="1" aria-pressed="${mb}">Meublé (${gl('LMNP')})</button></div>`:''}</div>`}
+    ${sw?`<div class="btns"><span class="small">${homeName()}, ton logement actuel :</span><div class="seg" role="group" aria-label="Ton logement actuel"><button data-act="dos-old" data-o="vendre" aria-pressed="${old==='vendre'}">Le vendre</button><button data-act="dos-old" data-o="louer" aria-pressed="${old==='louer'}">Le mettre en location</button></div>
+      <span class="small mut">${old==='vendre'?`Vente estimée : ${fmt(oSale)} net, ajoutés à ton apport.`:`Loué environ ${fmt(oix.rent/12)} par mois ; son crédit continue et compte pour la banque.`}</span></div>`:''}
     <div class="dgrid"><table><tbody>
       ${r('Prix',fmt(q.price))}${r('Frais de notaire (7,5 %)',fmt(q.frais))}${r(`Apport demandé (${pc0(q.ap)} + frais)`,fmt(q.apport),'strong')}
       ${r('Montant emprunté',fmt(q.L))}${q.z?r(`dont ${gl('PTZ','prêt à taux zéro')}`,fmt(q.z)):''}
       <tr><td>Durée</td><td class="n"><select id="dur" aria-label="Durée du crédit">${DURS.map(d=>`<option value="${d}" ${d===n?'selected':''}>${d} ans</option>`).join('')}</select></td></tr>
       ${r('Taux',rate(q.r*100))}${r('Mensualité',fmt(q.ann/12),'strong')}${r(use==='rp'?'Charges et taxe foncière':'Charges, taxe foncière, gestion',fmt(ch/12)+'/mois')}
-      ${use==='loc'?r(`Loyer attendu (${pc0(vac)} de vacance)`,fmt(rentIn/12)+'/mois')+r('Impôt sur les loyers',fmt(tax/12)+'/mois'):''}
+      ${use==='loc'?r(`Loyer attendu (${pc0(vac)} de vacance${mb?', meublé +15 %':''})`,fmt(rentIn/12)+'/mois')+r(mb?'Impôt (la moitié des loyers est imposée)':'Impôt sur les loyers',fmt(tax/12)+'/mois')+(mb?r('Mobilier, à l’achat',fmt(Math.round(5000*S.defl/10)*10)):''):''}
     </tbody></table>
     <div class="verdict ${why?'no':'yes'}"><span class="lbl">Réponse de la banque</span><b>${why?'Refusé':'Accordé'}</b><p>${why||`Taux d’effort de ${f1(q.eff*100)} %, sous la limite de 35 %.`}</p>
       <div class="kv"><span>${gl('Taux d’effort')}</span><span class="${q.eff>.35?'down':''}">${f1(q.eff*100)} %</span><span>Mis de côté chaque mois après l’achat</span><span class="${after<0?'down':''}">${after<0?'−':''}${fmt(Math.abs(after)/12)}</span>${use==='rp'?`<span>Louer le même bien</span><span>${fmt(ix.rent/12)}/mois</span>`:''}</div>
       <div class="btns"><button class="primary" data-act="dos-buy" data-m="credit" ${why?'disabled':''}>Acheter à crédit</button>
-      <button class="secondary" data-act="dos-buy" data-m="cash" ${ret||cash<q.cashNeed||(use==='rp'&&(rp||!inCity))?'disabled':''}>Comptant · ${fmt(q.cashNeed)}</button>
+      <button class="secondary" data-act="dos-buy" data-m="cash" ${ret||cash<q.cashNeed||(use==='rp'&&(!inCity||(rp&&old==='louer')))?'disabled':''}>Comptant · ${fmt(q.cashNeed)}</button>
       ${use==='rp'&&!bur&&inCity&&!rp&&S.home.type!==t?`<button class="ghost" data-act="home-rent" data-t="${t}">Le louer pour y vivre</button>`:''}</div>
       ${U.dosMsg?`<p class="${U.dosMsg.ok?'ok':'err'}">${U.dosMsg.t}</p>`:''}</div></div></div>`;
 }
@@ -2916,6 +2979,7 @@ function endView(){
     ${S.story&&S.story.given>0.5?`<p class="small mut">Donné à tes enfants de ton vivant : ${fmt(S.story.given)} en euros de ${Y0}, compté dans ton score.</p>`:''}
     <div class="sec-h"><h2>Ton journal de décisions</h2></div>
     <div class="journal">${S.log.map(l=>`<div><b>${l.y}</b><span><strong>${l.t}</strong><br><span class="mut">${l.r}</span></span></div>`).join('')}</div>
+    ${lbBlock()}
     ${warnBox()}
     <div class="btns"><button class="primary" data-act="replay">Rejouer</button></div></section></main>`;
 }
@@ -2923,11 +2987,12 @@ function endView(){
 function custDefaults(st){
   const s=SALAIRES[st.sal],c=CITIES[st.city],I=s.m*(st.couple?1.6:1),first=st.couple?c.t2:Object.keys(BIENS).find(k=>BIENS[k].k==='rp'&&BIENS[k].v===st.city&&BIENS[k].cap===1);
   const r10=v=>Math.round(v/10)*10,rent=r10(BIENS[first].rent/12),car=c.car?200:0,left=startSave({city:st.city,sal:st.sal,cap:st.cap,couple:st.couple})/12;
-  return {sal:s.m,salP:st.couple?r10(.6*s.m):0,rent,rooms:st.couple?2:1,dep:r10(I-left-rent-car),car,debt:0,debtN:0};
+  return {sal:s.m,salP:st.couple?r10(.6*s.m):0,rent,rooms:st.couple?2:1,dep:r10(I-left-rent-car),car,debt:0,debtN:0,cap:EPARGNES[st.cap].v};
 }
 function custErr(st){
   const c=st.cust,v=k=>+c[k]||0,min=st.couple?1350:900;
-  if(['sal','salP','rent','dep','car','debt','debtN'].some(k=>v(k)<0))return 'Les montants ne peuvent pas être négatifs.';
+  if(['sal','salP','rent','dep','car','debt','debtN','cap'].some(k=>v(k)<0))return 'Les montants ne peuvent pas être négatifs.';
+  if(v('cap')>10000000)return 'Ton épargne de départ est plafonnée à 10 millions d’euros.';
   if(v('sal')<500)return 'Indique ton salaire net : au moins 500 € par mois.';
   if(v('debt')>0&&!(v('debtN')>=1&&v('debtN')<=30))return 'Indique combien d’années il reste sur ton autre crédit (de 1 à 30).';
   if(v('dep')<min)return `Tes dépenses courantes ne descendent pas sous ${fmt(min)} par mois${st.couple?' à deux':''}.`;
@@ -2941,10 +3006,84 @@ function custFields(st){
     ${f('sal','Ton salaire net')}${st.couple?f('salP','Salaire net de ton conjoint'):''}
     <label class="cf"><span>Ton loyer<small>0 si tu es logé·e gratuitement</small></span><span class="cin"><input type="number" inputmode="numeric" min="0" step="10" data-cu="rent" value="${esc(c.rent??'')}"><em>€/mois</em>
       <select data-cu="rooms" aria-label="Taille du logement">${ROOMS.map(([n],i)=>`<option value="${i+1}" ${+c.rooms===i+1?'selected':''}>${n}</option>`).join('')}</select></span></label>
+    <label class="cf"><span>Ton épargne de départ<small>compte, livrets et placements</small></span><span class="cin"><input type="number" inputmode="numeric" min="0" step="1000" data-cu="cap" value="${esc(c.cap??'')}"><em>€</em></span></label>
     ${f('dep','Dépenses courantes','courses, transports, loisirs, abonnements')}${f('car','Voiture','assurance, entretien, essence ; 0 = pas de voiture')}
     <label class="cf"><span>Autre crédit<small>conso ou études, en cours</small></span><span class="cin"><input type="number" inputmode="numeric" min="0" step="10" data-cu="debt" value="${esc(c.debt??'')}"><em>€/mois</em>
       <input type="number" inputmode="numeric" min="0" max="30" step="1" data-cu="debtN" value="${esc(c.debtN??'')}" aria-label="Années restantes" class="yrs"><em>ans</em></span></label>
   </div>`;
+}
+// ----- classement entre amis (version officielle sur Claude, stockage partagé « db ») -----
+// Un document par joueur : scores/<id> (le sien) ; le propriétaire ajoute aussi les résultats que ses amis lui envoient (scores/a-…).
+// Champs : pseudo, score (meilleur), title, prof, seed, at ; dayDate, dayScore, dayTitle (meilleur score du monde du jour).
+const LB={state:'off',db:null,user:null,uid:null,canW:null,owner:false,rows:[],msg:'',tab:'all'};
+async function lbInit(){
+  if(LB.state!=='off')return;
+  if(typeof window==='undefined'||!window.claude||typeof window.claude.use!=='function'){LB.state='none';return;}
+  LB.state='load';
+  try{
+    const [db,user]=await Promise.all([window.claude.use('db'),window.claude.use('user')]);
+    if(!db){LB.state='none';render();return;}
+    LB.db=db;LB.user=user;LB.uid=user?await user.id():null;LB.canW=user?await user.can('data.write'):null;LB.owner=user?await user.isOwner():false;
+    const slow=setTimeout(()=>{if(LB.state==='load'){LB.state='slow';render();}},10000);
+    db.collection('scores').orderBy('score','desc').limit(200).onSnapshot(s=>{clearTimeout(slow);LB.rows=s.docs.map(d=>({id:d.id,...d.data()}));LB.state='ok';render();},()=>{clearTimeout(slow);LB.state='err';render();});
+  }catch(e){LB.state='none';}
+  render();
+}
+const today=()=>new Date().toISOString().slice(0,10);
+const lbMine=()=>LB.uid&&LB.rows.find(r=>r.id===LB.uid);
+const lbCanSend=()=>LB.state==='ok'&&LB.uid&&LB.canW!==false;
+async function lbSend(pseudo){
+  const fs=finalScore(),p=String(pseudo||'').trim().slice(0,24);if(!p){LB.msg='Choisis un pseudo.';return;}
+  const old=lbMine()||{},best=(old.score||0)>=fs.score?{score:old.score,title:old.title,prof:old.prof,seed:old.seed,at:old.at}:{score:fs.score,title:fs.title,prof:profLabel(),seed:S.wseed??null,at:today()};
+  const doc={pseudo:p,...best};
+  if(S.daily){const same=old.dayDate===S.daily;doc.dayDate=S.daily;doc.dayScore=same?Math.max(old.dayScore||0,fs.score):fs.score;doc.dayTitle=same&&(old.dayScore||0)>fs.score?old.dayTitle:fs.title;doc.daySeed=S.wseed;}
+  else if(old.dayDate){doc.dayDate=old.dayDate;doc.dayScore=old.dayScore;doc.dayTitle=old.dayTitle;doc.daySeed=old.daySeed??null;}
+  try{await LB.db.doc('scores/'+LB.uid).set(doc);S.lbSent=true;save();LB.msg='Ton score est au classement.';}
+  catch(e){LB.canW=false;LB.msg='Tu ne peux pas écrire dans ce classement : copie ton résultat et envoie-le à l’organisateur.';}
+  render();
+}
+// Le propriétaire colle le résultat copié par un ami (« Copier mon résultat ») pour l'ajouter.
+async function lbAdd(pseudo,txt){
+  const m=/·\s*([^·]+?)\s*·\s*score\s*([\d\s  ]+)/.exec(txt||''),p=String(pseudo||'').trim().slice(0,24);
+  if(!p||!m){LB.msg='Indique un pseudo et colle le résultat copié par ton ami (il contient « score »).';render();return;}
+  const score=+m[2].replace(/[\s  ]/g,''),parts=txt.split('·').map(x=>x.trim()),sd=/monde n° (\d+)/.exec(txt),daily=/monde du jour/.test(txt);
+  const doc={pseudo:p,score,title:m[1].trim(),prof:parts.length>4?parts[1]+' · '+parts[2]:parts[1]||'',seed:sd?+sd[1]:null,at:today(),added:true};
+  if(daily){doc.dayDate=today();doc.dayScore=score;doc.dayTitle=doc.title;doc.daySeed=doc.seed;}
+  try{await LB.db.collection('scores').doc('a-'+Date.now().toString(36)).set(doc);LB.msg=`Résultat de ${p} ajouté.`;}catch(e){LB.msg='Ajout refusé : seul le propriétaire du jeu peut ajouter les résultats des autres.';}
+  render();
+}
+function lbTable(){
+  if(LB.state==='none')return `<p class="mut">Le classement entre amis vit sur la version officielle du jeu : <a href="https://claude.ai/artifact/GpZGGZupMd8fPAfZKjrozN" target="_top" rel="noopener">ouvrir La Corbeille sur Claude</a>.</p>`;
+  if(LB.state==='load'||LB.state==='off')return '<p class="mut">Chargement du classement…</p>';
+  if(LB.state==='slow')return '<p class="mut">Le classement ne répond pas encore. Il s’affichera dès qu’il sera joignable.</p>';
+  if(LB.state==='err')return '<p class="mut">Le classement n’est pas disponible pour le moment.</p>';
+  const day=LB.tab==='day',d=today(),rows=(day?LB.rows.filter(r=>r.dayDate===d).map(r=>({...r,score:r.dayScore,title:r.dayTitle})):LB.rows.filter(r=>r.score!=null)).sort((a,b)=>b.score-a.score).slice(0,30);
+  const tabs=`<div class="seg" role="group" aria-label="Classement"><button data-act="lb-tab" data-t="all" aria-pressed="${!day}">Général</button><button data-act="lb-tab" data-t="day" aria-pressed="${day}">Monde du jour (n° ${seedTxt(daySeed(new Date()))})</button></div>`;
+  if(!rows.length)return tabs+`<p class="mut">${day?'Personne n’a encore inscrit de score sur le monde du jour.':'Personne n’a encore inscrit de score.'}</p>`;
+  return tabs+`<div class="tbl-wrap"><table class="lbt"><thead><tr><th class="n">#</th><th>Joueur</th><th class="n">Score</th><th>Titre</th><th>Profil</th></tr></thead><tbody>${rows.map((r,i)=>`<tr class="${r.id===LB.uid?'me':''}"><td class="n">${i+1}</td><td>${esc(r.pseudo||'Anonyme')}${r.id===LB.uid?' <small>(toi)</small>':''}</td><td class="n">${NF.format(r.score)}</td><td>${esc(r.title||'')}</td><td><small>${esc(r.prof||'')}</small></td></tr>`).join('')}</tbody></table></div>`;
+}
+// Le bloc de fin de partie : inscrire son score, ou l'envoyer à l'organisateur ; le propriétaire ajoute ceux de ses amis.
+function lbBlock(){
+  const send=LB.state==='ok'?(lbCanSend()&&!S.lbSent?`<div class="lbsend"><label for="lb-p" class="small">Ton pseudo</label><input id="lb-p" maxlength="24" value="${esc(U.pseudo??((lbMine()||{}).pseudo||''))}" data-lb="pseudo"><button class="primary" data-act="lb-send">Inscrire mon score</button></div>`
+      :S.lbSent?'':`<p class="small mut">Pour figurer au classement, copie ton résultat et envoie-le à l’organisateur du jeu : il l’ajoutera.</p>`):'';
+  const add=LB.state==='ok'&&LB.owner?`<details class="lbadd"><summary>Ajouter le résultat d’un ami</summary><div class="lbsend"><input data-lb="fp" placeholder="Pseudo" maxlength="24" value="${esc(U.fpseudo||'')}"><textarea data-lb="ft" placeholder="Colle ici le résultat copié par ton ami">${esc(U.ftxt||'')}</textarea><button class="secondary" data-act="lb-add">Ajouter au classement</button></div></details>`:'';
+  return `<div class="sec-h"><h2>Classement entre amis</h2></div>${send}${LB.msg?`<p class="ok">${esc(LB.msg)}</p>`:''}${lbTable()}${add}`;
+}
+function lbModal(){
+  return `<div class="overlay" id="lbm" role="dialog" aria-modal="true" aria-labelledby="lb-t"><div class="dmodal wide">
+    <div class="dm-head"><div class="dm-ico">${icon('hausse',44)}</div><div><span class="lbl">La Corbeille</span><h2 id="lb-t">Classement entre amis</h2></div><button class="ghost sm close" data-act="lb-close">Fermer</button></div>
+    <div class="dm-body">${lbTable()}<p class="small mut">Joue le « Monde du jour » pour te mesurer à tes amis sur le même monde. À la fin de la partie, inscris ton score ou envoie ton résultat à l’organisateur.</p></div></div></div>`;
+}
+// ----- sons : coupés par défaut, réglage gardé dans ce navigateur ; tout est synthétisé, aucun fichier -----
+function sfx(kind){
+  if(!U.sound||typeof window==='undefined')return;
+  try{const A=sfx.ctx||(sfx.ctx=new (window.AudioContext||window.webkitAudioContext)()),t=A.currentTime;
+    const tone=(f,st,d,type,g,f2)=>{const o=A.createOscillator(),v=A.createGain();o.type=type;o.frequency.setValueAtTime(f,t+st);if(f2)o.frequency.exponentialRampToValueAtTime(f2,t+st+d);
+      v.gain.setValueAtTime(0,t+st);v.gain.linearRampToValueAtTime(g,t+st+.02);v.gain.exponentialRampToValueAtTime(.0001,t+st+d);o.connect(v);v.connect(A.destination);o.start(t+st);o.stop(t+st+d+.05);};
+    if(kind==='bell'){tone(880,0,1.4,'sine',.09);tone(1320,0,.9,'sine',.035);tone(660,.18,1.2,'sine',.05);}
+    else if(kind==='krach'){tone(220,0,1.3,'sawtooth',.05,60);tone(110,.1,1.2,'sine',.08,50);}
+    else if(kind==='ach'){tone(660,0,.25,'triangle',.07);tone(990,.12,.4,'triangle',.07);}
+  }catch(e){}
 }
 // ----- glossaire : un mot souligné en pointillé s'explique au survol (ou au toucher) -----
 const GLOSS={
@@ -2996,14 +3135,15 @@ function introView(){
     <div class="build-main card">
       <div class="intro-h"><p class="kicker">1er janvier ${Y0} · tu as 25 ans</p><h2>Crée ton profil.</h2>
       <p class="mut small">Le monde est inventé à chaque partie : cycles, krachs, élections, révolutions technologiques. Chaque année, tu décides de ta vie et de ton argent, jusqu’à tes 75 ans.</p></div>
-      <fieldset><legend>Où vis-tu ?</legend><div class="opts3">${Object.entries(CITIES).map(([k,x])=>opt('city',k,x.n,x.d)).join('')}</div></fieldset>
-      <fieldset><legend>Ton salaire net par mois</legend><div class="chips">${SALAIRES.map((x,i)=>`<button class="pchip" data-act="set" data-k="sal" data-v="${i}" aria-pressed="${!st.custom&&st.sal===i}">${x.n}</button>`).join('')}<button class="pchip" data-act="custom" aria-pressed="${!!st.custom}">Mes chiffres</button></div>
-        ${cu?`${custFields(st)}${er?`<p class="err">${er}</p>`:''}`:`<p class="small mut">Tu mets de côté environ ${pc0(s.tx)} de ton salaire, et ta carrière progresse de ${f1(s.g[0]*100)} % par an en plus de l’inflation jusqu’à 45 ans. Ou choisis « Mes chiffres » pour saisir ton salaire, ton loyer et tes charges.</p>`}</fieldset>
-      <div class="two"><fieldset><legend>Ton épargne de départ</legend><div class="opts3 col">${EPARGNES.map((e,i)=>opt('cap',i,e.n,e.d)).join('')}</div></fieldset>
+      <fieldset><legend>Où vis-tu ?</legend><div class="opts3 cities">${Object.entries(CITIES).map(([k,x])=>opt('city',k,x.n,x.d)).join('')}</div></fieldset>
+      <div class="seg mode" role="group" aria-label="Type de profil"><button data-act="custom" data-v="0" aria-pressed="${!st.custom}">Profil type</button><button data-act="custom" data-v="1" aria-pressed="${!!st.custom}">Mes propres chiffres</button></div>
+      ${cu?`<fieldset><legend>Tes chiffres</legend>${custFields(st)}${er?`<p class="err">${er}</p>`:''}</fieldset>`:`<fieldset><legend>Ton salaire net par mois</legend><div class="chips">${SALAIRES.map((x,i)=>`<button class="pchip" data-act="set" data-k="sal" data-v="${i}" aria-pressed="${st.sal===i}">${x.n}</button>`).join('')}</div>
+        <p class="small mut">Tu mets de côté environ ${pc0(s.tx)} de ton salaire, et ta carrière progresse de ${f1(s.g[0]*100)} % par an en plus de l’inflation jusqu’à 45 ans.</p></fieldset>`}
+      <div class="two">${cu?'':`<fieldset><legend>Ton épargne de départ</legend><div class="opts3 col">${EPARGNES.map((e,i)=>opt('cap',i,e.n,e.d)).join('')}</div></fieldset>`}
       <fieldset><legend>Ta situation</legend><div class="opts3 col">${opt('couple',false,'Célibataire','Tu décides seul·e.')}${opt('couple',true,'En couple','Ton conjoint gagne 60 % de ton salaire.')}</div></fieldset></div>
     </div>
     <aside class="build-side card"><div class="who">${figure('me',1)}${st.couple?figure('partner',1):''}<div><b>Ton point de départ</b><small>${CITIES[st.city].n} · ${cu?`${fmt(+cu.sal||0)} par mois`:s.n}</small></div></div>
-      <div class="kv"><span>Revenus du foyer</span><span>${fmt(cu?(+cu.sal||0)+(st.couple?+cu.salP||0:0):s.m*(st.couple?1.6:1))}/mois</span><span>Épargne de départ</span><span>${fmt(EPARGNES[st.cap].v)}</span>
+      <div class="kv"><span>Revenus du foyer</span><span>${fmt(cu?(+cu.sal||0)+(st.couple?+cu.salP||0:0):s.m*(st.couple?1.6:1))}/mois</span><span>Épargne de départ</span><span>${fmt(cu&&cu.cap!==''&&cu.cap!=null?+cu.cap||0:EPARGNES[st.cap].v)}</span>
         <span>${cu?'Ton loyer':`Loyer d’un ${st.couple?'T2':'studio'}`}</span><span>${fmt(rentFirst/12)}/mois</span><span>Tu pourras mettre de côté</span><span class="${reste<100?'down':''}">${er?'—':`≈ ${fmt(reste)}/mois`}</span></div>
       <div class="level"><span class="lbl">Difficulté</span><b>${lv}</b><span class="dots" aria-hidden="true">${[.75,1.35,2.4,99].map((x,i)=>`<i class="${c>=([0,.75,1.35,2.4][i])?'on':''}"></i>`).join('')}</span><span class="small mut">score × ${String(c).replace('.',',')}</span></div>
       <fieldset><legend>Ton monde</legend><div class="chips"><button class="pchip" data-act="world" data-w="hasard" aria-pressed="${st.world==='hasard'}">Au hasard</button><button class="pchip" data-act="world" data-w="jour" aria-pressed="${st.world==='jour'}">Monde du jour</button>${st.seed!=null?`<button class="pchip" data-act="world" data-w="lien" aria-pressed="${st.world==='lien'}">Monde n° ${seedTxt(st.seed)}</button>`:''}</div>
@@ -3013,6 +3153,7 @@ function introView(){
       <button class="primary big" data-act="start" ${er?'disabled':''}>Commencer →</button>
       <p class="small mut">Un tour = une année. Rien n’est placé à ta place : c’est toi qui choisis où investir.</p>
       ${warnBox()}
+      <button class="secondary" data-act="lb-open">Voir le classement entre amis</button>
     </aside></section></main>`;
 }
 function animHtml(){
@@ -3044,7 +3185,7 @@ function stash(){try{const t=localStorage.getItem(KEY);if(t)localStorage.setItem
 // Garde le focus clavier au même endroit après un rendu (même bouton, même champ), et toujours dans la fenêtre ouverte.
 const sig=el=>el&&el.dataset?Object.keys(el.dataset).sort().map(k=>k+'='+el.dataset[k]).join('&')+'|'+(el.id||''):'';
 function restoreFocus(was){
-  const box=document.getElementById('rules')||document.querySelector('.anim')||document.querySelector('.overlay');
+  const box=document.getElementById('rules')||document.getElementById('lbm')||document.querySelector('.anim')||document.querySelector('.overlay');
   let el=null;
   if(was)el=[...document.querySelectorAll('button,input,select,textarea')].find(x=>sig(x)===was&&!x.closest('[inert]'));
   // Fenêtre qui s'ouvre : le focus va sur la fenêtre elle-même (pas sur un champ, pour ne pas ouvrir le clavier du téléphone).
@@ -3065,11 +3206,11 @@ function render(){
   }catch(e){if(!S)throw e;console.error(e);stash();U.broken=true;U.anim=null;body=brokenView();}
   if(U.broken)S=null;
   app.className='wrap'+(U.fx?' fx':'');
-  app.innerHTML=header()+body+(U.anim&&S?animHtml():'')+(U.rules?rulesModal():'');
+  app.innerHTML=header()+body+(U.anim&&S?animHtml():'')+(U.rules?rulesModal():U.lb?lbModal():'');
   restoreFocus(was);markMore();
   U.fx=false;
   if(!S)U.prevMoney=null;
-  else if(!U.anim){U.prevMoney=moneyVals();U.shownAch=[...new Set([...(U.shownAch||[]),...(S.achNew||[])])];animateCounters();}
+  else if(!U.anim){if((S.achNew||[]).some(id=>!(U.shownAch||[]).includes(id)))sfx('ach');U.prevMoney=moneyVals();U.shownAch=[...new Set([...(U.shownAch||[]),...(S.achNew||[])])];animateCounters();}
 }
 
 /* ===================== ÉVÉNEMENTS DOM ===================== */
@@ -3095,7 +3236,7 @@ function onClick(ev_){
       if(st.world==='jour')S.daily=new Date().toISOString().slice(0,10);
       if(S.cust){const o=homeOptions().find(x=>x.type==='perso');if(o)S.onbHome=o.n;}save();break;}
     case 'world':U.setup.world=t.dataset.w;break;
-    case 'custom':{const st=U.setup;st.custom=!st.custom;if(st.custom&&!st.cust)st.cust=custDefaults(st);break;}
+    case 'custom':{const st=U.setup;st.custom=t.dataset.v==='1';if(st.custom&&!st.cust)st.cust=custDefaults(st);break;}
     case 'set':{const st=U.setup,k=t.dataset.k,v=t.dataset.v;st[k]=k==='city'?v:k==='couple'?v==='true':+v;
       if(k==='sal')st.custom=false;
       if(st.cust&&k==='couple'){if(st[k]&&!(+st.cust.salP))st.cust.salP=Math.round(.6*(+st.cust.sal||0)/10)*10;if(st[k]&&+st.cust.dep<1350)st.cust.dep=1350;}break;}
@@ -3104,12 +3245,16 @@ function onClick(ev_){
     case 'icity':U.city=t.dataset.c;U.dossier=null;break;
     case 'dossier':U.dossier={t:t.dataset.t,use:BIENS[t.dataset.t].k==='bur'?'loc':'rp'};U.dur=null;U.fx=true;break;
     case 'dos-close':U.dossier=null;break;
+    case 'dos-old':if(U.dossier){U.dossier.old=t.dataset.o;U.dur=null;}break;
+    case 'dos-meuble':if(U.dossier)U.dossier.meuble=t.dataset.m==='1';break;
     case 'dos-use':if(U.dossier){U.dossier.use=t.dataset.u;U.dur=null;}break;
     case 'dos-buy':{const d=U.dossier;if(!d)break;const B=BIENS[d.t],use=B.k==='bur'?'loc':d.use,n=U.dur||bestDur(d.t,use),m=t.dataset.m;let er;
-      if(use==='rp'&&m==='credit')er=buyHome(d.t,n);
-      else{const q=propQuote(d.t,n,use),need=m==='cash'?q.cashNeed:q.apport,go=()=>{if(S.cash<need&&S.liv>0)livOut(Math.min(S.liv,need-S.cash));return buyProp(d.t,m,n,use);};er=dry(go);if(!er)go();}
+      const keep=use==='rp'&&rpOf()&&(d.old||'vendre')==='louer',oldN=keep?homeName():'';
+      if(use==='rp'&&m==='credit')er=keep?buyHomeKeep(d.t,U.dur||null):buyHome(d.t,n);
+      else if(use==='rp'&&m==='cash'&&rpOf()){const go=()=>{oldHome('vendre');const q=propQuote(d.t,n,'rp');if(S.cash<q.cashNeed&&S.liv>0)livOut(Math.min(S.liv,q.cashNeed-S.cash));return buyProp(d.t,'cash',n,'rp');};er=dry(go);if(!er)go();}
+      else{const mb=use==='loc'&&B.k!=='bur'&&d.meuble,q=propQuote(d.t,n,use),need=(m==='cash'?q.cashNeed:q.apport)+(mb?Math.round(5000*S.defl/10)*10:0),go=()=>{if(S.cash<need&&S.liv>0)livOut(Math.min(S.liv,need-S.cash));if(mb&&S.cash<need)return `Il faut ${fmt(need)} sur ton compte courant et ton Livret A, mobilier compris.`;return buyProp(d.t,m,n,use,mb);};er=dry(go);if(!er)go();}
       if(!er&&use==='rp')spend(moveCost(),true);
-      if(er)U.dosMsg={t:er};else{U.toast=use==='rp'?`${B.n} acheté : tu y emménages.`:`${B.n} acheté : il sera loué dès cette année.`;U.dossier=null;U.dosMsg=null;}save();break;}
+      if(er)U.dosMsg={t:er};else{U.toast=use==='rp'?`${B.n} acheté : tu y emménages${keep?`. ${oldN} est mis en location`:''}.`:`${B.n} acheté : il sera loué dès cette année.`;U.dossier=null;U.dosMsg=null;}save();break;}
     case 'onb-home':U.onbErr=onbHome(+t.dataset.i)||'';save();break;
     case 'onb-next':U.onbErr='';if(S.onb===2&&!S.onbHome){U.onbErr='Choisis d’abord où tu vas vivre.';break;}onbNext();U.fx=true;break;
     case 'achat':{const er=acheter(t.dataset.a);U.achErr=er||'';if(!er)U.toast=`${ACHATS[t.dataset.a].n} : c’est offert.`;break;}
@@ -3145,10 +3290,17 @@ function onClick(ev_){
     case 'end':U.open=null;U.msg={};U.deskErr='';U.evErr='';U.envMsg={};U.fresh={};U.dossier=null;U.fx=true;S.achNew=[];endTurn();if(S.phase==='bilan'&&canAnim()){U.anim={i:0};render();runAnim();return;}break;
     case 'next':{S.achNew=[];nextBilan();U.view='profil';U.dossier=null;U.fresh={};U.fx=true;U.evAmt='';U.evAsset=null;U.evEnv=null;
       const q=autoPass();U.quiet=q.length&&S.phase==='turn'?q:null;
+      sfx(S.phase==='turn'&&S.event&&EVT[S.event.id].crash?'krach':'bell');
       if(q.length&&canAnim()){U.animList=q;U.anim={i:0};render();runAnim();return;}break;}
     case 'quiet-ok':U.quiet=null;U.fx=true;break;
     case 'undo':break;
     case 'rules':U.rules=true;break;
+    case 'lb-open':U.lb=true;lbInit();break;
+    case 'lb-close':U.lb=false;break;
+    case 'lb-tab':LB.tab=t.dataset.t;break;
+    case 'lb-send':lbSend(U.pseudo??((lbMine()||{}).pseudo||''));break;
+    case 'lb-add':lbAdd(U.fpseudo,U.ftxt).then(()=>{U.fpseudo='';U.ftxt='';render();});break;
+    case 'sound':U.sound=!U.sound;if(S){S.sound=U.sound;save();}if(U.sound)sfx('bell');break;
     case 'rules-close':U.rules=false;break;
     case 'chap-ok':if(S.story){S.story.chap=chapOf(S.year)+1;save();}U.fx=true;break;
     case 'auto':S.autoPass=S.autoPass===false;save();break;
@@ -3162,6 +3314,7 @@ function onInput(e){
   const t=e.target;
   if(t.dataset.amt){const key=t.dataset.amt;U.amt[key]=t.value;const [en,id]=key.split(':');const sp=document.getElementById('tx-'+key);if(sp&&en==='cto'){const x=estTaxCto(id,+t.value||0);sp.textContent=x>0.5?`Impôt estimé sur ce montant : ${fmt(x)}.`:'';}}
   if(t.dataset.wd){const en=t.dataset.wd;U.wd[en]=t.value;const sp=document.getElementById('wdtax-'+en);if(sp){const c=wdCalc(en,+t.value||S.acc[en].cash);sp.textContent=c.amt>0?`Impôt estimé : ${fmt(c.tax)}`:'';}}
+  if(t.dataset.lb){const k=t.dataset.lb;if(k==='pseudo')U.pseudo=t.value;if(k==='fp')U.fpseudo=t.value;if(k==='ft')U.ftxt=t.value;}
   if(t.dataset.cu&&U.setup.cust){U.setup.cust[t.dataset.cu]=t.value;if(e.type==='change')render();}
   if(t.id==='ev-amt')U.evAmt=t.value;
   if(t.id==='dur'&&e.type==='change'){U.dur=+t.value;render();}
@@ -3174,6 +3327,7 @@ function migrate(o){
   if(!o)return o;
   for(const k in BIENS){if(!o.idx[k])o.idx[k]={price:BIENS[k].price*o.defl,rent:BIENS[k].rent*o.defl};if(o.drift&&o.drift['b_'+k]==null)o.drift['b_'+k]=0;}
   if(!o.city)o.city='lille';
+  for(const id in PX0)if(o.px&&o.px[id]==null){o.px[id]=PX0[id];(o.ph||(o.ph={}))[id]=[PX0[id]];} // nouveaux placements (SCPI, obligations d'entreprise)
   if(!o.p){const old={heritier:[2,2,1],ingenieure:[4,1,.66],infirmier:[1,1,2.3],fondatrice:[2,1,1.1]}[o.arch]||[2,2,1];o.p={city:o.city,sal:old[0],cap:old[1],couple:!!o.me.first};if(o.coef==null)o.coef=old[2];}
   if(!o.home){const rp=o.props.find(p=>BIENS[p.type]&&BIENS[p.type].k==='rp');o.home=rp?{type:rp.type,own:true,since:rp.buyYear}:{type:'t2rp',own:false,since:o.year};if(rp)o.flags.ownedRP=true;}
   if(o.me.car==null)o.me.car=true;
@@ -3192,13 +3346,14 @@ function boot(data){
   if(S&&!S.benchV){const f=net()-propNet();S.bench={liv:f,trk:f};S.yearProp=0;S.benchV=2;}
   if(S&&!S.moves)S.moves=[];
   if(!S)U.legacy=legacyGame();
+  U.sound=!!(S&&S.sound); // réglage rangé dans la partie : localStorage reste réservé à la sauvegarde
   try{const m=typeof location!=='undefined'&&/graine-(\d{1,6})/.exec(location.hash||'');if(m){U.setup.seed=+m[1];U.setup.world='lien';}}catch(e){}
   if(typeof document!=='undefined'){
     document.addEventListener('click',onClick);
     document.addEventListener('input',onInput);
     document.addEventListener('change',onInput);
     document.addEventListener('keydown',e=>{
-      if(e.key==='Escape'&&U.rules){U.rules=false;render();return;}
+      if(e.key==='Escape'&&(U.rules||U.lb)){U.rules=false;U.lb=false;render();return;}
       if(e.key==='Escape'&&U.dossier){U.dossier=null;render();return;}
       // Tab reste dans la fenêtre ouverte
       const box=e.key==='Tab'&&(document.getElementById('rules')||document.querySelector('.anim')||document.querySelector('.overlay'));if(!box)return;
@@ -3208,6 +3363,7 @@ function boot(data){
     document.addEventListener('scroll',e=>{const el=e.target;if(el&&el.classList&&el.classList.contains('more')!==(el.scrollHeight-el.scrollTop-el.clientHeight>4))el.classList.toggle('more');},true);
     window.addEventListener('resize',markMore);
     render();
+    lbInit();
   }
 }
 if(typeof document!=='undefined'){

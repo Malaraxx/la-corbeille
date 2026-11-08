@@ -1,5 +1,17 @@
 # Journal des versions
 
+## 3.9.0 — Plus de placements, deux villes, un classement (8 novembre 2026)
+- **Nouveaux placements** : SCPI (pierre-papier, loyers versés, 8 % de frais d'entrée) et obligations d'entreprise (rendement au-dessus de l'OAT, défauts en crise), au compte-titres et en assurance-vie.
+- **Location meublée (LMNP)** dans le dossier de crédit : loyer plus élevé, la moitié seulement des loyers imposée.
+- **IFI** au-delà de 1,3 million d'immobilier net, et **passoires thermiques** : le DPE oblige à faire des travaux pour continuer à louer.
+- **Bordeaux et Marseille** rejoignent Lille, Lyon et Paris.
+- **Classement entre amis** dans la version officielle : général et monde du jour. Inscris ton score en fin de partie, ou envoie ton résultat à l'organisateur qui l'ajoute.
+- **Profil** : deux modes au départ, « Profil type » ou « Mes propres chiffres », où l'épargne de départ se saisit aussi.
+- **Changer de résidence principale** : propriétaire d'un T2, tu peux acheter une maison et choisir de vendre le T2 ou de le mettre en location ; la banque compte alors son crédit et son loyer.
+- **Équilibrage** : la difficulté tient compte de l'héritage attendu des parents ; mariage et enfants un peu plus fréquents.
+- **Sons** optionnels (coupés par défaut) : cloche de nouvelle année, grondement de krach, carillon de succès.
+- Correction : en cas de découvert, les SCPI et obligations d'entreprise sont vendues d'office comme les autres placements (sinon le jeu concluait à tort à la faillite).
+
 ## 3.8.0 — Le monde du jour et plus de confort (8 novembre 2026)
 - **Monde du jour** : au départ, choisis « Monde du jour » et tout le monde joue le même monde aujourd'hui (mêmes cycles, krachs et élections, quels que soient tes choix). Ou partage le lien de ton monde (`#graine-123456`) pour défier un ami sur le même terrain. Le résultat copié contient le lien.
 - **Annuler le dernier ordre** de l'année (achat, vente, placement, achat immobilier…).

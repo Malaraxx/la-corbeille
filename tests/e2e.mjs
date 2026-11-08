@@ -129,8 +129,8 @@ for (const [name, viewport] of [['perso-desktop', { width: 1280, height: 720 }],
   pg.on('pageerror', e => errors.push(`${name} : ${e.message}`));
   await pg.goto(url);
   await pg.click('[data-act=set][data-k=couple][data-v=true]');
-  await pg.click('[data-act=custom]');
-  for (const [k, v] of [['sal', '2800'], ['salP', '2100'], ['rent', '1150'], ['dep', '2300'], ['car', '250'], ['debt', '180'], ['debtN', '3']]) { await pg.fill(`[data-cu=${k}]`, v); await pg.dispatchEvent(`[data-cu=${k}]`, 'change'); }
+  await pg.click('[data-act=custom][data-v="1"]');
+  for (const [k, v] of [['sal', '2800'], ['salP', '2100'], ['rent', '1150'], ['dep', '2300'], ['car', '250'], ['debt', '180'], ['debtN', '3'], ['cap', '60000']]) { await pg.fill(`[data-cu=${k}]`, v); await pg.dispatchEvent(`[data-cu=${k}]`, 'change'); }
   await pg.selectOption('[data-cu=rooms]', '3');
   await noScroll(pg, name, 'profil sur mesure');
   await pg.screenshot({ path: join(out, `${name}-0-profil.png`) });
@@ -142,6 +142,7 @@ for (const [name, viewport] of [['perso-desktop', { width: 1280, height: 720 }],
   await pg.click('[data-act=onb-next]');
   await decide(pg);
   const txt = await pg.evaluate(`document.querySelector('.budget').innerText`);
+  if (Math.round(await pg.evaluate('S.start')) !== 60000) errors.push(`${name} : épargne de départ saisie non reprise`);
   if (!/4\s?900/.test(txt) || !/1\s?150/.test(txt) || !/Autre crédit/.test(txt)) errors.push(`${name} : budget du mois sans la saisie (${txt.replace(/\s+/g, ' ')})`);
   await pg.screenshot({ path: join(out, `${name}-2-budget.png`) });
   // annuler le dernier ordre

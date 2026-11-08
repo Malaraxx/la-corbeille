@@ -13,7 +13,7 @@ La Corbeille est un simulateur de gestion de patrimoine **au tour par tour**, en
 - **Aucune histoire réelle.** Chaque partie génère **son propre monde** : cycles économiques, krachs, bulles, élections, vagues d'innovation. Tout obéit à des règles économiques réelles (les crises naissent des excès, la banque centrale réagit à l'inflation, une Bourse chère rapporte moins ensuite), mais rien n'est écrit d'avance. Connaître l'histoire ne donne aucun avantage.
 - **Un tour = une année.** Tout tient sur **un seul écran, sans défilement de la page** : une barre d'argent toujours visible (compte courant, Livret A, placements, immobilier, patrimoine), la navigation avec le bouton de fin d'année, puis **quatre onglets** en cartes : **Profil** (l'année, les décisions obligatoires, les conseils de Sophie, le foyer, le budget du mois), **Portefeuille** (liquidités et où investir), **Immobilier** (logement, catalogue par ville, dossier de crédit), **Patrimoine** (le résumé).
 - Les décisions obligatoires s'ouvrent **en fenêtre au début de l'année, une à la fois**, et bloquent tout le reste tant qu'elles ne sont pas prises. Environ deux années sur trois, **une Une** impose une **décision obligatoire** (krach, présidentielle, bulle, valeur en chute, lancement d'un fonds thématique, produit douteux…). Il y a parfois en plus **un dilemme de vie perso**, lui aussi obligatoire. Les années sans aucune décision passent d'affilée dans l'animation, puis une fenêtre les résume (interrupteur « Passer les années calmes », activé par défaut).
-- Au départ, le joueur **crée son profil** : ville (Lille, Lyon, Paris), fourchette de salaire **ou ses propres chiffres** (« Mes chiffres » : salaires, loyer et taille du logement, dépenses courantes, voiture, autre crédit), épargne de départ, célibataire ou en couple, deux objectifs. Puis il choisit son logement (louer, rester chez ses parents, colocation ou acheter, selon ses moyens, avec l'avis de Sophie). Rien n'est placé à sa place.
+- Au départ, le joueur **crée son profil** : ville (Lille, Lyon, Paris, Bordeaux, Marseille), fourchette de salaire **ou ses propres chiffres** (« Mes chiffres » : salaires, loyer et taille du logement, dépenses courantes, voiture, autre crédit), épargne de départ, célibataire ou en couple, deux objectifs. Puis il choisit son logement (louer, rester chez ses parents, colocation ou acheter, selon ses moyens, avec l'avis de Sophie). Rien n'est placé à sa place.
 - Le **budget est réel** : loyer ou mensualités, voiture, enfants, imprévus. Ce qui reste est épargné. Les achats « se faire du bien » (sorties, vacances, cadeau…) font monter l'humeur et le couple contre de l'argent. On passe à l'année suivante, l'**animation** fait défiler l'année, puis vient le **bilan**.
 - **Une histoire en cinq chapitres** (« Les débuts », « Bâtir », « Le milieu de la vie », « Préparer la suite », « Transmettre »), avec des personnages récurrents (Karim, ton meilleur ami, Kévin, Sophie, tes parents, ton conjoint, tes enfants) et des fils narratifs : chaque choix important revient des années plus tard en citant l'année et le montant.
 - **Fin de partie** : un titre (« Légende de la Corbeille »…), un score, une biographie en cinq paragraphes (un par chapitre), ce que sont devenus les tiens, les meilleurs et pires coups, les succès, le récap de chaque investissement avec son TRI, et le journal des décisions. Un bouton permet de copier son résultat pour défier ses amis.
@@ -143,7 +143,7 @@ story{seed, cast{ami{n,g}, mere{n,born,die,dead}, pere{…}, estate (euros de 20
 | 3 400 à 4 500 € | 3 900 € | 20 % | +2 % / +0,7 % |
 | 4 500 à 6 000 € | 5 200 € | 24 % | +2,4 % / +0,8 % |
 
-**Profil sur mesure** (`S.cust`, bouton « Mes chiffres », `custDefaults`, `custErr`, `custLeft`) : montants mensuels en euros de 2026. Les valeurs proposées redonnent l'épargne de la fourchette choisie. Saisie refusée si un montant est négatif, si le salaire est sous 500 €, si un autre crédit n'a pas de durée (1 à 30 ans), si les dépenses courantes sont sous le plancher (900 € seul, 1 350 € à deux) ou si les charges dépassent les revenus. Dans le jeu :
+**Deux modes de profil** : « Profil type » (fourchette de salaire et épargne de départ à choisir) ou « Mes propres chiffres ». **Profil sur mesure** (`S.cust`, bouton « Mes propres chiffres », épargne de départ `cap` saisie aussi, `custDefaults`, `custErr`, `custLeft`) : montants mensuels en euros de 2026. Les valeurs proposées redonnent l'épargne de la fourchette choisie. Saisie refusée si un montant est négatif, si le salaire est sous 500 €, si un autre crédit n'a pas de durée (1 à 30 ans), si les dépenses courantes sont sous le plancher (900 € seul, 1 350 € à deux) ou si les charges dépassent les revenus. Dans le jeu :
 - l'épargne de base devient revenus du foyer − dépenses courantes (indexées sur l'inflation, jamais sous le plancher), le moral jouant sur ce qui reste (`custSave`) ;
 - le conjoint de départ gagne ce qui a été saisi (`pRatio`), un nouveau conjoint 60 % de ton salaire ;
 - le logement de départ est `S.home.type = 'perso'` : ton loyer, indexé comme le T2 de ta ville (`persoRent`), et sa taille (`ROOMS` : studio 1, T2 2, T3 4, T4 5, maison 6 personnes). L'accueil le propose en premier (« Rester dans ton … actuel ») et le présélectionne ;
@@ -153,7 +153,7 @@ story{seed, cast{ami{n,g}, mere{n,born,die,dead}, pere{…}, estate (euros de 20
 
 Épargne de départ (`EPARGNES`) : presque rien (5 000 €), quelques économies (25 000 €), un héritage (120 000 €). En couple, le conjoint (prénom tiré dans `PARTNERS`) gagne 60 % de ton salaire. Humeur de départ 65, couple 60.
 
-La difficulté (`coefOf`) égalise les scores : potentiel = épargne de départ + 60 × ce que le profil peut mettre de côté par an au départ (`startSave`, même calcul que le jeu, compté à 60 % en couple : vie de famille plus chère et risque de divorce) ; coefficient = (536 000 / potentiel)^1,15, borné entre 0,2 et 5. Référence ×1 : 3 000 €/mois, 25 000 €, célibataire. De « Facile » (< 0,75) à « Très difficile » (≥ 2,4). Contrôle : `npm run balance` (rapport entre 0,75 et 1,33 pour les profils tout faits `PRESETS`).
+La difficulté (`coefOf`) égalise les scores : potentiel = épargne de départ + 100 000 € (l'héritage attendu des parents, le même pour tous) + 60 × ce que le profil peut mettre de côté par an au départ (`startSave`, même calcul que le jeu, compté à 60 % en couple : vie de famille plus chère et risque de divorce) ; coefficient = (636 000 / potentiel)^1,15, borné entre 0,2 et 5. Référence ×1 : 3 000 €/mois, 25 000 €, célibataire. De « Facile » (< 0,75) à « Très difficile » (≥ 2,4). Contrôle : `npm run balance` (rapport entre 0,75 et 1,33 pour les profils tout faits `PRESETS`).
 
 ### Objectifs de vie (`GOALS`, 2 au choix, bonus additifs)
 rp35 : résidence principale achetée au plus tard en 2036 (+20 %) · fire : plus de travail au plus tard en 2056 et jamais ruiné (+40 %) · million : ≥ 2,5 M€ en euros de 2026 en 2076 (+40 %) · famille : finir en couple avec au moins 2 enfants (+30 %) · serein : aucune vente panique, aucun burn-out, jamais une humeur sous 40 en fin d'année (+10 %) · rentier : deux biens locatifs en même temps (+25 %). Chaque objectif a une fonction `st(fin)` qui renvoie 1 (atteint), 0 (en cours) ou −1 (raté).
@@ -226,6 +226,7 @@ Les plafonds du PEA et du Livret A ne baissent jamais. La Une d'une présidentie
 - **PTZ** (`ptzOk`) : premier achat de résidence principale, revenus du foyer ≤ 60 000 € (en euros de 2026) ; 20 % du prix à 0 %, remboursé sur la même durée (`loan.z`), sans indemnité en cas de vente.
 - **Louer** (`canRent`) : revenus du foyer d'au moins 3 fois le loyer ; chez les parents avant 30 ans ; colocation pour un célibataire. Déménager coûte 1 500 € (`moveCost`). Vendre sa résidence principale fait redevenir locataire (`bestRental`).
 - **Villes** (`CITIES`) : le salaire est choisi au départ, la ville fixe le coût de la vie. Lille et Lyon (voiture utile), Paris (carrière +0,5 point par an avant 45 ans, pas de voiture, logement très cher). Un bien s'achète **pour y vivre** (`use:'rp'`, dans sa ville) ou **pour le louer** (`use:'loc'`, n'importe où) ; les bureaux se louent seulement. Bureaux dans chaque ville : Euralille (600 000 €, 7,5 % brut), Lyon Part-Dieu (500 000 €, 7 %), Paris (900 000 €, 6 %).
+- **Changer de résidence principale** : dans le dossier d'un logement de sa ville, quand on est déjà propriétaire, « Le vendre » (`buyHome`, la vente nette s'ajoute à l'apport) ou « Le mettre en location » (`buyHomeKeep`, `oldHome('louer')` : l'ancienne devient un bien locatif avec son crédit, compté par la banque avec 70 % de son loyer). Le dossier simule les deux sur une copie (`dry`). L'événement « logement » propose aussi « Acheter et louer l'actuel ».
 - **Revente** : 5 % de frais, indemnité de remboursement anticipé de 3 %. Renégociation du crédit possible si les taux baissent d'au moins 0,7 point (frais : 1 % du capital restant).
 
 ### Épargne, carrière, retraite
@@ -256,11 +257,28 @@ Les plafonds du PEA et du Livret A ne baissent jamais. La Une d'une présidentie
   - krach avec humeur < 35 → panique (vente de toutes les actions) ;
   - krach en couple → week-end (70 % des cas), qui bloque le portefeuille pour l'année ;
   - célibataire → rencontre (25 % par an, 45 % après une année de sorties).
-- **Famille** : chaque année, une chance propre de demande en mariage (30 %, en couple depuis assez longtemps) et d'enfant (35 %, marié·e, moins de 2 enfants, jusqu'à 42 ans), pour que les fils de l'histoire ne la fassent pas disparaître.
+- **Famille** : chaque année, une chance propre de demande en mariage (40 %, en couple depuis assez longtemps) et d'enfant (45 %, marié·e, moins de 2 enfants, jusqu'à 42 ans), pour que les fils de l'histoire ne la fassent pas disparaître.
 - **Autres dilemmes** : tirés dans environ 18 % des années restantes, au plus 2 fois chacun (5 pour les enfants, 1 pour le prêt à l'ami et la donation), avec un poids par chapitre (`CHW`) : carrière, rencontre et logement au début ; mariage et enfants ensuite ; scooter des ados (`ados`) et crise de couple (`criseCouple`, thérapie à 1 200 €) au milieu ; donation (`donation`, 50 000 ou 100 000 € par enfant de plus de 25 ans) à la fin. Un fil arrivé à échéance passe avant eux. Plafonds par partie : week-end pendant un krach 2, panne 2, voyage 2 (jamais deux fois la même destination, `DEST` selon le caractère du conjoint), rencontre jamais deux fois avec la même personne.
 
 ### Monde du jour (`S.wseed`, `S.wr`, `withWorld`, `daySeed`)
 Le monde (`genYear`, `makeThemes`, dérives `S.drift`) tire son hasard dans un flux à part, `S.wr`, issu de la graine du monde `S.wseed` (six chiffres) ; la vie et les événements utilisent `S.rng`. Deux parties avec la même graine vivent donc les mêmes cycles, krachs, élections et innovations, quels que soient les choix (test « Monde du jour »). Au départ : « Au hasard », « Monde du jour » (graine tirée de la date, `S.daily`) ou « Monde n° X » (lien `#graine-123456`). Le résultat partagé contient la graine et le lien. Une partie d'avant la 3.8 n'a pas de `S.wr` : elle garde un seul flux.
+
+### Nouveaux placements et immobilier (3.9)
+- **SCPI** (`scpi`, compte-titres et assurance-vie) : 8 % de frais d'entrée (la position vaut 92 % de la mise), 1 % de frais par an, rendement = 4,5 % de loyers + 60 % de la tendance des bureaux, −5 % en crise ; au compte-titres, les loyers sont imposés comme des revenus fonciers (impôt sur les loyers + prélèvements sociaux). Comptée dans l'immobilier de la répartition. Moyenne mesurée : 5,3 % par an avant frais.
+- **Obligations d'entreprise** (`corp`, compte-titres et assurance-vie) : OAT à 10 ans + 1,3 point (+1 en récession, +2 en crise), sensibilité aux taux de 4,5, défauts −3,5 % en récession et −11 % en crise. Moyenne mesurée : 4,3 % (OAT : 4,0 %).
+- **Location meublée (LMNP)** : choix « Vide / Meublé » dans le dossier d'un bien à louer (hors bureaux). Mobilier 5 000 € indexés à l'achat, loyer +15 %, charges 27 % du loyer, la moitié seulement des loyers imposée (micro-BIC) au lieu de loyers − charges − intérêts. `p.meuble`.
+- **IFI** (`ifiTax`) : immobilier net (résidence principale abattue de 30 %, crédits déduits) au-delà de 1,3 M€ indexés ; barème 0,5 % / 0,7 % / 1 % / 1,25 % / 1,5 % dès 800 000 € ; prélevé au bilan (`b.flows.ifi`).
+- **DPE** (`dpe`, au plus 2 par partie) : un bien loué devient passoire thermique. Travaux (8 % du prix, loyer +5 %), vente en l'état (−10 %) ou attente (pas de loyer l'an prochain).
+- **Villes** : Bordeaux (studio 150 000 €, T2 230 000 €, maison 400 000 €, bureaux Euratlantique 450 000 € à 7 %, sensibilité ×1,15) et Marseille (100 000 / 160 000 / 350 000 €, bureaux Euroméditerranée 400 000 € à 7,5 %, ×1,05).
+
+### Classement entre amis (version officielle, capacités `db` et `user`)
+- Collection `scores` : un document par joueur, `scores/<id>` (pseudo, meilleur `score`, `title`, `prof`, `seed`, `at`, et `dayDate`/`dayScore`/`dayTitle` pour le monde du jour). Règles : `{path:"scores",read:"view",write:"admin"}`, `{path:"scores/{self}",read:"view",write:"interact"}`.
+- Sur un compte personnel, les amis qui ouvrent le lien public lisent seulement : ils copient leur résultat et l'envoient au propriétaire, qui le colle dans « Ajouter le résultat d'un ami » (documents `scores/a-…`). Toute personne invitée en Contributeur inscrit elle-même son score en fin de partie.
+- `lbInit` (au démarrage et à l'ouverture), `lbTable` (onglets Général et Monde du jour), `lbBlock` (fin de partie), `lbModal` (bouton de l'écran de départ). Sans `window.claude.use` (GitHub Pages), un lien renvoie vers la version officielle.
+- À la republication sur Claude, déclarer `capabilities: {db:{rules:[…]},user:{}}`.
+
+### Sons
+Coupés par défaut, bouton haut-parleur dans la barre du haut. Synthétisés (WebAudio, aucun fichier) : cloche à chaque nouvelle année, grondement à l'ouverture d'un krach, carillon pour un succès. Réglage rangé dans la partie (`S.sound`), pas dans le navigateur.
 
 ### Confort
 - **Annuler le dernier ordre** : l'état d'avant chaque ordre du tour (achat, vente, retrait, placement, rééquilibrage, achat ou vente immobilière, déménagement, renégociation, achat plaisir) est gardé dans `U.undoS` ; le bouton « ↶ Annuler … » de la navigation le restaure. Effacé à la fin de l'année.
@@ -348,15 +366,15 @@ diamant (≥ 80 % d'actions et ≥ 100 000 € investis à la fin d'une année d
 
 | Mesure | Cible | Dernière valeur (graines 11 et 4242) |
 |---|---|---|
-| Passif PEA / repère ETF Monde sans frais | 0,85 – 1 | 0,93 |
-| Élève de Sophie (suit ses conseils et ses avis sur les événements) / passif à 60 % d'actions | ≥ ×1,0 | ×1,14 – ×1,19 |
-| Élève de Sophie / acheteur naïf de paniques **au même profil** (80 % d'actions) | ≥ ×1,15 (décision de Flo du 8 novembre 2026 : la cible ×1,3 n'était pas atteinte à profil égal) | ×1,01 – ×1,08 (**WARN**, mesure très bruitée sur 100 parties) |
-| Lecteur de fiches / acheteur naïf | ≥ ×1,15 | ×1,05 – ×1,14 (**WARN** depuis la 3.7 : moins de valeurs en chute, donc moins d'occasions de lire une fiche) |
-| Score du carriériste < score de l'équilibré | vrai | 1 544 < 2 746 |
-| 10e centile du patrimoine d'un joueur passif | > 0 | 876 – 879 k€ |
-| Score médian de chaque profil tout fait / héritier | 0,75 – 1,33 | 0,94 – 1,22 |
-| Objectifs visés : rp35 ≥ 80 %, famille ≥ 40 % (infirmier) et ≥ 25 % (héritier), fire 25 – 70 %, rentier ≥ 70 %, 2,5 millions 15 – 60 % | | 100 / 41-43 / 31-35 / 33-39 / 100 / 46-49 % |
-| Sophie ≥ 70 %, Kévin ≤ 60 % | | 80-81 / 58-59 % |
+| Passif PEA / repère ETF Monde sans frais | 0,85 – 1 | 0,92 – 0,93 |
+| Élève de Sophie (suit ses conseils et ses avis sur les événements) / passif à 60 % d'actions | ≥ ×1,0 | ×0,95 – ×1,21 (**WARN** sur une graine : mesure bruitée) |
+| Élève de Sophie / acheteur naïf de paniques **au même profil** (80 % d'actions) | ≥ ×1,15 (décision de Flo du 8 novembre 2026) | ×0,94 – ×1,10 (**WARN**, mesure bruitée sur 100 parties) |
+| Lecteur de fiches / acheteur naïf | ≥ ×1,15 | ×1,09 – ×1,38 (**WARN** sur une graine) |
+| Score du carriériste < score de l'équilibré | vrai | 1 644 < 3 038 |
+| 10e centile du patrimoine d'un joueur passif | > 0 | 784 – 1 105 k€ |
+| Score médian de chaque profil tout fait / héritier | 0,75 – 1,33 | 0,92 – 1,15 |
+| Objectifs visés : rp35 ≥ 80 %, famille ≥ 40 % (infirmier) et ≥ 25 % (héritier), fire 25 – 70 %, rentier ≥ 70 %, 2,5 millions 15 – 60 % | | 100 / 38-43 / 38-44 / 43-50 / 100 / 39-43 % |
+| Sophie ≥ 70 %, Kévin ≤ 60 % | | 79-81 / 58-59 % |
 
 Si tu modifies un paramètre de jeu, lance `npm run balance` avec deux graines différentes, corrige les WARN et mets à jour ce tableau.
 
@@ -417,16 +435,11 @@ Si tu modifies un paramètre de jeu, lance `npm run balance` avec deux graines d
 
 ## 10. Feuille de route (par priorité)
 
-1. **Classement entre amis** dans la version officielle, avec le stockage partagé des artifacts Claude (sans serveur). Chaque partie terminée enregistre le pseudo, le profil, le score, le titre, les objectifs et la date. Classement global et par profil. Sur GitHub Pages, afficher « le classement est sur la version officielle ».
-2. **Partie du jour** : le monde entier dépend de la graine. Une graine commune dérivée de la date (et une graine partageable via le hash d'URL, par exemple `#graine-123456`) donne à tout le monde les mêmes cycles, élections et événements. Le classement du jour vient en complément.
-3. **Mobile** : tutoriel la première année et glossaire au survol (PER, TRI, PEA, taux d'effort, PTZ, courbe inversée).
-4. **Rythme** : 51 tours, c'est long. Option « partie rapide » (un tour tous les deux ans) et passage automatique des années calmes.
-5. **Confort** : annuler le dernier ordre du tour, et un graphique de patrimoine annoté avec les phases du cycle, les élections et les krachs.
-6. **Contenu** :
-   - événements à conséquences différées : l'ami à qui on a prêté revient investisseur, Karim relance une boîte ;
-   - SCPI, LMNP, obligations d'entreprise, donation aux enfants et succession en fin de partie ;
-   - fiscalité du jeton numérique, IFI pour les gros patrimoines immobiliers ;
-   - immobilier : plus de villes, crise locale, travaux.
-7. **Ambiance** : sons optionnels (cloche d'ouverture, krach), activés par un bouton et coupés par défaut.
+Fait en 3.7-3.9 : histoire en chapitres et fils narratifs, années calmes enchaînées, classement entre amis (version officielle), monde du jour et graine partageable, premiers pas et glossaire, annulation du dernier ordre, graphique annoté, SCPI, LMNP, obligations d'entreprise, IFI, Bordeaux et Marseille, DPE, sons.
+
+1. **Classement ouvert à tous** : aujourd'hui, sur un compte personnel, les amis qui arrivent par le lien public ne peuvent qu'envoyer leur résultat au propriétaire. Passer par une organisation (plan Team) ou inviter chaque ami en Contributeur leur permettrait d'inscrire leur score eux-mêmes.
+2. **Contenu** : donation-partage et succession détaillée en fin de partie, fiscalité propre au jeton numérique, crise immobilière locale dans une ville.
+3. **Rythme** : passage optionnel de deux années à la fois pour les joueurs pressés (attention : le budget est annuel).
+4. **Mobile** : vérifier la saisie « Mes chiffres » et la fenêtre du classement sur petits téléphones.
 
 Pour chaque chantier : proposer d'abord un mini-plan à Flo (règles chiffrées, impact sur l'équilibrage), puis construire, tester et mettre à jour ce fichier.

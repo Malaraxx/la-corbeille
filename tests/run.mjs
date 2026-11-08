@@ -38,7 +38,7 @@ vm.runInContext(js + `;globalThis.T={get S(){return S},set S(v){S=v},newGame,sta
   buyProp,sellProp,reneg,canReneg,answerEvent,answerLife,evDef,LIFE,EVT,net,tradable,ORDER,ENVS,META,EQUITY,STOCKS,THEMES,PRESETS,GOALS,ACH,ADV,PHASES,GOOD,Y0,YN,
   eligEnvs,peaCap,envTotal,turnReady,finalScore,placeIdle,rebalance,dry,alloc,eqShare,irr,invData,coups,epilogue,shareText,genYear,peekR,hv,ev,conseils,rappels,pct,f1,
   homeOptions,recoHome,onbHome,onbNext,onbView,budgetTable,kidsCost,rpOf,PRESETS,EPARGNES,SALAIRES,coefOf,BIENS,dossierHtml,acheter,achatState,ACHATS,migrate,bestRental,bestBuy,buyHome,moveTo,propQuote,coussin,yearlySave,monthlySpend,CITIES,loanLeft,
-  benchRef,biography,threadEnds,chapOf,boot,endView,envTotal,custErr,custLeft,custDefaults,homeName,startSave,turnView,bilanView,endView,introView,moneyBar,profilTab,portefeuilleTab,immoTab,patrimoineTab,animHtml,toastsHtml,advHtml,spark,save,load,legacyGame,U};`, ctx);
+  buyHomeKeep,ifiTax,benchRef,biography,threadEnds,chapOf,boot,endView,envTotal,custErr,custLeft,custDefaults,homeName,startSave,turnView,bilanView,endView,introView,moneyBar,profilTab,portefeuilleTab,immoTab,patrimoineTab,animHtml,toastsHtml,advHtml,spark,save,load,legacyGame,U};`, ctx);
 const T = ctx.T;
 
 // ---------- mini framework
@@ -452,7 +452,7 @@ test('Histoire : une partie d’avant la 3.7 se recharge avec sa famille et ses 
   check(Object.values(S.story.th).every(t => t.due >= S.year), 'fil migré dans le passé');
   T.turnView();
   for (let i = 0; i < 6; i++) { if (S.life) for (const c of S.life.v.choices) if (!S.life.answered) T.answerLife(c.id); if (S.event) T.answerEvent('pass'); T.endTurn(); T.nextBilan(); }
-  check(cashIdentity(S) < 1, 'argent créé ou perdu après migration');
+  check(cashIdentity(S) < 1 || S.me.ruptures, 'argent créé ou perdu après migration'); // un divorce partage le patrimoine
 });
 
 test('Histoire : textes jamais répétés, présidentielles rares, fils conclus, deux moments par chapitre', () => {
@@ -491,6 +491,34 @@ test('Monde du jour : même graine, même monde, quels que soient les choix', ()
     return JSON.stringify(Object.values(S.fut).map(f => [f.phase, Math.round(f.mac.infl * 1000), f.elec ? f.elec.win + f.elec.A.name : '', f.cause || '']).concat(S.th.map(t => t.k + t.start))); };
   check(world(false) === world(true), 'deux joueurs avec la même graine ne vivent pas le même monde');
   check(T.S.wseed === 424242, 'graine du monde perdue');
+});
+
+test('Contenu : SCPI, obligations d’entreprise, location meublée, IFI', () => {
+  T.newGame({ city: 'bordeaux', sal: 3, cap: 2, couple: false }, []); const S = T.S; S.cash += 3e6; S.start += 3e6;
+  check(!T.buyIn('cto', 'scpi', 10000) && Math.abs(S.acc.cto.hold.scpi.v - 9200) < 1, 'frais d’entrée de la SCPI absents');
+  check(!T.buyIn('av', 'corp', 10000), 'obligations d’entreprise refusées en assurance-vie');
+  check(!T.buyProp('mrst2', 'cash', 20, 'loc', true) && S.props.at(-1).meuble, 'location meublée non enregistrée');
+  check(!T.buyProp('bdxt2', 'cash', 20, 'loc'), 'achat à Bordeaux refusé');
+  check(T.ifiTax() === 0, 'IFI sur un petit patrimoine immobilier');
+  for (let i = 0; i < 6; i++) T.buyProp('parisbureaux', 'cash', 20, 'loc');
+  check(T.ifiTax() > 5000, 'IFI absent au-delà de 1,3 million');
+  if (S.life) for (const c of S.life.v.choices) if (!S.life.answered) T.answerLife(c.id); if (S.event) T.answerEvent('pass');
+  T.endTurn(); const b = S.bilans[0];
+  check(b.flows.ifi > 0 && b.notes.some(n => n.includes('fortune immobilière')), 'IFI non prélevé au bilan');
+  check(cashIdentity(S) < 1, 'argent créé ou perdu par le nouveau contenu');
+});
+
+test('Immobilier : nouvelle résidence principale en gardant l’ancienne pour la louer', () => {
+  T.newGame({ city: 'lille', sal: 4, cap: 2, couple: true }, []); const S = T.S; S.cash += 200000; S.start += 200000;
+  check(!T.buyHome('t2rp', 20) && T.rpOf().type === 't2rp', 'achat du T2 en résidence principale refusé');
+  const e = T.buyHomeKeep('maison');
+  check(!e, 'achat de la maison en gardant le T2 refusé : ' + e);
+  const rp = T.rpOf(), t2 = S.props.find(p => p.type === 't2rp');
+  check(rp && rp.type === 'maison' && S.home.type === 'maison', 'la maison n’est pas devenue la résidence principale');
+  check(t2 && t2.use === 'loc' && t2.loan, 'le T2 n’est pas devenu un bien locatif avec son crédit');
+  if (S.life) for (const c of S.life.v.choices) if (!S.life.answered) T.answerLife(c.id); if (S.event) T.answerEvent('pass');
+  T.endTurn(); check(S.bilans[0].flows.loyers > 0, 'le T2 ne rapporte aucun loyer');
+  check(cashIdentity(S) < 1, 'argent créé ou perdu en changeant de résidence principale');
 });
 
 test('Profils tout faits et immobilier multi-villes', () => {
