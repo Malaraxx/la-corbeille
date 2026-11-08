@@ -38,7 +38,7 @@ vm.runInContext(js + `;globalThis.T={get S(){return S},set S(v){S=v},newGame,sta
   buyProp,sellProp,reneg,canReneg,answerEvent,answerLife,evDef,LIFE,EVT,net,tradable,ORDER,ENVS,META,EQUITY,STOCKS,THEMES,PRESETS,GOALS,ACH,ADV,PHASES,GOOD,Y0,YN,
   eligEnvs,peaCap,envTotal,turnReady,finalScore,placeIdle,rebalance,dry,alloc,eqShare,irr,invData,coups,epilogue,shareText,genYear,peekR,hv,ev,conseils,rappels,pct,f1,
   homeOptions,recoHome,onbHome,onbNext,onbView,budgetTable,kidsCost,rpOf,PRESETS,EPARGNES,SALAIRES,coefOf,BIENS,dossierHtml,acheter,achatState,ACHATS,migrate,bestRental,bestBuy,buyHome,moveTo,propQuote,coussin,yearlySave,monthlySpend,CITIES,loanLeft,
-  benchRef,envTotal,turnView,bilanView,endView,introView,moneyBar,profilTab,portefeuilleTab,immoTab,patrimoineTab,animHtml,toastsHtml,advHtml,spark,save,load,legacyGame,U};`, ctx);
+  benchRef,envTotal,custErr,custLeft,custDefaults,homeName,startSave,turnView,bilanView,endView,introView,moneyBar,profilTab,portefeuilleTab,immoTab,patrimoineTab,animHtml,toastsHtml,advHtml,spark,save,load,legacyGame,U};`, ctx);
 const T = ctx.T;
 
 // ---------- mini framework
@@ -275,7 +275,9 @@ test('Budget : ce qui est annoncé est ce qui arrive (locataire, propriétaire, 
   const num = x => +x.replace(/[\s  ]/g, '');
   let years = 0, worst = 0;
   for (let g = 0; g < (FULL ? 60 : 16); g++) {
-    T.newGame({ city: pickR(Object.keys(T.CITIES)), sal: Math.floor(R() * 5), cap: Math.floor(R() * 3), couple: R() < .5 }, []);
+    const sp = { city: pickR(Object.keys(T.CITIES)), sal: Math.floor(R() * 5), cap: Math.floor(R() * 3), couple: R() < .5 };
+    if (g % 2) { const c = T.custDefaults(sp); c.sal = Math.round(c.sal * (.7 + R() * .8)); c.rent = Math.round(c.rent * (.6 + R() * .8)); c.rooms = 1 + Math.floor(R() * 4); c.car = R() < .3 ? 0 : c.car; if (R() < .5) { c.debt = 150; c.debtN = 1 + Math.floor(R() * 8); } c.dep = Math.max(sp.couple ? 1350 : 900, Math.round(c.dep * .9)); if (T.custLeft(c, sp.couple) > 0) sp.cust = c; }
+    T.newGame(sp, []);
     while (T.S.phase !== 'end') { const S = T.S; if (S.phase !== 'turn') { T.nextBilan(); continue; }
       if (S.life) for (const c of S.life.v.choices) if (!S.life.answered) T.answerLife(c.id);
       if (S.event) T.answerEvent('pass');
@@ -291,6 +293,25 @@ test('Budget : ce qui est annoncé est ce qui arrive (locataire, propriétaire, 
     }
   }
   console.log(`    ${years} années · écart max ${worst.toFixed(2)} €`);
+});
+
+test('Profil sur mesure : saisie contrôlée, budget de départ fidèle, difficulté calculée', () => {
+  const st = { city: 'lyon', sal: 2, cap: 1, couple: true, goals: [] }, c = T.custDefaults(st); st.cust = c; st.custom = true;
+  check(!T.custErr(st), 'valeurs par défaut refusées : ' + T.custErr(st));
+  check(Math.abs(T.custLeft(c, true) * 12 - T.startSave({ city: 'lyon', sal: 2, cap: 1, couple: true })) < 300, 'les valeurs par défaut ne redonnent pas l’épargne de la fourchette');
+  check(T.custErr({ ...st, cust: { ...c, rent: 9000 } }).includes('dépassent'), 'budget dans le rouge accepté');
+  check(T.custErr({ ...st, cust: { ...c, debt: 200, debtN: 0 } }).includes('années'), 'crédit sans durée accepté');
+  check(T.custErr({ ...st, cust: { ...c, sal: 100 } }).includes('salaire'), 'salaire trop bas accepté');
+  const cu = { sal: 2800, salP: 2100, rent: 1150, rooms: 3, dep: 2300, car: 250, debt: 180, debtN: 3 };
+  T.newGame({ city: 'lyon', sal: 2, cap: 1, couple: true, cust: cu }, []);
+  const S = T.S, num = x => +x.replace(/[\s  ]/g, ''), rows = [...T.budgetTable().matchAll(/<td>([^<]+)(?:<small>[^<]*<\/small>)?<\/td><td class="n[^"]*">(−?)([\d\s  ]+) €<\/td>/g)].map(m => [m[1], (m[2] ? -1 : 1) * num(m[3])]);
+  const get = l => (rows.find(r => r[0].startsWith(l)) || [])[1];
+  check(get('Revenus du foyer') === 4900 && get('Dépenses courantes') === -2300 && get('Loyer') === -1150 && get('Voiture') === -250 && get('Autre crédit') === -180, 'budget du mois différent de la saisie : ' + JSON.stringify(rows));
+  check(T.homeName() === 'Ton T3 actuel' && S.home.type === 'perso', 'logement actuel non repris');
+  check(Math.abs(S.coef - T.coefOf({ city: 'lyon', sal: 2, cap: 1, couple: true, cust: cu })) < 1e-9 && S.coef !== T.coefOf({ city: 'lyon', sal: 2, cap: 1, couple: true }), 'difficulté non calculée sur la saisie');
+  for (let i = 0; i < 4; i++) { if (S.life) for (const ch of S.life.v.choices) if (!S.life.answered) T.answerLife(ch.id); if (S.event) T.answerEvent('pass'); T.endTurn(); T.nextBilan(); }
+  check(!T.budgetTable().includes('Autre crédit'), 'l’autre crédit court après son terme');
+  check(cashIdentity(S) < 1, 'argent créé ou perdu avec un profil sur mesure');
 });
 
 test('Se faire du bien : coût réel, effet sur le moral, effet émoussé', () => {

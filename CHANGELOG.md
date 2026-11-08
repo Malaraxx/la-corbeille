@@ -1,5 +1,10 @@
 # Journal des versions
 
+## 3.6.0 — Tes propres chiffres (8 novembre 2026)
+- **Profil sur mesure** : le bouton « Mes chiffres » permet de saisir ton salaire net, celui de ton conjoint, ton loyer et la taille de ton logement, tes dépenses courantes, ta voiture et un autre crédit (mensualité et années restantes). Les valeurs proposées partent de la fourchette choisie.
+- Le jeu les reprend tels quels : budget du mois, logement de départ (« Rester dans ton T3 actuel », présélectionné), voiture, crédit jusqu'à son terme (compté par la banque dans ton taux d'effort). Ensuite, loyer et dépenses suivent l'inflation, et le salaire progresse comme la fourchette la plus proche.
+- La difficulté est calculée sur tes chiffres : plus tu peux épargner, plus le coefficient de score baisse. Un budget dans le rouge empêche de commencer, avec le montant qui manque.
+
 ## 3.5.0 — Un score juste, des années qui filent (8 novembre 2026)
 - **Plus de « Légende » imméritée.** Le repère de fin de partie devient « ta vie et ton immobilier à l'identique, mais tes placements sur l'ETF Monde » (et la même chose sur le Livret A). Il paie les mêmes apports, mensualités et loyers que toi et n'est plus bloqué à zéro. Avant, chez un propriétaire, il pouvait tomber à zéro et sacrer « Légende » quelqu'un qui avait laissé son argent dormir cinquante ans. Un joueur qui n'a jamais rien placé, ou qui a été ruiné, ne peut plus être classé au-dessus d'« Épargnant équilibré ». Deux tests le vérifient. Les parties en cours voient leur repère recalé sur leurs placements du moment.
 - **Les années calmes passent toutes seules** : quand une année n'a aucune décision, elle défile dans l'animation jusqu'à la prochaine décision, puis une fenêtre résume chaque année passée. Interrupteur « Passer les années calmes » au bilan.

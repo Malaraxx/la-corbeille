@@ -13,7 +13,7 @@ La Corbeille est un simulateur de gestion de patrimoine **au tour par tour**, en
 - **Aucune histoire réelle.** Chaque partie génère **son propre monde** : cycles économiques, krachs, bulles, élections, vagues d'innovation. Tout obéit à des règles économiques réelles (les crises naissent des excès, la banque centrale réagit à l'inflation, une Bourse chère rapporte moins ensuite), mais rien n'est écrit d'avance. Connaître l'histoire ne donne aucun avantage.
 - **Un tour = une année.** Tout tient sur **un seul écran, sans défilement de la page** : une barre d'argent toujours visible (compte courant, Livret A, placements, immobilier, patrimoine), la navigation avec le bouton de fin d'année, puis **quatre onglets** en cartes : **Profil** (l'année, les décisions obligatoires, les conseils de Sophie, le foyer, le budget du mois), **Portefeuille** (liquidités et où investir), **Immobilier** (logement, catalogue par ville, dossier de crédit), **Patrimoine** (le résumé).
 - Les décisions obligatoires s'ouvrent **en fenêtre au début de l'année, une à la fois**, et bloquent tout le reste tant qu'elles ne sont pas prises. Environ deux années sur trois, **une Une** impose une **décision obligatoire** (krach, présidentielle, bulle, valeur en chute, lancement d'un fonds thématique, produit douteux…). Il y a parfois en plus **un dilemme de vie perso**, lui aussi obligatoire. Les années sans aucune décision passent d'affilée dans l'animation, puis une fenêtre les résume (interrupteur « Passer les années calmes », activé par défaut).
-- Au départ, le joueur **crée son profil** : ville (Lille, Lyon, Paris), fourchette de salaire, épargne de départ, célibataire ou en couple, deux objectifs. Puis il choisit son logement (louer, rester chez ses parents, colocation ou acheter, selon ses moyens, avec l'avis de Sophie). Rien n'est placé à sa place.
+- Au départ, le joueur **crée son profil** : ville (Lille, Lyon, Paris), fourchette de salaire **ou ses propres chiffres** (« Mes chiffres » : salaires, loyer et taille du logement, dépenses courantes, voiture, autre crédit), épargne de départ, célibataire ou en couple, deux objectifs. Puis il choisit son logement (louer, rester chez ses parents, colocation ou acheter, selon ses moyens, avec l'avis de Sophie). Rien n'est placé à sa place.
 - Le **budget est réel** : loyer ou mensualités, voiture, enfants, imprévus. Ce qui reste est épargné. Les achats « se faire du bien » (sorties, vacances, cadeau…) font monter l'humeur et le couple contre de l'argent. On passe à l'année suivante, l'**animation** fait défiler l'année, puis vient le **bilan**.
 - **Fin de partie** : un titre (« Légende de la Corbeille »…), un score, un épilogue narratif, les meilleurs et pires coups, les succès, le récap de chaque investissement avec son TRI, et le journal des décisions. Un bouton permet de copier son résultat pour défier ses amis.
 
@@ -116,13 +116,13 @@ th[3]{k,n,f,start,ok,dr,da,db}, drift{mkt, actions, b_ville}
 page{head{t,c},notes[{i,t}],imp{t,c,note}|null,spent}, shockEur (perte ou gain du choc de janvier)
 props[{uid,type (clé de BIENS),buyYear,cost,loan:{p,r,n,ann,z:{p,ann}|null}|null,rentMult,vacantUntil,noRent,mode,flows[]}]
 idx{bien:{price,rent}}
-city ('lille'|'lyon'|'paris'), home{type (clé de BIENS, 'parents' ou 'coloc'), own, since}, onb (étape de l'accueil ou null), onbAns[], onbHome, buyHist{achat:[années]}
+city ('lille'|'lyon'|'paris'), home{type (clé de BIENS, 'parents', 'coloc' ou 'perso'), own, since}, cust{sal,salP,partner,rent,rooms,dep,car,debt,debtN}|absent (profil sur mesure, p.custom = true), onb (étape de l'accueil ou null), onbAns[], onbHome, buyHist{achat:[années]}
 lossCarry, flags{rpYear,twoRent,struct,souvY,startup,lastPand,fireAsked,pretAmi,panicSold,lowMood,faillite…}, pending{année:{actif:%}}, jeton{name,alive,born}, avAb
 revenu, tauxEp, defl (indice des prix), bench{liv,trk} (placements des repères, sans l'immobilier), benchV:2, yearExt, yearProp, yearRuin, extTot, moves[{e,id,a,tax}] (ordres de janvier), autoPass
 hist[{x,net,liv,trk}], bilans[], event{id,p,answered,result,fiche?,adv?}|null, life{id,v,answered,result,name?}|null, nextY
 usedFut[], usedLife[], uid, log[{y,t,r}], turnShock, lock, well{sum,n}, profile
 lg{lines{clé:{env,id,label,first,lastSell,flows[{t,y,a}]}}, env{pea[],av[]}, props[]}
-me{humeur,relation,partner,first,exes[],marie,enfants,kids[{n,born}],ruptures,burnouts,retireYear,gap,besoin,pension,early,pension62,ruined,chomY,raise,car}
+me{humeur,relation,partner,first,exes[],marie,enfants,kids[{n,born}],ruptures,burnouts,retireYear,gap,besoin,pension,early,pension62,ruined,chomY,raise,car,newCar}
 ```
 
 **Tout nouveau champ de `S` exige une migration dans `boot()`.** Exemple : une partie d'avant la 3.5 n'a pas `benchV` ; ses repères sont recalés sur ses placements du moment. Les amis de Flo ont des parties en cours dans leur navigateur : on ne casse jamais une sauvegarde, et on ne change pas `KEY` sans migrer. Seule exception, décidée par Flo le 7 novembre 2026 : le passage à la version 3 (monde inventé) clôt les parties de la version 2 en affichant leur patrimoine, faute de pouvoir les convertir.
@@ -139,6 +139,14 @@ me{humeur,relation,partner,first,exes[],marie,enfants,kids[{n,born}],ruptures,bu
 | 2 600 à 3 400 € | 3 000 € | 16 % | +1,6 % / +0,6 % |
 | 3 400 à 4 500 € | 3 900 € | 20 % | +2 % / +0,7 % |
 | 4 500 à 6 000 € | 5 200 € | 24 % | +2,4 % / +0,8 % |
+
+**Profil sur mesure** (`S.cust`, bouton « Mes chiffres », `custDefaults`, `custErr`, `custLeft`) : montants mensuels en euros de 2026. Les valeurs proposées redonnent l'épargne de la fourchette choisie. Saisie refusée si un montant est négatif, si le salaire est sous 500 €, si un autre crédit n'a pas de durée (1 à 30 ans), si les dépenses courantes sont sous le plancher (900 € seul, 1 350 € à deux) ou si les charges dépassent les revenus. Dans le jeu :
+- l'épargne de base devient revenus du foyer − dépenses courantes (indexées sur l'inflation, jamais sous le plancher), le moral jouant sur ce qui reste (`custSave`) ;
+- le conjoint de départ gagne ce qui a été saisi (`pRatio`), un nouveau conjoint 60 % de ton salaire ;
+- le logement de départ est `S.home.type = 'perso'` : ton loyer, indexé comme le T2 de ta ville (`persoRent`), et sa taille (`ROOMS` : studio 1, T2 2, T3 4, T4 5, maison 6 personnes). L'accueil le propose en premier (« Rester dans ton … actuel ») et le présélectionne ;
+- la voiture coûte ce qui a été saisi, suivant le prix de l'essence (0 = pas de voiture ; une voiture neuve achetée ensuite coûte le prix standard) ;
+- l'autre crédit (`debtCost`) sort chaque année jusqu'à son terme et compte dans le taux d'effort de la banque ;
+- la progression de carrière est celle de la fourchette la plus proche (`nearSal`) ; la difficulté suit la formule ci-dessous avec ces chiffres (`startSave` = 12 × ce qui reste chaque mois).
 
 Épargne de départ (`EPARGNES`) : presque rien (5 000 €), quelques économies (25 000 €), un héritage (120 000 €). En couple, le conjoint (prénom tiré dans `PARTNERS`) gagne 60 % de ton salaire. Humeur de départ 65, couple 60.
 

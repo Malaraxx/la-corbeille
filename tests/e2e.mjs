@@ -113,6 +113,31 @@ async function modalFits(pg, name) {
   if (r && (r.top < -1 || r.bottom > r.h + 1)) errors.push(`${name} : la fenêtre dépasse de l’écran (${Math.round(r.top)} → ${Math.round(r.bottom)} pour ${r.h})`);
   if (r && !r.btn) errors.push(`${name} : le bouton de choix est caché`);
 }
+// Profil sur mesure : saisir son salaire, son loyer et ses charges, puis les retrouver dans le budget du mois.
+for (const [name, viewport] of [['perso-desktop', { width: 1280, height: 720 }], ['perso-mobile', { width: 390, height: 844 }]]) {
+  const ctx = await browser.newContext({ viewport, reducedMotion: 'reduce' });
+  const pg = await ctx.newPage();
+  pg.on('pageerror', e => errors.push(`${name} : ${e.message}`));
+  await pg.goto(url);
+  await pg.click('[data-act=set][data-k=couple][data-v=true]');
+  await pg.click('[data-act=custom]');
+  for (const [k, v] of [['sal', '2800'], ['salP', '2100'], ['rent', '1150'], ['dep', '2300'], ['car', '250'], ['debt', '180'], ['debtN', '3']]) { await pg.fill(`[data-cu=${k}]`, v); await pg.dispatchEvent(`[data-cu=${k}]`, 'change'); }
+  await pg.selectOption('[data-cu=rooms]', '3');
+  await noScroll(pg, name, 'profil sur mesure');
+  await pg.screenshot({ path: join(out, `${name}-0-profil.png`) });
+  await pg.fill('[data-cu=rent]', '9000'); await pg.dispatchEvent('[data-cu=rent]', 'change');
+  if (!(await pg.$('[data-act=start][disabled]'))) errors.push(`${name} : un budget dans le rouge laisse commencer`);
+  await pg.fill('[data-cu=rent]', '1150'); await pg.dispatchEvent('[data-cu=rent]', 'change');
+  await pg.click('[data-act=start]');
+  await pg.screenshot({ path: join(out, `${name}-1-logement.png`) });
+  await pg.click('[data-act=onb-next]');
+  await decide(pg);
+  const txt = await pg.evaluate(`document.querySelector('.budget').innerText`);
+  if (!/4\s?900/.test(txt) || !/1\s?150/.test(txt) || !/Autre crédit/.test(txt)) errors.push(`${name} : budget du mois sans la saisie (${txt.replace(/\s+/g, ' ')})`);
+  await pg.screenshot({ path: join(out, `${name}-2-budget.png`) });
+  console.log(`✓ ${name} : profil sur mesure saisi et repris dans le budget`);
+  await ctx.close();
+}
 for (const [name, viewport, colorScheme] of [['petit-1280x600', { width: 1280, height: 600 }, 'light'], ['petit-360x640', { width: 360, height: 640 }, 'dark']]) {
   const ctx = await browser.newContext({ viewport, colorScheme, reducedMotion: 'reduce' });
   const pg = await ctx.newPage();

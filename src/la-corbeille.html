@@ -62,7 +62,7 @@ button:focus-visible,input:focus-visible,select:focus-visible,summary:focus-visi
 .err{color:var(--down);font-size:13px}
 .ok{color:var(--muted);font-size:13px}
 .invest{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
-select,.invest input,.order input,.wd input{font:inherit;font-family:var(--f-mono);font-size:14px;background:var(--paper);color:var(--ink);border:1px solid var(--rule);border-radius:4px;padding:7px 9px;min-width:0}
+select,.invest input,.order input,.wd input,.cin input{font:inherit;font-family:var(--f-mono);font-size:14px;background:var(--paper);color:var(--ink);border:1px solid var(--rule);border-radius:4px;padding:7px 9px;min-width:0}
 .invest input,.order input,.wd input{width:140px}
 .minis{display:flex;gap:4px;flex-wrap:wrap}
 .mini{background:transparent;border:1px solid var(--rule);border-radius:4px;padding:3px 8px;font-size:12px;font-family:var(--f-mono)}
@@ -571,6 +571,16 @@ table.sheet td{padding:4px 6px}
 .autot[aria-pressed="true"] i{background:var(--accent)}
 .autot[aria-pressed="true"] i::after{left:14px}
 .broken{max-width:560px;margin:auto}
+.cust{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px 16px;margin-top:10px}
+.cf{display:flex;flex-direction:column;gap:4px;font-size:13.5px}
+.cf>span:first-child{font-weight:600}
+.cf small{display:block;font-weight:400;color:var(--muted);font-size:12px}
+.cin{display:flex;align-items:center;gap:6px}
+.cin input{width:104px;max-width:100%;padding:6px 8px}
+.cin select{padding:6px 8px}
+.cin input.yrs{width:56px}
+.cin em{font-style:normal;color:var(--muted);font-size:12.5px}
+@media (max-width:560px){.cust{grid-template-columns:minmax(0,1fr)}}
 @media (prefers-reduced-motion:no-preference){
   .fx .card,.fx .b-head{animation:pop .32s cubic-bezier(.2,.8,.3,1.2) both}
   .fx .card:nth-child(2){animation-delay:.04s}.fx .card:nth-child(3){animation-delay:.08s}.fx .card:nth-child(4){animation-delay:.12s}.fx .card:nth-child(5){animation-delay:.16s}.fx .card:nth-child(6){animation-delay:.2s}
@@ -679,9 +689,17 @@ const EPARGNES=[{n:'Presque rien',v:5000,d:'5 000 € sur ton compte'},{n:'Quelq
 const PARTNERS=['Léa','Camille','Hugo','Inès','Sacha','Nora','Jules','Alix'];
 // Profils tout faits (tests et parties rapides).
 const PRESETS={heritier:{city:'lille',sal:2,cap:2,couple:true},ingenieure:{city:'lille',sal:4,cap:1,couple:false},infirmier:{city:'lille',sal:1,cap:1,couple:true},fondatrice:{city:'lille',sal:2,cap:1,couple:false}};
+// Profil sur mesure (S.cust, montants mensuels en euros de 2026) : ton salaire, celui du conjoint, ton loyer et la taille
+// de ton logement, tes dépenses courantes, ta voiture, un autre crédit (mensualité et années restantes).
+const ROOMS=[['Studio',1],['T2',2],['T3',4],['T4',5],['Maison',6]]; // nombre de pièces → personnes logées
+// La fourchette de salaire la plus proche donne la progression de carrière.
+const nearSal=m=>SALAIRES.reduce((b,s,i)=>Math.abs(s.m-m)<Math.abs(SALAIRES[b].m-m)?i:b,0);
+// Ce qu'il reste chaque mois au départ, avec tes chiffres (même calcul que le jeu en 2026).
+const custLeft=(c,couple)=>(+c.sal||0)+(couple?+c.salP||0:0)-Math.max(+c.dep||0,couple?1350:900)-(+c.rent||0)-(+c.car||0)-((+c.debtN||0)>0?+c.debt||0:0);
 // Coefficient de score : plus le départ est facile (salaire, épargne, couple), plus il est bas. Référence (×1) : 3 000 €/mois, 25 000 € d’épargne, célibataire.
 // Ce qu'un profil peut mettre de côté par an au départ, en louant le logement adapté de sa ville (même calcul que le jeu).
 function startSave(pp){
+  if(pp.cust)return 12*custLeft(pp.cust,pp.couple);
   const s=SALAIRES[pp.sal],c=CITIES[pp.city]||CITIES.lille,I=s.m*12*(pp.couple?1.6:1),ref=BIENS.t2rp.rent+.5*(BIENS[c.t2].rent-BIENS.t2rp.rent),car=c.car?2400:0;
   const first=pp.couple?c.t2:Object.keys(BIENS).find(k=>BIENS[k].k==='rp'&&BIENS[k].v===(pp.city||'lille')&&BIENS[k].cap===1);
   return Math.min(I*(s.tx+(pp.couple?.06:0)),I-(pp.couple?1350:900)*12-ref-car)+ref-BIENS[first].rent;
@@ -692,7 +710,7 @@ const potential=pp=>EPARGNES[pp.cap].v+60*Math.max(600,startSave(pp)*(pp.couple?
 const coefOf=pp=>Math.round(clamp(Math.pow(536000/potential(pp),1.15),.2,5)*100)/100;
 const levelOf=c=>c<.75?'Facile':c<1.35?'Normale':c<2.4?'Difficile':'Très difficile';
 const prof=()=>{const pp=S.p||PRESETS.heritier,s=SALAIRES[pp.sal];return {...pp,rev:s.m*12,tx:s.tx,g:s.g};};
-const profLabel=()=>{const pp=prof();return `${CITIES[pp.city].n} · ${SALAIRES[pp.sal].n} par mois`;};
+const profLabel=()=>{const pp=prof();return `${CITIES[pp.city].n} · ${S&&S.cust?fmt(S.cust.sal):SALAIRES[pp.sal].n} par mois`;};
 const GOALS={
   rp35:{bonus:.2,n:'Propriétaire avant 35 ans',d:`Acheter ta résidence principale au plus tard en ${Y0+10}.`,st:end=>S.flags.rpYear!=null&&S.flags.rpYear<=Y0+10?1:(S.year>Y0+10||end)?-1:0},
   fire:{bonus:.4,n:'Libre à 55 ans',d:`Arrêter de travailler au plus tard en ${Y0+30}, sans jamais manquer d’argent.`,st:end=>S.me.ruined?-1:S.me.retireYear!=null&&S.me.retireYear<=Y0+30?(end?1:0):(S.year>Y0+30||end)?-1:0},
@@ -860,7 +878,9 @@ function newGame(spec,goals,guided){
   S.drift={mkt:gauss()*.01};for(const s of STOCKS)S.drift[s]=gauss()*.03;for(const k in BIENS)S.drift['b_'+k]=gauss()*.006;
   S.pol={ir:.128,ps:.172,peaCap:150000,livCap:22950,ageLegal:64,deficit:5,irLoyer:.30,spreadAdj:0,pres:{...newPres('centre'),since:Y0-4}};
   S.th=makeThemes();
-  S.home={type:bestRental(),own:false,since:Y0};
+  if(spec&&spec.cust){const c=spec.cust;S.cust={sal:+c.sal,salP:pp.couple?+c.salP||0:0,partner:S.me.partner,rent:+c.rent||0,rooms:clamp(+c.rooms||1,1,5),dep:+c.dep||0,car:+c.car||0,debt:+c.debt||0,debtN:+c.debtN>0&&+c.debt>0?Math.round(+c.debtN):0};
+    S.p.custom=true;S.p.sal=nearSal(S.cust.sal);S.revenu=S.cust.sal*12;S.me.car=S.cust.car>0;S.coef=coefOf({...pp,cust:S.cust});}
+  S.home=S.cust?{type:'perso',own:false,since:Y0}:{type:bestRental(),own:false,since:Y0};
   for(const id in PX0)S.ph[id]=[PX0[id]];
   startTurn(Y0);
 }
@@ -883,7 +903,7 @@ const retired=y=>S.me.retireYear!=null&&y>=S.me.retireYear;
 // Épargne de base du foyer, avant logement, voiture et enfants (le taux suppose un T2 loué et une voiture en province).
 // Les dépenses courantes (hors logement, voiture, enfants) ne descendent jamais sous 900 € par mois seul, 1 350 € à deux.
 const depMin=()=>(P()?1350:900)*12*S.defl;
-const epargneYear=()=>{if(retired(S.year)||S.me.chomY===S.year)return 0;const I=foyerRev();return Math.min(I*(S.tauxEp+coupleBonus())*humeurMult(),I-depMin()-refRent()-carRef());};
+const epargneYear=()=>{if(retired(S.year)||S.me.chomY===S.year)return 0;if(S.cust)return custSave()-refRent()-carRef();const I=foyerRev();return Math.min(I*(S.tauxEp+coupleBonus())*humeurMult(),I-depMin()-refRent()-carRef());};
 // Un enfant coûte 300 € par mois, allocations déduites, jusqu'à ses 22 ans.
 const KIDCOST=3600;
 const kidsCost=()=>(S.me.kids||[]).filter(k=>S.year-k.born<22).length*KIDCOST*S.defl;
@@ -891,18 +911,26 @@ const kidsCost=()=>(S.me.kids||[]).filter(k=>S.year-k.born<22).length*KIDCOST*S.
 // Le taux d'épargne du personnage suppose un T2 loué (loyer de référence) et une voiture en province.
 // Chaque année : revenus moins dépenses courantes = épargne de base + loyer de référence + voiture de référence,
 // puis on paie le vrai logement et la vraie voiture. Louer moins cher ou être propriétaire fait donc épargner plus.
-const foyerRev=()=>S.revenu*(P()?1.6:1); // revenus nets du foyer (le conjoint gagne 60 % de ton salaire)
+// Ton conjoint de départ gagne ce que tu as indiqué ; un nouveau conjoint, 60 % de ton salaire.
+const pRatio=()=>!P()?0:S.cust&&S.cust.partner===P()&&S.cust.sal>0?(S.cust.salP||0)/S.cust.sal:.6;
+// Profil sur mesure : revenus moins tes dépenses courantes (indexées sur l'inflation, jamais sous le plancher), le moral jouant sur ce qui reste.
+const custSave=()=>{const m=foyerRev()-Math.max(S.cust.dep*12*S.defl,depMin());return m>0?m*humeurMult():m;};
+// Autre crédit déclaré au départ : mensualité fixe jusqu'à son terme.
+const debtCost=()=>S.cust&&S.cust.debtN>0&&S.year<Y0+S.cust.debtN?S.cust.debt*12:0;
+const foyerRev=()=>S.revenu*(1+pRatio()); // revenus nets du foyer (le conjoint gagne 60 % de ton salaire)
 const cityOf=()=>CITIES[S.city]||CITIES.lille;
 const refRent=()=>{const a=S.idx.t2rp.rent,b=S.idx[cityOf().t2].rent;return a+.5*(b-a);};
 const COLOCS={lille:5400,lyon:6240,paris:9600}; // loyer annuel d'une chambre en colocation, en euros de 2026
 const colocCost=()=>(COLOCS[S.city]||5400)*S.defl;
-const homeCost=()=>{const h=S.home;if(!h||h.type==='parents')return 0;if(h.type==='coloc')return colocCost();return S.idx[h.type].rent;};
-const homeCap=()=>{const h=S.home;if(!h||h.type==='parents')return 9;if(h.type==='coloc')return 1;return BIENS[h.type].cap;};
-const homeName=()=>{const h=S.home;if(!h)return '';if(h.type==='parents')return 'Chez tes parents';if(h.type==='coloc')return 'En colocation';return BIENS[h.type].n;};
+const persoRent=()=>S.cust.rent*12*S.idx[cityOf().t2].rent/BIENS[cityOf().t2].rent; // ton loyer, indexé comme ceux de ta ville
+const persoRoom=()=>ROOMS[clamp((S.cust.rooms||1)-1,0,4)];
+const homeCost=()=>{const h=S.home;if(!h||h.type==='parents')return 0;if(h.type==='perso')return persoRent();if(h.type==='coloc')return colocCost();return S.idx[h.type].rent;};
+const homeCap=()=>{const h=S.home;if(!h||h.type==='parents')return 9;if(h.type==='perso')return persoRoom()[1];if(h.type==='coloc')return 1;return BIENS[h.type].cap;};
+const homeName=()=>{const h=S.home;if(!h)return '';if(h.type==='perso'){const r=persoRoom()[0];return r==='Maison'?'Ta maison actuelle':`Ton ${r==='Studio'?'studio':r} actuel`;}if(h.type==='parents')return 'Chez tes parents';if(h.type==='coloc')return 'En colocation';return BIENS[h.type].n;};
 const need=()=>1+(P()?1:0)+S.me.enfants;
 const litre=w=>1+.0115*w.oil*(1.16/w.fx); // prix du litre d'essence selon le baril et le dollar
 const carBase=()=>(1800+600*litre(S.w)/1.75)*S.defl; // assurance, entretien, essence
-const carCost=()=>S.me.car?carBase():0;
+const carCost=()=>!S.me.car?0:S.cust&&S.cust.car>0&&!S.me.newCar?S.cust.car*12*S.defl*litre(S.w)/litre(W0):carBase();
 const carRef=()=>cityOf().car?carBase():0;
 const rpOf=()=>S.props.find(isRP);
 // Ce que coûte vraiment le logement chaque année : loyer, ou mensualités + charges pour un propriétaire.
@@ -911,8 +939,8 @@ const housingOut=()=>{const rp=rpOf();if(rp)return S.idx[rp.type].rent*.15+loanA
 // Ce qu'un retraité puise cette année, en anticipant le premier départ et l'arrivée de la pension après une retraite anticipée.
 const besoinYear=()=>{if(!retired(S.year))return 0;let b=S.me.pension?S.me.besoin:S.revenu*S.me.gap;if(S.me.early&&age(S.year)>=S.pol.ageLegal&&!S.me.pension62)b*=.5;return b;};
 const pensionYear=()=>S.me.pension?S.revenu:S.revenu*.6;
-const yearlySave=()=>{const base=retired(S.year)?-besoinYear():epargneYear();return base+refRent()+carRef()-housingOut()-carCost()-kidsCost();};
-const monthlySpend=()=>Math.max(500*S.defl,(retired(S.year)?pensionYear()+besoinYear():foyerRev()-epargneYear())/12-(refRent()+carRef())/12+(housingOut()+carCost()+kidsCost())/12);
+const yearlySave=()=>{const base=retired(S.year)?-besoinYear():epargneYear();return base+refRent()+carRef()-housingOut()-carCost()-kidsCost()-debtCost();};
+const monthlySpend=()=>Math.max(500*S.defl,(retired(S.year)?pensionYear()+besoinYear():foyerRev()-epargneYear())/12-(refRent()+carRef())/12+(housingOut()+carCost()+kidsCost()+debtCost())/12);
 const coussin=()=>(Math.max(0,S.cash)+S.liv)/monthlySpend();
 function mood(dh,dr){S.me.humeur=clamp(S.me.humeur+(dh||0),0,100);if(P())S.me.relation=clamp(S.me.relation+(dr||0),0,100);}
 function unlock(id){if(!S.ach)S.ach={};if(S.ach[id]||!ACHM[id])return;S.ach[id]=S.clk?S.clk.y:S.year;(S.achNew||(S.achNew=[])).push(id);}
@@ -1066,7 +1094,7 @@ function payLoan(p){
   return {ann,it};
 }
 function effort(extraAnn,extraRent){
-  const ann=S.props.reduce((a,p)=>a+loanAnn(p),0)+extraAnn;
+  const ann=S.props.reduce((a,p)=>a+loanAnn(p),0)+extraAnn+debtCost();
   const rents=S.props.filter(p=>!isRP(p)).reduce((a,p)=>a+S.idx[p.type].rent*p.rentMult,0)+extraRent;
   return ann/(foyerRev()+0.7*rents);
 }
@@ -1132,7 +1160,7 @@ function reneg(uid){
 // ----- se loger -----
 const cityRP=()=>Object.keys(BIENS).filter(k=>BIENS[k].k==='rp'&&BIENS[k].v===(S.city||'lille'));
 // Un propriétaire bailleur demande des revenus d'au moins trois fois le loyer.
-const canRent=type=>type==='parents'?age(S.year)<30:type==='coloc'?!P():foyerRev()>=3*S.idx[type].rent;
+const canRent=type=>type==='perso'?!!S.cust:type==='parents'?age(S.year)<30:type==='coloc'?!P():foyerRev()>=3*S.idx[type].rent;
 function bestRental(){
   const c=cityRP().filter(canRent).sort((a,b)=>S.idx[a].rent-S.idx[b].rent);
   return c.find(k=>BIENS[k].cap>=need())||c[c.length-1]||(P()?cityOf().t2:'coloc');
@@ -1707,7 +1735,7 @@ function acheter(id){
   if(!s.ok)return `Il te faut ${fmt(s.c)} sur ton compte courant ou ton Livret A.`;
   if(S.cash<s.c)livOut(s.c-S.cash);
   ext(-s.c);const A=ACHATS[id];mood(A.h*s.f,A.r*s.f);
-  if(id==='voiture')S.me.car=true;
+  if(id==='voiture'){S.me.car=true;S.me.newCar=true;}
   if(id==='sorties'&&!P())S.flags.rencBoost=S.year;
   (S.buyHist||(S.buyHist={}))[id]=((S.buyHist[id])||[]).concat([S.year]);
   if(S.page)S.page.spent=(S.page.spent||0)+s.c;
@@ -1715,8 +1743,9 @@ function acheter(id){
 }
 // ----- accueil : les 5 étapes du premier janvier -----
 function homeOptions(){
-  const out=[],ep=epargneYear()+refRent()+carRef()-carCost(),cash=Math.max(0,S.cash)+S.liv;
+  const out=[],ep=epargneYear()+refRent()+carRef()-carCost()-kidsCost()-debtCost(),cash=Math.max(0,S.cash)+S.liv;
   const add=o=>{o.reste=(ep-o.cost)/12;if(o.ok&&!o.warn&&o.reste<0)o.warn='Ton budget serait dans le rouge chaque mois.';out.push(o);};
+  if(S.cust)add({kind:'rent',type:'perso',n:`Rester dans ${homeName().replace(/^T/,'t')}`,d:'Ton loyer actuel.',cost:persoRent(),ok:true,warn:homeCap()<need()?'Trop petit pour vous.':''});
   if(age(S.year)<30)add({kind:'rent',type:'parents',n:P()?`Chez les parents de ${P()}`:'Rester chez tes parents',d:'Le temps de mettre de côté.',cost:0,ok:true,warn:P()?'Le couple en souffre chaque année.':'Ton humeur en pâtit un peu.'});
   if(!P())add({kind:'rent',type:'coloc',n:'Colocation',d:'Une chambre, une cuisine partagée.',cost:colocCost(),ok:true});
   for(const t of cityRP()){const B=BIENS[t],small=B.cap<need();
@@ -1741,7 +1770,7 @@ function sophieHome(o){
   if(o.kind==='buy')return `« Avec ${fmt(o.q.apport)} d’apport${o.q.z?' et un prêt à taux zéro':''}, acheter te coûte ${fmt(o.cost/12)} par mois, charges comprises. Chaque mensualité t’enrichit. Garde quand même ${fmt(Math.max(0,o.left))} de côté pour les coups durs. »`;
   if(o.type==='parents')return `« Un an ou deux chez les parents, et tu mets ${fmt(o.reste)} de côté chaque mois. De quoi constituer vite un apport. Mais ne t’y éternise pas. »`;
   const b=bestBuy(),cash=Math.max(0,S.cash)+S.liv,save=Math.max(1,o.reste*12);
-  if(b&&b.ok){const left=cash-b.q.apport,sp=monthlySpend(),br=(epargneYear()+refRent()+carRef()-carCost()-S.idx[b.type].rent*.15-b.q.ann)/12;
+  if(b&&b.ok){const left=cash-b.q.apport,sp=monthlySpend(),br=(epargneYear()+refRent()+carRef()-carCost()-kidsCost()-debtCost()-S.idx[b.type].rent*.15-b.q.ann)/12;
     if(left<3*sp)return `« Tu pourrais déjà acheter ${un(b.type)}, mais il ne te resterait que ${fmt(Math.max(0,left))} pour les coups durs. Loue d’abord : avec ${fmt(o.reste)} de côté par mois, ton coussin sera prêt en ${Math.max(1,Math.ceil((3*sp-Math.max(0,left))/Math.max(1,o.reste)))} mois. »`;
     return `« Tu pourrais acheter ${un(b.type)}, mais il ne te resterait que ${fmt(br)} par mois une fois le crédit payé : trop juste. Louer te laisse ${fmt(o.reste)} par mois pour épargner. »`;}
   const gap=b?Math.max(0,b.q.apport-cash):0,yrs=Math.ceil(gap/save);
@@ -1906,7 +1935,7 @@ function simulateYear(y){
   if(st&&y===st.end)convertSpecial('struct',b,'Le Fonds Rendement Sérénité arrive à échéance');
   if(y===S.flags.souvY)convertSpecial('souv',b,r.souv<0?'Méridia restructure sa dette, ton remboursement':'L’Europe sauve Méridia, ton remboursement');
   if(S.flags.startup&&y===S.flags.startup.end){const g=r.startup,n=S.flags.startup.name;if(g>5&&hv('startup')>0)unlock('angel');convertSpecial('startup',b,g>5?`${n} est rachetée par un géant américain`:g>0?`${n} est revendue`:`${n} fait faillite`);}
-  const ref=refRent(),cref=carRef(),hc=homeCost(),cc=carCost(),kc=kidsCost(),ep0=epargneYear();let rpFlow=0; // tout le budget est calculé avec les prix du début d'année // budget calculé avec les loyers de l'année
+  const ref=refRent(),cref=carRef(),hc=homeCost(),cc=carCost(),kc=kidsCost(),dc=debtCost(),ep0=epargneYear();let rpFlow=0; // tout le budget est calculé avec les prix du début d'année // budget calculé avec les loyers de l'année
   for(const p of S.props){
     const B=BIENS[p.type],ix=S.idx[p.type];let months=12;
     if(isRP(p)){
@@ -1941,8 +1970,8 @@ function simulateYear(y){
     ext(ep+ref+cref);b.flows.epargne=ep+ref+cref;
     if(humeurMult()<1&&ep>0)b.notes.push('Moral en berne : dépenses compulsives, ton épargne de l’année baisse de 30 %.');
   }
-  ext(-hc);b.flows.logement=-hc;if(cc){ext(-cc);b.flows.voiture=-cc;}if(kc){ext(-kc);b.flows.enfants=-kc;}
-  b.save=b.flows.epargne+b.flows.retraite+b.flows.logement+b.flows.voiture+b.flows.enfants+rpFlow;
+  ext(-hc);b.flows.logement=-hc;if(cc){ext(-cc);b.flows.voiture=-cc;}if(kc){ext(-kc);b.flows.enfants=-kc;}if(dc){ext(-dc);b.flows.autres=-dc;if(y===Y0+S.cust.debtN-1)b.notes.push('Dernière mensualité de mon autre crédit : ça fait du bien.');}
+  b.save=b.flows.epargne+b.flows.retraite+b.flows.logement+b.flows.voiture+b.flows.enfants+(b.flows.autres||0)+rpFlow;
   // Affichage : un propriétaire ne paie pas de loyer. La valeur locative (débitée côté vie, recréditée côté bien pour le TRI) s'annule, on ne la montre pas.
   if(b.flows.rp>0){b.flows.logement+=b.flows.rp;b.flows.rp=0;}
   if(S.page){b.flows.plaisir=-(S.page.spent||0);b.flows.imprevu=-(S.page.imp?S.page.imp.c:0);}
@@ -2027,7 +2056,7 @@ function legacyGame(){
 function dropLegacy(){try{localStorage.removeItem(OLDKEY);}catch(e){}}
 
 /* ===================== INTERFACE ===================== */
-const U={setup:{city:'lille',sal:2,cap:1,couple:false,goals:['rp35','serein']},view:'profil',city:null,dossier:null,dosMsg:null,anim:null,animTok:0,copied:null,plan:null,allocMsg:null,tab:'pea',open:null,msg:{},amt:{},wd:{},evAmt:'',evAsset:null,evEnv:null,evErr:'',confirmReset:false,confirmSell:null,confirmClose:false,deskErr:'',envMsg:{},legacy:null,dur:null,lifeErr:'',achErr:'',homeMsg:null,onbErr:'',fresh:{},quiet:null,animList:null,broken:false,prevMoney:null,shownAch:[],toast:null,fx:true};
+const U={setup:{city:'lille',sal:2,cap:1,couple:false,goals:['rp35','serein'],custom:false,cust:null},view:'profil',city:null,dossier:null,dosMsg:null,anim:null,animTok:0,copied:null,plan:null,allocMsg:null,tab:'pea',open:null,msg:{},amt:{},wd:{},evAmt:'',evAsset:null,evEnv:null,evErr:'',confirmReset:false,confirmSell:null,confirmClose:false,deskErr:'',envMsg:{},legacy:null,dur:null,lifeErr:'',achErr:'',homeMsg:null,onbErr:'',fresh:{},quiet:null,animList:null,broken:false,prevMoney:null,shownAch:[],toast:null,fx:true};
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const TICKS=[Y0,Y0+10,Y0+20,Y0+30,Y0+40,YN];
 
@@ -2158,6 +2187,7 @@ function budgetTable(){
     ${r(rp?'Crédit et charges':'Loyer',-hs,homeName())}
     ${car?r('Voiture',-car,''):''}
     ${kc?r(nk>1?`Enfants (${nk})`:'Enfant',-kc,'300 €/mois chacun'):''}
+    ${debtCost()?r('Autre crédit',-debtCost(),`jusqu’en ${Y0+S.cust.debtN-1}`):''}
     <tr class="tot"><td>${sv>=0?'Mis de côté':'Puisé dans ton épargne'}</td><td class="n ${sv<0?'down':'up'}">${sv<0?'−':''}${fmt(Math.abs(sv)/12)}</td></tr></tbody></table>
     <div class="cushion"><span>Épargne de sécurité</span>${bar(Math.min(100,cs/6*100),cs<3?'low':'')}<b class="${cs<3?'warn':''}">${f1(Math.min(cs,99))} mois</b></div>`;
 }
@@ -2449,7 +2479,7 @@ function bilanView(){
   const lines=b.lines.map(l=>`<tr><td>${lineName(l)}</td><td class="n">${fmt(l.ev)}</td><td class="n ${cls(l.r)}">${pct(l.r)}</td></tr>`).join('');
   const props=S.props.map(p=>{const f=b.props.find(x=>x.uid===p.uid);const g=f?propValue(p)/f.vs-1:0;return `<tr><td>${pnameP(p)}</td><td class="n">${fmt(propValue(p))}</td><td class="n ${cls(g)}">${f?pct(g):'—'}</td></tr>`;}).join('');
   const F=b.flows;
-  const flows=[['Revenus moins dépenses courantes',F.epargne],['Prélèvements pour vivre (hors logement)',F.retraite],['Loyer',F.logement||0],['Voiture',F.voiture||0],['Enfants',F.enfants||0],['Loyers encaissés',F.loyers],['Loyer économisé (résidence principale)',F.rp],['Charges et taxe foncière',-F.charges],['Mensualités de crédit',-F.credit],['Frais des placements',-(F.frais||0)],['Impôts et prélèvements',-F.impots],['Plaisirs et imprévus, payés en janvier',(F.plaisir||0)+(F.imprevu||0)]].filter(x=>Math.abs(x[1])>0.5)
+  const flows=[['Revenus moins dépenses courantes',F.epargne],['Prélèvements pour vivre (hors logement)',F.retraite],['Loyer',F.logement||0],['Voiture',F.voiture||0],['Enfants',F.enfants||0],['Autre crédit',F.autres||0],['Loyers encaissés',F.loyers],['Loyer économisé (résidence principale)',F.rp],['Charges et taxe foncière',-F.charges],['Mensualités de crédit',-F.credit],['Frais des placements',-(F.frais||0)],['Impôts et prélèvements',-F.impots],['Plaisirs et imprévus, payés en janvier',(F.plaisir||0)+(F.imprevu||0)]].filter(x=>Math.abs(x[1])>0.5)
     .map(x=>`<tr><td>${x[0]}</td><td class="n ${x[1]<0?'down':''}">${x[1]<0?'−':'+'}${fmt(Math.abs(x[1]))}</td></tr>`).join('');
   const [,,m1]=st5(b.me.humeur);
   return `${moneyBar()}<main class="stage"><section class="bilan2" aria-live="polite">
@@ -2521,10 +2551,37 @@ function endView(){
     <div class="journal">${S.log.map(l=>`<div><b>${l.y}</b><span><strong>${l.t}</strong><br><span class="mut">${l.r}</span></span></div>`).join('')}</div>
     <div class="btns"><button class="primary" data-act="replay">Rejouer</button></div></section></main>`;
 }
+// Profil sur mesure : valeurs de départ tirées de la fourchette choisie (elles redonnent la même épargne), puis contrôle de la saisie.
+function custDefaults(st){
+  const s=SALAIRES[st.sal],c=CITIES[st.city],I=s.m*(st.couple?1.6:1),first=st.couple?c.t2:Object.keys(BIENS).find(k=>BIENS[k].k==='rp'&&BIENS[k].v===st.city&&BIENS[k].cap===1);
+  const r10=v=>Math.round(v/10)*10,rent=r10(BIENS[first].rent/12),car=c.car?200:0,left=startSave({city:st.city,sal:st.sal,cap:st.cap,couple:st.couple})/12;
+  return {sal:s.m,salP:st.couple?r10(.6*s.m):0,rent,rooms:st.couple?2:1,dep:r10(I-left-rent-car),car,debt:0,debtN:0};
+}
+function custErr(st){
+  const c=st.cust,v=k=>+c[k]||0,min=st.couple?1350:900;
+  if(['sal','salP','rent','dep','car','debt','debtN'].some(k=>v(k)<0))return 'Les montants ne peuvent pas être négatifs.';
+  if(v('sal')<500)return 'Indique ton salaire net : au moins 500 € par mois.';
+  if(v('debt')>0&&!(v('debtN')>=1&&v('debtN')<=30))return 'Indique combien d’années il reste sur ton autre crédit (de 1 à 30).';
+  if(v('dep')<min)return `Tes dépenses courantes ne descendent pas sous ${fmt(min)} par mois${st.couple?' à deux':''}.`;
+  const left=custLeft(c,st.couple);
+  if(left<0)return `Tes charges dépassent tes revenus de ${fmt(-left)} par mois : ajuste un montant.`;
+  return '';
+}
+function custFields(st){
+  const c=st.cust,f=(k,l,sub)=>`<label class="cf"><span>${l}${sub?`<small>${sub}</small>`:''}</span><span class="cin"><input type="number" inputmode="numeric" min="0" step="10" data-cu="${k}" value="${esc(c[k]??'')}"><em>€/mois</em></span></label>`;
+  return `<div class="cust">
+    ${f('sal','Ton salaire net')}${st.couple?f('salP','Salaire net de ton conjoint'):''}
+    <label class="cf"><span>Ton loyer<small>0 si tu es logé·e gratuitement</small></span><span class="cin"><input type="number" inputmode="numeric" min="0" step="10" data-cu="rent" value="${esc(c.rent??'')}"><em>€/mois</em>
+      <select data-cu="rooms" aria-label="Taille du logement">${ROOMS.map(([n],i)=>`<option value="${i+1}" ${+c.rooms===i+1?'selected':''}>${n}</option>`).join('')}</select></span></label>
+    ${f('dep','Dépenses courantes','courses, transports, loisirs, abonnements')}${f('car','Voiture','assurance, entretien, essence ; 0 = pas de voiture')}
+    <label class="cf"><span>Autre crédit<small>conso ou études, en cours</small></span><span class="cin"><input type="number" inputmode="numeric" min="0" step="10" data-cu="debt" value="${esc(c.debt??'')}"><em>€/mois</em>
+      <input type="number" inputmode="numeric" min="0" max="30" step="1" data-cu="debtN" value="${esc(c.debtN??'')}" aria-label="Années restantes" class="yrs"><em>ans</em></span></label>
+  </div>`;
+}
 function introView(){
-  const st=U.setup,pp={city:st.city,sal:st.sal,cap:st.cap,couple:st.couple},s=SALAIRES[st.sal],c=coefOf(pp);
+  const st=U.setup,cu=st.custom&&st.cust,pp={city:st.city,sal:st.sal,cap:st.cap,couple:st.couple,cust:cu||null},s=SALAIRES[st.sal],er=cu?custErr(st):'',c=coefOf(er?{...pp,cust:null}:pp);
   const first=st.couple?CITIES[st.city].t2:Object.keys(BIENS).find(k=>BIENS[k].k==='rp'&&BIENS[k].v===st.city&&BIENS[k].cap===1);
-  const rentFirst=BIENS[first].rent,reste=startSave(pp)/12;
+  const rentFirst=cu?12*(+cu.rent||0):BIENS[first].rent,reste=er?0:startSave(pp)/12;
   const opt=(k,v,lbl,d)=>`<button class="opt" data-act="set" data-k="${k}" data-v="${v}" aria-pressed="${String(st[k])===String(v)}"><b>${lbl}</b>${d?`<span class="small mut">${d}</span>`:''}</button>`;
   const goals=Object.entries(GOALS).map(([k,g])=>`<button class="pchip" aria-pressed="${st.goals.includes(k)}" data-act="goal" data-k="${k}" title="${g.d}">${g.n} · +${pc0(g.bonus)}</button>`).join('');
   const L=U.legacy;
@@ -2535,18 +2592,18 @@ function introView(){
       <div class="intro-h"><p class="kicker">1er janvier ${Y0} · tu as 25 ans</p><h2>Crée ton profil.</h2>
       <p class="mut small">Le monde est inventé à chaque partie : cycles, krachs, élections, révolutions technologiques. Chaque année, tu décides de ta vie et de ton argent, jusqu’à tes 75 ans.</p></div>
       <fieldset><legend>Où vis-tu ?</legend><div class="opts3">${Object.entries(CITIES).map(([k,x])=>opt('city',k,x.n,x.d)).join('')}</div></fieldset>
-      <fieldset><legend>Ton salaire net par mois</legend><div class="chips">${SALAIRES.map((x,i)=>`<button class="pchip" data-act="set" data-k="sal" data-v="${i}" aria-pressed="${st.sal===i}">${x.n}</button>`).join('')}</div>
-        <p class="small mut">Tu mets de côté environ ${pc0(s.tx)} de ton salaire, et ta carrière progresse de ${f1(s.g[0]*100)} % par an en plus de l’inflation jusqu’à 45 ans.</p></fieldset>
+      <fieldset><legend>Ton salaire net par mois</legend><div class="chips">${SALAIRES.map((x,i)=>`<button class="pchip" data-act="set" data-k="sal" data-v="${i}" aria-pressed="${!st.custom&&st.sal===i}">${x.n}</button>`).join('')}<button class="pchip" data-act="custom" aria-pressed="${!!st.custom}">Mes chiffres</button></div>
+        ${cu?`${custFields(st)}${er?`<p class="err">${er}</p>`:''}`:`<p class="small mut">Tu mets de côté environ ${pc0(s.tx)} de ton salaire, et ta carrière progresse de ${f1(s.g[0]*100)} % par an en plus de l’inflation jusqu’à 45 ans. Ou choisis « Mes chiffres » pour saisir ton salaire, ton loyer et tes charges.</p>`}</fieldset>
       <div class="two"><fieldset><legend>Ton épargne de départ</legend><div class="opts3 col">${EPARGNES.map((e,i)=>opt('cap',i,e.n,e.d)).join('')}</div></fieldset>
       <fieldset><legend>Ta situation</legend><div class="opts3 col">${opt('couple',false,'Célibataire','Tu décides seul·e.')}${opt('couple',true,'En couple','Ton conjoint gagne 60 % de ton salaire.')}</div></fieldset></div>
     </div>
-    <aside class="build-side card"><div class="who">${figure('me',1)}${st.couple?figure('partner',1):''}<div><b>Ton point de départ</b><small>${CITIES[st.city].n} · ${s.n}</small></div></div>
-      <div class="kv"><span>Revenus du foyer</span><span>${fmt(s.m*(st.couple?1.6:1))}/mois</span><span>Épargne de départ</span><span>${fmt(EPARGNES[st.cap].v)}</span>
-        <span>Loyer d’un ${st.couple?'T2':'studio'}</span><span>${fmt(rentFirst/12)}/mois</span><span>Tu pourras mettre de côté</span><span class="${reste<100?'down':''}">≈ ${fmt(reste)}/mois</span></div>
+    <aside class="build-side card"><div class="who">${figure('me',1)}${st.couple?figure('partner',1):''}<div><b>Ton point de départ</b><small>${CITIES[st.city].n} · ${cu?`${fmt(+cu.sal||0)} par mois`:s.n}</small></div></div>
+      <div class="kv"><span>Revenus du foyer</span><span>${fmt(cu?(+cu.sal||0)+(st.couple?+cu.salP||0:0):s.m*(st.couple?1.6:1))}/mois</span><span>Épargne de départ</span><span>${fmt(EPARGNES[st.cap].v)}</span>
+        <span>${cu?'Ton loyer':`Loyer d’un ${st.couple?'T2':'studio'}`}</span><span>${fmt(rentFirst/12)}/mois</span><span>Tu pourras mettre de côté</span><span class="${reste<100?'down':''}">${er?'—':`≈ ${fmt(reste)}/mois`}</span></div>
       <div class="level"><span class="lbl">Difficulté</span><b>${lv}</b><span class="dots" aria-hidden="true">${[.75,1.35,2.4,99].map((x,i)=>`<i class="${c>=([0,.75,1.35,2.4][i])?'on':''}"></i>`).join('')}</span><span class="small mut">score × ${String(c).replace('.',',')}</span></div>
       <fieldset><legend>Tes deux objectifs de vie</legend><div class="chips">${goals}</div>
         <p class="small mut">${st.goals.map(g=>`<b>${GOALS[g].n}</b> : ${GOALS[g].d}`).join('<br>')||'Aucun objectif choisi.'}</p></fieldset>
-      <button class="primary big" data-act="start">Commencer →</button>
+      <button class="primary big" data-act="start" ${er?'disabled':''}>Commencer →</button>
       <p class="small mut">Un tour = une année. Rien n’est placé à ta place : c’est toi qui choisis où investir.</p>
     </aside></section></main>`;
 }
@@ -2621,8 +2678,13 @@ function onClick(ev_){
   if(a!=='achat')U.achErr='';if(a!=='life')U.lifeErr='';if(a!=='home-rent')U.homeMsg=null;if(!['dos-buy','dos-use','home-rent'].includes(a))U.dosMsg=null;
   const [e,id]=key?key.split(':'):[];
   switch(a){
-    case 'start':{const st=U.setup;dropLegacy();U.legacy=null;U.view='profil';U.dossier=null;U.city=null;U.dur=null;U.fresh={};U.fx=true;newGame({city:st.city,sal:st.sal,cap:st.cap,couple:st.couple},st.goals,true);break;}
-    case 'set':{const k=t.dataset.k,v=t.dataset.v;U.setup[k]=k==='city'?v:k==='couple'?v==='true':+v;break;}
+    case 'start':{const st=U.setup,cu=st.custom&&st.cust;if(cu&&custErr(st))break;dropLegacy();U.legacy=null;U.view='profil';U.dossier=null;U.city=null;U.dur=null;U.fresh={};U.fx=true;
+      newGame({city:st.city,sal:st.sal,cap:st.cap,couple:st.couple,cust:cu?{...cu}:null},st.goals,true);
+      if(S.cust){const o=homeOptions().find(x=>x.type==='perso');if(o)S.onbHome=o.n;}save();break;}
+    case 'custom':{const st=U.setup;st.custom=!st.custom;if(st.custom&&!st.cust)st.cust=custDefaults(st);break;}
+    case 'set':{const st=U.setup,k=t.dataset.k,v=t.dataset.v;st[k]=k==='city'?v:k==='couple'?v==='true':+v;
+      if(k==='sal')st.custom=false;
+      if(st.cust&&k==='couple'){if(st[k]&&!(+st.cust.salP))st.cust.salP=Math.round(.6*(+st.cust.sal||0)/10)*10;if(st[k]&&+st.cust.dep<1350)st.cust.dep=1350;}break;}
     case 'view':U.view=t.dataset.view;U.dossier=null;U.fx=true;break;
     case 'icity':U.city=t.dataset.c;U.dossier=null;break;
     case 'dossier':U.dossier={t:t.dataset.t,use:BIENS[t.dataset.t].k==='bur'?'loc':'rp'};U.dur=null;U.fx=true;break;
@@ -2679,6 +2741,7 @@ function onInput(e){
   const t=e.target;
   if(t.dataset.amt){const key=t.dataset.amt;U.amt[key]=t.value;const [en,id]=key.split(':');const sp=document.getElementById('tx-'+key);if(sp&&en==='cto'){const x=estTaxCto(id,+t.value||0);sp.textContent=x>0.5?`Impôt estimé sur ce montant : ${fmt(x)}.`:'';}}
   if(t.dataset.wd){const en=t.dataset.wd;U.wd[en]=t.value;const sp=document.getElementById('wdtax-'+en);if(sp){const c=wdCalc(en,+t.value||S.acc[en].cash);sp.textContent=c.amt>0?`Impôt estimé : ${fmt(c.tax)}`:'';}}
+  if(t.dataset.cu&&U.setup.cust){U.setup.cust[t.dataset.cu]=t.value;if(e.type==='change')render();}
   if(t.id==='ev-amt')U.evAmt=t.value;
   if(t.id==='dur'&&e.type==='change'){U.dur=+t.value;render();}
   if(t.id==='ev-asset'&&e.type==='change'){U.evAsset=t.value;U.evEnv=null;render();}
