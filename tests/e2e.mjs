@@ -21,6 +21,7 @@ mkdirSync(out, { recursive: true });
 async function decide(pg) {
   const o = { timeout: 3000 };
   for (let k = 0; k < 8; k++) {
+    if (await pg.$('[data-act=quiet-ok]')) { await pg.click('[data-act=quiet-ok]', o); continue; }
     if (await pg.$('[data-act=dec-ok]')) { await pg.click('[data-act=dec-ok]', o); continue; }
     if (await pg.$('[data-act=life]')) { // une réponse peut être refusée (apport insuffisant) : on essaie les suivantes
       const n = (await pg.$$('[data-act=life]')).length;
@@ -37,7 +38,7 @@ async function decide(pg) {
 // Tout tient sur un écran : la page elle-même ne défile jamais.
 async function noScroll(pg, name, where) {
   if (await pg.evaluate('document.documentElement.scrollHeight > window.innerHeight + 1 || document.documentElement.scrollWidth > window.innerWidth + 1')) errors.push(`${name} : la page défile (${where})`);
-  const over = await pg.evaluate(`[...document.querySelectorAll('.card')].filter(c => c.scrollHeight > c.clientHeight + 2).map(c => c.className.split(' ').pop())`);
+  const over = await pg.evaluate(`[...document.querySelectorAll('.card')].filter(c => c.scrollHeight > c.clientHeight + 2).map(c => c.className.split(' ').filter(k => k !== 'more').pop())`);
   if (over.length) console.log(`  ${name} · ${where} : défilement interne dans ${over.join(', ')}`);
 }
 
@@ -102,6 +103,37 @@ for (const [name, viewport, colorScheme] of [['desktop', { width: 1280, height: 
   await pg.screenshot({ path: join(out, `${name}-3-fin.png`), fullPage: false });
   if (await pg.evaluate('document.documentElement.scrollWidth > window.innerWidth')) errors.push(`${name} : défilement horizontal`);
   console.log(`✓ ${name} : partie terminée, score ${await pg.evaluate('finalScore().score')}, ${await pg.evaluate('Object.keys(S.ach).length')} succès`);
+  await ctx.close();
+}
+// Petits écrans : une fenêtre de décision ne dépasse jamais de l'écran et ses boutons restent visibles.
+async function modalFits(pg, name) {
+  const r = await pg.evaluate(`(() => { const m = document.querySelector('.dmodal'); if (!m) return null; const b = m.getBoundingClientRect();
+    const btn = [...m.querySelectorAll('.decision button, .btns button')].filter(x => !x.disabled).pop(); const k = btn && btn.getBoundingClientRect();
+    return { top: b.top, bottom: b.bottom, h: innerHeight, btn: k ? k.bottom <= Math.min(b.bottom, innerHeight) + 1 && k.top >= b.top - 1 : true }; })()`);
+  if (r && (r.top < -1 || r.bottom > r.h + 1)) errors.push(`${name} : la fenêtre dépasse de l’écran (${Math.round(r.top)} → ${Math.round(r.bottom)} pour ${r.h})`);
+  if (r && !r.btn) errors.push(`${name} : le bouton de choix est caché`);
+}
+for (const [name, viewport, colorScheme] of [['petit-1280x600', { width: 1280, height: 600 }, 'light'], ['petit-360x640', { width: 360, height: 640 }, 'dark']]) {
+  const ctx = await browser.newContext({ viewport, colorScheme, reducedMotion: 'reduce' });
+  const pg = await ctx.newPage();
+  pg.on('pageerror', e => errors.push(`${name} : ${e.message}`));
+  await pg.goto(url);
+  await pg.click('[data-act=start]'); await modalFits(pg, name + ' logement');
+  await pg.screenshot({ path: join(out, `${name}-logement.png`) });
+  await pg.click('.opt.reco'); await pg.click('[data-act=onb-next]');
+  let inv = false, quiet = false, life = false;
+  for (let i = 0; i < 40 && !(inv && quiet && life) && (await pg.evaluate('S.phase')) !== 'end'; i++) {
+    if (await pg.$('[data-act=next]')) { await pg.click('[data-act=next]'); continue; }
+    if (!quiet && await pg.$('[data-act=quiet-ok]')) { quiet = true; await modalFits(pg, name + ' années calmes'); await pg.screenshot({ path: join(out, `${name}-calmes.png`) }); }
+    if (!inv && await pg.$('#ev-amt')) { inv = true; await modalFits(pg, name + ' investir'); await pg.screenshot({ path: join(out, `${name}-decision.png`) }); }
+    if (!life && await pg.$('.dmodal.life [data-act=life]')) { life = true; await modalFits(pg, name + ' vie perso'); await pg.screenshot({ path: join(out, `${name}-vie.png`) }); }
+    if (await pg.$('.dmodal')) await modalFits(pg, name + ' ' + await pg.evaluate("S.year+' '+(S.event?S.event.id:'')"));
+    await decide(pg);
+    await pg.click('[data-act=end]');
+  }
+  await pg.click('[data-act=view][data-view=profil]').catch(() => {});
+  await pg.screenshot({ path: join(out, `${name}-profil.png`) });
+  console.log(`✓ ${name} : fenêtres vérifiées (investir ${inv ? 'vue' : 'absente'}, vie perso ${life ? 'vue' : 'absente'}, années calmes ${quiet ? 'vues' : 'absentes'})`);
   await ctx.close();
 }
 await browser.close();

@@ -12,7 +12,7 @@ La Corbeille est un simulateur de gestion de patrimoine **au tour par tour**, en
 
 - **Aucune histoire réelle.** Chaque partie génère **son propre monde** : cycles économiques, krachs, bulles, élections, vagues d'innovation. Tout obéit à des règles économiques réelles (les crises naissent des excès, la banque centrale réagit à l'inflation, une Bourse chère rapporte moins ensuite), mais rien n'est écrit d'avance. Connaître l'histoire ne donne aucun avantage.
 - **Un tour = une année.** Tout tient sur **un seul écran, sans défilement de la page** : une barre d'argent toujours visible (compte courant, Livret A, placements, immobilier, patrimoine), la navigation avec le bouton de fin d'année, puis **quatre onglets** en cartes : **Profil** (l'année, les décisions obligatoires, les conseils de Sophie, le foyer, le budget du mois), **Portefeuille** (liquidités et où investir), **Immobilier** (logement, catalogue par ville, dossier de crédit), **Patrimoine** (le résumé).
-- Les décisions obligatoires s'ouvrent **en fenêtre au début de l'année, une à la fois**, et bloquent tout le reste tant qu'elles ne sont pas prises. Environ deux années sur trois, **une Une** impose une **décision obligatoire** (krach, présidentielle, bulle, valeur en chute, lancement d'un fonds thématique, produit douteux…). Il y a parfois en plus **un dilemme de vie perso**, lui aussi obligatoire.
+- Les décisions obligatoires s'ouvrent **en fenêtre au début de l'année, une à la fois**, et bloquent tout le reste tant qu'elles ne sont pas prises. Environ deux années sur trois, **une Une** impose une **décision obligatoire** (krach, présidentielle, bulle, valeur en chute, lancement d'un fonds thématique, produit douteux…). Il y a parfois en plus **un dilemme de vie perso**, lui aussi obligatoire. Les années sans aucune décision passent d'affilée dans l'animation, puis une fenêtre les résume (interrupteur « Passer les années calmes », activé par défaut).
 - Au départ, le joueur **crée son profil** : ville (Lille, Lyon, Paris), fourchette de salaire, épargne de départ, célibataire ou en couple, deux objectifs. Puis il choisit son logement (louer, rester chez ses parents, colocation ou acheter, selon ses moyens, avec l'avis de Sophie). Rien n'est placé à sa place.
 - Le **budget est réel** : loyer ou mensualités, voiture, enfants, imprévus. Ce qui reste est épargné. Les achats « se faire du bien » (sorties, vacances, cadeau…) font monter l'humeur et le couple contre de l'argent. On passe à l'année suivante, l'**animation** fait défiler l'année, puis vient le **bilan**.
 - **Fin de partie** : un titre (« Légende de la Corbeille »…), un score, un épilogue narratif, les meilleurs et pires coups, les succès, le récap de chaque investissement avec son TRI, et le journal des décisions. Un bouton permet de copier son résultat pour défier ses amis.
@@ -80,7 +80,7 @@ Le script est découpé en sections balisées par `/* ===== NOM ===== */`. Dans 
 | **Données du monde** | `Y0`/`YN` (2026, 2076), `SALAIRES`, `EPARGNES`, `PARTNERS`, `PRESETS`, `coefOf`, `prof()`, `STOCKS`, `THEMES` (`th1`-`th3`), `EQUITY`, `SP` (paramètres des actions), `DIVY`, `META`, `ORDER`, `ENVS`, `PX0`, `BIENS` (immobilier par ville, `k` = loc/bur/rp), `GOALS`, `ADV`, `ACH`, `PHASES` et `TRANS` (cycle économique), `W0` (France fin 2025), `THEME_POOL` et `TR` (vagues d'innovation), `PARTIS`, `PRENOMS`, `NOMS`, `PORTRAITS`, `PROG` (programmes), `STARTUPS`, `JETONS` |
 | **Outils** | `S` (état global), formats `fmt` `fmtPx` `pct` `rate` `pc0` `f1`, `rnd`/`gauss` (PRNG mulberry32, graine dans `S.rng`), `nm`, `P()` (partenaire), `age(y)` |
 | **Fiscalité** | tout vient de `S.pol` : `psRate()`, `ctoRate()` (= `ir` + `ps`), `ctoRateLbl`, `peaCap`, `livretCap`, `envYears` |
-| **État** | `makeThemes`, `themeStage(T,y)` (étape d'une vague à une date, fonction pure), `newGame(arch, goals)`, accesseurs (`net`, `envTotal`, `hv`, `ev`…), `epargneYear`, `mood`, `unlock`, `ext`, registre `lg*` + `irr` |
+| **État** | `makeThemes`, `themeStage(T,y)` (étape d'une vague à une date, fonction pure), `newGame(arch, goals)`, accesseurs (`net`, `envTotal`, `hv`, `ev`…), `epargneYear`, `mood`, `unlock`, `ext`, registre `lg*` + `irr` (`lgProp` alimente aussi `S.yearProp` pour le repère), `mvRec` (ordres passés en janvier), `propNet`, `benchRef` (repères ETF Monde et Livret A, immobilier compris) |
 | **Ordres** | `buyIn`, `sellIn`, `livIn`/`livOut`, `wdCalc`/`withdraw`, `raiseCash` (ventes forcées), `spend` |
 | **Immobilier** | `annuity`, `loanAnn`/`loanLeft`/`payLoan` (prêt principal + PTZ), `effort`, `ptzOk(type, use)`, `propQuote(type, n, use)`, `bestDur`, `buyProp(type, mode, n, use)` (use : 'rp' pour y vivre, 'loc' pour louer), `pvImmoTax`, `propSaleCalc`, `sellProp`, `canReneg`/`reneg`, et pour se loger : `cityRP`, `canRent`, `bestRental`, `bestBuy`, `moveTo`, `buyHome` |
 | **Chocs** | `shock(map)` (clés `loc`/`bur`/`rp` pour l'immobilier), `setPending(y,k,%)`, `sellEverywhere`, `ctoLatent`, `purgeCto` |
@@ -91,9 +91,9 @@ Le script est découpé en sections balisées par `/* ===== NOM ===== */`. Dans 
 | **Vie perso** | `LIFE[id]` : `{view, act, can?}` + `retireOpts`. `act` peut renvoyer `{err}` (choix refusé, la question reste posée). Ids : burnout, rupture, weekend, panique, licenciement, diner, promo, vacances, mariage, enfant, sport, ami, rencontre, logement, panne, fire, retraite |
 | **Carnet** | `headline(y)`, `makeNotes(y, head, imp)`, `kidLine`, `imprevu(y)`, `conseils()`, `rappels()`, `ACHATS`/`achatState`/`acheter`, et le départ : `homeOptions`, `recoHome`, `un`, `sophieHome`, `onbHome`, `onbNext` |
 | **Tours** | `pickLife(crash)`, `startTurn(y)` (année, salaire, événement, fiche, conseillers, vie perso, imprévu, notes de la page), `answerEvent`, `answerLife`, `turnReady` |
-| **Simulation** | `whyText` (explication du bilan), `simulateYear(y)` (le cœur : rendements, impôts, loyers, épargne/retraite, élection, repères, ventes forcées, humeur, succès), `endTurn`, `nextBilan`, `finalScore` |
+| **Simulation** | `whyText` (explication du bilan), `movesGain` (ce que les ordres de janvier ont rapporté face à « ne rien toucher »), `simulateYear(y)` (le cœur : rendements, impôts, loyers, épargne/retraite, élection, ventes forcées, puis repères, humeur, succès), `endTurn`, `nextBilan`, `finalScore` |
 | **Sauvegarde** | `KEY='la-corbeille-v3'`, `save`/`load`/`wipe`, `migrate()` (complète une partie 3.0 ou 3.1 : logement, ville, enfants, page), `legacyGame()` et `dropLegacy()` (clôture des parties de la version 2) |
-| **Interface** | `U` (état d'interface non sauvegardé : `view` onglet, `city` et `dossier` de l'onglet Immobilier, `dur`, `setup` du profil, `fresh` décisions dont le résultat attend « Continuer », `prevMoney` pour l'animation des montants, `toast`, `fx` animations d'entrée au prochain rendu), dessins (`figure(kind, humeur)`, `ICONS`/`icon`, `KICK` type d'événement → icône, `donut`), `moneyBar`/`moneyVals`/`animateCounters`, `navBar`, `decisionModal`/`decisionOrder`/`currentDecision`/`eventDecision`, `profilTab`/`foyerList`/`budgetTable`/`adviceBtn`, `portefeuilleTab`, `immoTab`/`dossierHtml`, `patrimoineTab`, `onbView`, `figure` (petits dessins), `ficheHtml`, `advHtml`, `allocSec`, `book`/`bookRow`/`envHead`, `spark`, `invSec`/`invData`/`invTable`/`invBody`, `turnView`, `chart`, `bilanView`, `animHtml`/`runAnim`, `endView`/`epilogue`/`coups`/`shareText`, `introView` (création du profil), `render` |
+| **Interface** | `U` (état d'interface non sauvegardé : `view` onglet, `city` et `dossier` de l'onglet Immobilier, `dur`, `setup` du profil, `fresh` décisions dont le résultat attend « Continuer », `prevMoney` pour l'animation des montants, `toast`, `fx` animations d'entrée au prochain rendu, `quiet` années calmes à résumer, `animList` années de l'animation, `broken` sauvegarde illisible), dessins (`figure(kind, humeur)`, `ICONS`/`icon`, `KICK` type d'événement → icône, `donut`), `moneyBar`/`moneyVals`/`animateCounters`, `navBar`, `decisionModal`/`decisionOrder`/`currentDecision`/`eventDecision`, années calmes (`autoPass`, `quietModal`, `autoBtn`), `profilTab`/`foyerList`/`budgetTable`/`adviceBtn`, `portefeuilleTab`, `immoTab`/`dossierHtml`, `patrimoineTab`, `onbView`, `figure` (petits dessins), `ficheHtml`, `advHtml`, `book`/`bookRow`/`envHead`, `spark`, `invData`/`invTable`/`invBody`, `turnView`, `chart`, `bilanView`, `animHtml`/`runAnim` (une liste d'années : le bilan ou les années calmes, `U.animList`), `endView`/`epilogue`/`coups`/`shareText`, `introView` (création du profil), `brokenView`/`stash` (sauvegarde illisible), `render` (puis `restoreFocus` : le focus revient sur le même bouton ou va dans la fenêtre ouverte ; `markMore` : une zone coupée affiche un dégradé et ▾) |
 | **Événements DOM** | délégation unique : `onClick` lit `data-act` (et `data-key`, `data-env`…), `onInput` pour les champs. `boot()` charge la sauvegarde ou résume l'ancienne |
 
 **Rendu** : `render()` reconstruit tout le HTML via `innerHTML` à chaque action. Les vues sont des fonctions pures de `S` et `U`. Ne garde aucun état dans le DOM, sauf la valeur en cours de saisie des champs (mise à jour en direct dans `onInput`, sans re-rendu).
@@ -118,14 +118,14 @@ props[{uid,type (clé de BIENS),buyYear,cost,loan:{p,r,n,ann,z:{p,ann}|null}|nul
 idx{bien:{price,rent}}
 city ('lille'|'lyon'|'paris'), home{type (clé de BIENS, 'parents' ou 'coloc'), own, since}, onb (étape de l'accueil ou null), onbAns[], onbHome, buyHist{achat:[années]}
 lossCarry, flags{rpYear,twoRent,struct,souvY,startup,lastPand,fireAsked,pretAmi,panicSold,lowMood,faillite…}, pending{année:{actif:%}}, jeton{name,alive,born}, avAb
-revenu, tauxEp, defl (indice des prix), bench{liv,trk}, yearExt, extTot
+revenu, tauxEp, defl (indice des prix), bench{liv,trk} (placements des repères, sans l'immobilier), benchV:2, yearExt, yearProp, yearRuin, extTot, moves[{e,id,a,tax}] (ordres de janvier), autoPass
 hist[{x,net,liv,trk}], bilans[], event{id,p,answered,result,fiche?,adv?}|null, life{id,v,answered,result,name?}|null, nextY
 usedFut[], usedLife[], uid, log[{y,t,r}], turnShock, lock, well{sum,n}, profile
 lg{lines{clé:{env,id,label,first,lastSell,flows[{t,y,a}]}}, env{pea[],av[]}, props[]}
 me{humeur,relation,partner,first,exes[],marie,enfants,kids[{n,born}],ruptures,burnouts,retireYear,gap,besoin,pension,early,pension62,ruined,chomY,raise,car}
 ```
 
-**Tout nouveau champ de `S` exige une migration dans `boot()`.** Les amis de Flo ont des parties en cours dans leur navigateur : on ne casse jamais une sauvegarde, et on ne change pas `KEY` sans migrer. Seule exception, décidée par Flo le 7 novembre 2026 : le passage à la version 3 (monde inventé) clôt les parties de la version 2 en affichant leur patrimoine, faute de pouvoir les convertir.
+**Tout nouveau champ de `S` exige une migration dans `boot()`.** Exemple : une partie d'avant la 3.5 n'a pas `benchV` ; ses repères sont recalés sur ses placements du moment. Les amis de Flo ont des parties en cours dans leur navigateur : on ne casse jamais une sauvegarde, et on ne change pas `KEY` sans migrer. Seule exception, décidée par Flo le 7 novembre 2026 : le passage à la version 3 (monde inventé) clôt les parties de la version 2 en affichant leur patrimoine, faute de pouvoir les convertir.
 
 ---
 
@@ -150,7 +150,9 @@ rp35 : résidence principale achetée au plus tard en 2036 (+20 %) · fire : plu
 ### Score
 `score = patrimoine net en k€ de 2026 × (0,4 + 1,2 × bien-être/100) × (1 + Σ bonus des objectifs atteints) × coefficient du profil`
 
-Le bien-être moyen est calculé chaque année : 0,6 × humeur + 0,4 × couple (30 si célibataire). Le titre combine le niveau financier (patrimoine face au repère « mêmes versements, tout sur l'ETF Monde » : ≥ 1,05 / ≥ 0,75) et le niveau de vie (bien-être ≥ 62 / ≥ 48), selon une grille 3×3 dans `finalScore`.
+Le bien-être moyen est calculé chaque année : 0,6 × humeur + 0,4 × couple (30 si célibataire). Le titre combine le niveau financier et le niveau de vie (bien-être ≥ 62 / ≥ 48), selon une grille 3×3 dans `finalScore`.
+
+**Repères** (`S.bench`, `benchRef`) : « ta vie et ton immobilier à l'identique, mais tous tes placements financiers sur l'ETF Monde » (et la même chose sur le Livret A). Chaque repère part du capital initial et reçoit chaque année les mêmes flux que toi : flux externes (`ext`) et flux immobiliers du registre (`lgProp` : apports, mensualités, loyers, ventes, y compris forcées). Il croît au rendement de l'ETF Monde (ou du Livret A) tant qu'il est positif ; négatif, il ne rapporte rien. Il n'est pas bloqué à zéro, sauf à la retraite (pas de dette, comme le joueur) ; ce que la ruine efface pour le joueur (`yearRuin`) ne lui est pas transmis. On compare `net()` au meilleur des deux repères plus la valeur nette actuelle de ton immobilier. L'écart se mesure par rapport aux placements du repère (`S.bench`), pas au patrimoine total, puisque l'immobilier est identique des deux côtés : ≥ +5 % = niveau 2, ≥ −25 % = niveau 1. Un joueur qui n'a jamais rien placé, ou qui a été ruiné, est au niveau 0.
 
 ### Le monde (`genYear`)
 - **Point de départ commun** (`W0`, France fin 2025) : croissance 0,9 %, inflation 1 %, taux BCE 2 %, OAT 10 ans 3,4 %, crédit 3,2 %, PER 16, dette publique 116 % du PIB, euro à 1,16 $, baril à 65 $. La première année est toujours calme (expansion, pas d'événement).
@@ -166,6 +168,7 @@ Le bien-être moyen est calculé chaque année : 0,6 × humeur + 0,4 × couple (
 - **Cibles statistiques** (test « Monde généré ») : Bourse de Paris 3,5-7,5 %/an, ETF Monde 4,5-8,5 %/an, volatilité 14-25 %, inflation moyenne 1,5-3 % avec au moins un épisode au-delà de 5 %, 2 à 6 crises par partie, 6 à 22 % d'années de récession.
 
 ### Issues imposées (`setPending`) et produits spéciaux
+La « valeur en chute » (`geant`) et la « bulle » (`bulle`) arrivent **au plus deux fois chacune** par partie, avec trois versions du texte (`p.v`).
 - géant en chute (−40 % d'un coup) : +60 % (55 %) ou −50 % sur le reste de l'année ;
 - bulle sur une action (+60 %) : −45 % (50 %) ou +30 % ;
 - banque après une crise (−35 %) : +70 % (70 %) ou −45 % ;
@@ -248,11 +251,12 @@ Les plafonds du PEA et du Livret A ne baissent jamais. La Une d'une présidentie
 
 ### L'année (onglet Profil)
 - **Gros titre** (`headline`) : le fait marquant (krach, choc, phase du cycle, présidentielle, inflation, Bourse chère, crédit), repris dans les notes (« Au journal : … »), jamais le même deux ans de suite.
-- **Conseils de Sophie** (`conseils()`, au plus 3) : ils ne lisent jamais le futur, seulement l'état connu et le portefeuille. Krach (ne pas vendre au plus bas), coussin sous 3 mois, argent qui dort (et ce que l'inflation lui coûte), logement trop petit, voyants à l'orange (`crisisRisk` ≥ 10 % avec plus de 65 % d'actions : chiffrage d'une chute de 35 %), Bourse bradée, renégociation possible, PEA pas encore ouvert, OAT quand la BCE monte ses taux, crédit bon marché pour la résidence principale, ligne qui pèse plus de 25 %, fonds thématique en bulle, inflation qui ronge l'épargne garantie. Chaque conseil a un lien vers le bon onglet (`act:'view'` ou `'tip-tab'`), jamais un achat automatique.
+- **Conseils de Sophie** (`conseils()`, au plus 3) : ils ne lisent jamais le futur, seulement l'état connu et le portefeuille. Krach (ne pas vendre au plus bas), coussin sous 3 mois, argent qui dort (et ce que l'inflation lui coûte), logement trop petit, voyants à l'orange (`crisisRisk` ≥ 10 % avec plus de 65 % d'actions : chiffrage d'une chute de 35 %), Bourse bradée, renégociation possible, PEA pas encore ouvert, OAT quand la BCE monte ses taux, crédit bon marché pour la résidence principale, ligne qui pèse plus de 25 %, fonds thématique en bulle, inflation qui ronge l'épargne garantie. Également : profil selon l'horizon (avant 50 ans, viser 80 % d'actions ; à partir de 55 ans, réduire à 50 %), et une action isolée gardée plus d'un an à rebasculer sur l'ETF Monde. Chaque conseil a un lien vers le bon onglet (`act:'view'` ou `'tip-tab'`), jamais un achat automatique. Le bouton peut porter `k:'prof'` (profil conseillé `p`) ou `k:'sell'` (`e`, `id`) pour le joueur-type des tests.
 - **Notes de l'année** (`makeNotes`, au plus 6, à la première personne, ton tendre) : le gros titre au journal, l'augmentation ou le gel du salaire et le surcoût des courses, un enfant (phrase selon son âge), le couple ou la vie de célibataire, le logement (trop petit, chez les parents, mensualité restante, loyer), l'imprévu, la fatigue si l'humeur est basse.
 - **Pense-bête** (`rappels()`) : prêt à un ami, revente de la start-up, produit bloqué, 5 ans du PEA, 8 ans de l'assurance-vie, âge de la retraite.
 - **Se faire du bien** (`ACHATS`, `achatState`, `acheter`) : restos et sorties, week-end à deux (en couple, baby-sitting en plus avec des enfants), vacances (1 500 € par personne du foyer), sport, cadeau (en couple), sortie en famille (avec enfants), voiture neuve (peu utile à Paris : effet × 0,4). Une fois par an chacun, payé tout de suite (compte courant puis Livret A), prix en euros de 2026 indexés. L'effet sur l'humeur et le couple est divisé par 1 + le nombre de fois où l'achat a été fait les deux années précédentes. Des sorties en célibataire font passer la chance de rencontre de 25 à 45 % l'année suivante.
-- **Bilan** : `whyText` cite les deux plus gros contributeurs de l'année avec leur cause, ce qui a été mis de côté (ou puisé), et ce que le choc de janvier avait déjà coûté.
+- **Bilan** : `whyText` cite les deux plus gros contributeurs de l'année avec leur cause, ce qui a été mis de côté (ou puisé), et ce que le choc de janvier avait déjà coûté. Une ligne chiffre **ce que tes choix de placement ont rapporté** (`movesGain`) : chaque euro déplacé en janvier aurait suivi la ligne d'où il venait (croissance réelle de la ligne sur l'année, frais compris ; le compte courant ne rapporte rien), moins les impôts payés pour vendre.
+- **Années calmes** (`autoPass`) : après le bilan, si l'année suivante n'a ni événement ni dilemme, elle est jouée tout de suite, et ainsi de suite jusqu'à la prochaine décision. L'animation fait défiler ces années, puis `quietModal` les résume (économie, variation du patrimoine, une note). `S.autoPass === false` coupe ce passage automatique.
 - **Candidats** : prénom et portrait accordés au genre, jamais deux finalistes du même nom.
 
 ### Les onglets
@@ -304,16 +308,17 @@ diamant (≥ 80 % d'actions et ≥ 100 000 € investis à la fin d'une année d
 
 ## 7. Équilibrage : cibles actuelles (`npm run balance`)
 
-| Mesure | Cible | Dernière valeur |
+| Mesure | Cible | Dernière valeur (graines 11 et 4242) |
 |---|---|---|
-| Passif PEA / repère ETF Monde sans frais | 0,85 – 1 | 0,90 |
-| Élève de Sophie (suit les liens des conseils) / passif à 60 % d'actions | ×0,95 – ×1,4 | ×1,07 |
-| Lecteur de fiches / acheteur naïf | ≥ ×1,15 | ×1,30 |
-| Score du carriériste < score de l'équilibré | vrai | 1 555 < 3 548 |
-| 10e centile du patrimoine d'un joueur passif | > 0 | 987 k€ |
-| Score médian de chaque profil tout fait / héritier | 0,75 – 1,33 | 0,90 – 1,19 |
-| Objectifs visés : rp35 ≥ 80 %, famille ≥ 40 % (infirmier) et ≥ 25 % (héritier), fire 25 – 70 %, rentier ≥ 70 %, 2,5 millions 15 – 60 % | | 100 / 46 / 45 / 34 / 100 / 51 % |
-| Sophie ≥ 70 %, Kévin ≤ 60 % | | 79 / 55 % |
+| Passif PEA / repère ETF Monde sans frais | 0,85 – 1 | 0,92 |
+| Élève de Sophie (suit ses conseils et ses avis sur les événements) / passif à 60 % d'actions | ≥ ×1,0 | ×1,08 – ×1,12 |
+| Élève de Sophie / acheteur naïf de paniques | ≥ ×1,3 | ×1,13 – ×1,19 (**WARN**, en attente d’une décision de Flo) |
+| Lecteur de fiches / acheteur naïf | ≥ ×1,15 | ×1,17 – ×1,39 |
+| Score du carriériste < score de l'équilibré | vrai | 1 495 < 3 584 |
+| 10e centile du patrimoine d'un joueur passif | > 0 | 913 – 1 103 k€ |
+| Score médian de chaque profil tout fait / héritier | 0,75 – 1,33 | 0,91 – 1,18 |
+| Objectifs visés : rp35 ≥ 80 %, famille ≥ 40 % (infirmier) et ≥ 25 % (héritier), fire 25 – 70 %, rentier ≥ 70 %, 2,5 millions 15 – 60 % | | 100 / 41-46 / 48-50 / 36-49 / 100 / 43-48 % |
+| Sophie ≥ 70 %, Kévin ≤ 60 % | | 80 / 57-59 % |
 
 Si tu modifies un paramètre de jeu, lance `npm run balance` avec deux graines différentes, corrige les WARN et mets à jour ce tableau.
 

@@ -7,7 +7,7 @@
 /* Layout : bandeau de situation, la Gazette de l’année, la Une + le dilemme perso, carnet d’ordres par enveloppe, bureau immobilier ; un bilan par an */
 :root{
   --paper:#f1dccb; --sheet:#f9ece2; --ink:#221b29; --muted:#6c5952; --rule:#d2b2a0;
-  --accent:#0d5163; --accent-ink:#fbefe6; --up:#1b7740; --down:#b0281e; --warn:#9a5a00; --life:#8a2f5c;
+  --accent:#0d5163; --accent-ink:#fbefe6; --up:#196f3c; --down:#b0281e; --warn:#8f5300; --life:#8a2f5c;
   --c1:#2a78d6; --c2:#eb6834; --c3:#1baf7a; --c4:#eda100; --c5:#e87ba4; --crash:#4a1512; --night:#17141d;
   --f-display:"Bodoni Moda", Didot, "Bodoni 72", Georgia, serif;
   --f-body:"IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
@@ -100,31 +100,14 @@ select,.invest input,.order input,.wd input{font:inherit;font-family:var(--f-mon
 .obtn:disabled{opacity:.4;cursor:not-allowed}
 .spark{display:block}
 .c-sp{display:flex;align-items:center}
-.alloc{display:flex;flex-direction:column;gap:12px}
-.abar{display:flex;gap:2px;height:22px;border-radius:4px;overflow:hidden}
-.abar i{display:block;height:100%;min-width:3px}
-.alegend{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:6px 18px;font-size:13.5px}
-.alegend div{display:flex;align-items:baseline;gap:8px;min-width:0}
-.alegend .sw{width:10px;height:10px;border-radius:2px;flex:none;transform:translateY(1px)}
-.alegend .v{margin-left:auto;font-family:var(--f-mono);font-variant-numeric:tabular-nums;white-space:nowrap}
 .idle{display:flex;flex-wrap:wrap;gap:10px 16px;align-items:center;justify-content:space-between;border:1px solid var(--warn);border-radius:6px;padding:10px 14px;background:var(--sheet)}
 .idle b{font-family:var(--f-mono);font-weight:500}
-.panel{background:var(--sheet);border:1px solid var(--rule);border-radius:6px;padding:12px 14px;display:flex;flex-direction:column;gap:10px}
 .profiles{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
 .pchip{background:transparent;border:1px solid var(--rule);border-radius:999px;padding:5px 12px;font-size:13px}
 .pchip:hover{border-color:var(--ink)}
 .pchip[aria-pressed="true"]{border-color:var(--accent);color:var(--accent);font-weight:600}
-.slider{display:flex;align-items:center;gap:10px;font-size:13px;flex-wrap:wrap}
-.slider input{width:200px;max-width:100%;accent-color:var(--accent)}
 .plan{border:1px dashed var(--accent);border-radius:6px;padding:10px 14px;display:flex;flex-direction:column;gap:8px;font-size:14px;background:var(--paper)}
 .plan ul{margin:0;padding-left:18px;display:flex;flex-direction:column;gap:2px}
-.invd{border-top:1px solid var(--ink);padding-top:8px;display:flex;flex-direction:column;gap:14px}
-.invd summary{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 14px;list-style:none}
-.invd summary::-webkit-details-marker{display:none}
-.invd summary::before{content:"▸";font-size:14px;color:var(--muted)}
-.invd[open] summary::before{content:"▾"}
-.h2like{font-family:var(--f-display);font-size:24px;font-weight:700;line-height:1.1}
-.invd[open]>*:not(summary){margin-top:12px}
 table.inv{font-size:13.5px}
 table.inv td{vertical-align:top}
 .nowrap{white-space:nowrap}
@@ -250,9 +233,7 @@ svg.dw{display:block;color:var(--ink);flex:none}
 .vtabs button[aria-selected="true"]{color:var(--ink);border-bottom-color:var(--accent)}
 .badge{background:var(--down);color:var(--sheet);border-radius:999px;font-size:11px;min-width:18px;height:18px;display:inline-flex;align-items:center;justify-content:center;padding:0 5px}
 .tabpanel{display:flex;flex-direction:column;gap:18px}
-.panel{background:var(--sheet);border:1px solid var(--rule);border-radius:8px;padding:16px 18px;display:flex;flex-direction:column;gap:12px;min-width:0}
-.panel h2{font-size:24px;font-weight:700}
-.panel h3,.decs h3{font-size:19px;font-weight:700}
+.decs h3{font-size:19px;font-weight:700}
 .ph{display:flex;justify-content:space-between;align-items:baseline;gap:6px 14px;flex-wrap:wrap}
 .pgrid{display:grid;grid-template-columns:minmax(0,1.7fr) minmax(0,1fr);gap:18px;align-items:start}
 .pmain,.pside{display:flex;flex-direction:column;gap:18px;min-width:0}
@@ -355,7 +336,6 @@ table.sheet tr.tot td{border-top:2px solid var(--ink);border-bottom:0;font-weigh
   .tb-date b{font-size:16px}
   .tb-in span{font-size:10px}
   .pgrid,.pgrid2,.dgrid,.build{grid-template-columns:minmax(0,1fr)}
-  .panel{padding:14px}
   .build-side{position:static}
   .vtabs{gap:0}
   .vtabs button{padding:8px 7px 6px;font-size:13.5px;gap:4px}
@@ -381,7 +361,7 @@ body{margin:0;overflow:hidden}
 .mchip b{font-size:17px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .mchip.net{background:var(--accent);color:var(--accent-ink)}
 .mchip.net span{opacity:.85}
-.mchip.neg b{color:var(--down)}
+.mchip.neg{background:color-mix(in srgb,var(--down) 45%,transparent)}
 .delta{position:absolute;right:6px;top:-9px;font-style:normal;font-family:var(--f-mono);font-size:11.5px;font-weight:600;padding:1px 7px;border-radius:999px;background:var(--sheet);border:1px solid currentColor;pointer-events:none}
 .delta.up{color:var(--up)} .delta.down{color:var(--down)}
 .hud .ghost{color:var(--paper);border-color:color-mix(in srgb,var(--paper) 30%,transparent);flex:none}
@@ -481,7 +461,7 @@ table.sheet td{padding:4px 6px}
 .cw .legend{font-size:11.5px;gap:4px 12px}
 /* fenêtres */
 .overlay{position:fixed;inset:0;z-index:15;display:flex;align-items:center;justify-content:center;padding:16px;background:color-mix(in srgb,var(--ink) 55%,transparent);backdrop-filter:blur(2px)}
-.dmodal{background:var(--sheet);border:1px solid var(--rule);border-top:5px solid var(--warn);border-radius:12px;box-shadow:0 24px 60px rgba(0,0,0,.3);width:min(620px,100%);max-height:100%;overflow:auto;padding:18px 20px;display:flex;flex-direction:column;gap:12px}
+.dmodal{box-sizing:border-box;background:var(--sheet);border:1px solid var(--rule);border-top:5px solid var(--warn);border-radius:12px;box-shadow:0 24px 60px rgba(0,0,0,.3);width:min(620px,100%);max-height:calc(100vh - 32px);max-height:calc(100dvh - 32px);overflow:auto;padding:18px 20px;display:flex;flex-direction:column;gap:12px}
 .dmodal.life{border-top-color:var(--life)}
 .dmodal.wide{width:min(980px,100%);border-top-color:var(--accent)}
 .dm-head{display:flex;align-items:center;gap:14px}
@@ -563,8 +543,34 @@ table.sheet td{padding:4px 6px}
   .dm-ico{width:46px;height:46px}
   .dm-ico svg{width:30px;height:30px}
   .overlay{padding:10px;align-items:flex-end}
+  .dmodal{max-height:calc(100vh - 20px);max-height:calc(100dvh - 20px)}
   .b-head .bigline{justify-content:flex-start;gap:14px}
 }
+/* fenêtre de décision : l'en-tête et les choix restent fixes, le texte défile entre les deux */
+.dmodal:focus,.anim-in:focus{outline:none}
+.dmodal.split{overflow:hidden}
+.dmodal.split>*{flex:none}
+.dmodal.split>.dm-body{flex:1 1 auto;min-height:48px;overflow:auto;overscroll-behavior:contain}
+.dmodal.split>.decision{max-height:62%;overflow:auto;border-top:1px solid var(--rule);padding-top:10px}
+.dmodal.onb{overflow:hidden}
+.dmodal.onb .opts{flex:1 1 auto;min-height:80px;overflow:auto}
+.dmodal.onb>*:not(.opts){flex:none}
+/* une zone coupée le montre : dégradé et flèche en bas tant qu'il reste du contenu */
+.more{scrollbar-width:thin}
+.more::after{content:"▾";position:sticky;bottom:-14px;display:block;flex:none;margin-top:-30px;height:30px;line-height:38px;text-align:center;font-size:13px;color:var(--muted);background:linear-gradient(to bottom,transparent,var(--sheet) 70%);pointer-events:none}
+.choix{font-size:14.5px;border-radius:6px;padding:8px 12px;border-left:3px solid var(--muted);background:var(--paper)}
+.choix.good{border-left-color:var(--up)} .choix.good .num{color:var(--up)}
+.choix.bad{border-left-color:var(--down)} .choix.bad .num{color:var(--down)}
+.quietl{list-style:none;margin:0;padding:0;display:flex;flex-direction:column}
+.quietl li{display:grid;grid-template-columns:52px minmax(0,1fr) auto;gap:2px 10px;align-items:baseline;padding:8px 0;border-bottom:1px solid var(--rule)}
+.quietl li>b{font-family:var(--f-display);font-size:19px}
+.quietl li>p{grid-column:2 / -1;margin:0;font-size:13.5px}
+.autot{display:inline-flex;align-items:center;gap:8px}
+.autot i{width:28px;height:16px;border-radius:999px;background:var(--rule);position:relative;flex:none}
+.autot i::after{content:"";position:absolute;top:2px;left:2px;width:12px;height:12px;border-radius:50%;background:var(--sheet);transition:left .15s}
+.autot[aria-pressed="true"] i{background:var(--accent)}
+.autot[aria-pressed="true"] i::after{left:14px}
+.broken{max-width:560px;margin:auto}
 @media (prefers-reduced-motion:no-preference){
   .fx .card,.fx .b-head{animation:pop .32s cubic-bezier(.2,.8,.3,1.2) both}
   .fx .card:nth-child(2){animation-delay:.04s}.fx .card:nth-child(3){animation-delay:.08s}.fx .card:nth-child(4){animation-delay:.12s}.fx .card:nth-child(5){animation-delay:.16s}.fx .card:nth-child(6){animation-delay:.2s}
@@ -846,7 +852,7 @@ function newGame(spec,goals,guided){
     idx:Object.fromEntries(Object.entries(BIENS).map(([k,b])=>[k,{price:b.price,rent:b.rent}])),
     w:{...W0},wPrev:null,pol:null,th:null,drift:null,
     lossCarry:0,flags:{},pending:{},jeton:{name:JETONS[0],alive:false,born:0},avAb:{y:0,used:0},
-    revenu:sl.m*12,tauxEp:sl.tx,defl:1,bench:{liv:cash,trk:cash},yearExt:0,
+    revenu:sl.m*12,tauxEp:sl.tx,defl:1,bench:{liv:cash,trk:cash},yearExt:0,yearProp:0,benchV:2,moves:[],autoPass:true,
     hist:[{x:Y0,net:cash,liv:cash,trk:cash}],bilans:[],event:null,life:null,nextY:null,
     usedFut:[],usedLife:[],uid:1,log:[],turnShock:{},lock:false,well:{sum:0,n:0},ph:{},pxPrev:null,profile:null,lg:{lines:{},env:{pea:[],av:[]},props:[]},clk:{t:Y0,y:Y0},
     me:{humeur:65,relation:pp.couple?60:0,partner:null,first:null,exes:[],marie:false,enfants:0,ruptures:0,burnouts:0,retireYear:null,gap:0,besoin:0,pension:false,car:CITIES[pp.city].car,kids:[]}};
@@ -919,7 +925,13 @@ function lgFlow(e,id,a){
   L.flows.push({t:S.clk.t,y:S.clk.y,a});if(a>0)L.lastSell=S.clk.y;
 }
 function lgEnv(e,a){if(S.lg&&S.lg.env[e]&&Math.abs(a)>0.004)S.lg.env[e].push({t:S.clk.t,y:S.clk.y,a});}
-function lgProp(p,a){if(Math.abs(a)>0.004)(p.flows||(p.flows=[])).push({t:S.clk.t,y:S.clk.y,a});}
+function lgProp(p,a){if(Math.abs(a)>0.004){(p.flows||(p.flows=[])).push({t:S.clk.t,y:S.clk.y,a});S.yearProp=(S.yearProp||0)+a;}}
+// Ordres passés pendant le tour (janvier) : servent à chiffrer au bilan ce que tes choix ont rapporté face à « ne rien toucher ».
+function mvRec(o){if(S.clk&&S.clk.t===S.year&&S.phase==='turn')(S.moves||(S.moves=[])).push(o);}
+// Repère « ta vie et ton immobilier à l'identique, mais tous tes placements financiers sur l'ETF Monde (ou le Livret A) » :
+// il reçoit les mêmes flux externes et les mêmes flux immobiliers que toi ; on y ajoute la valeur nette actuelle de ton immobilier.
+const propNet=()=>propsValue()-debtTotal();
+const benchRef=()=>({trk:S.bench.trk+propNet(),liv:S.bench.liv+propNet()});
 function irr(fl){
   const f=fl.filter(x=>Math.abs(x.a)>0.004).sort((a,b)=>a.t-b.t);
   if(!f.length)return null;
@@ -949,7 +961,7 @@ function buyIn(e,id,amt){
   if(e==='pea'&&A.vers+fromMain>peaCap()+0.5)return `Plafond du PEA atteint : tu peux encore y verser ${fmt(Math.max(0,peaCap()-A.vers))}.`;
   if(e!=='cto'){if(A.open==null)A.open=S.year;A.cash-=fromEnv;A.vers+=fromMain;}
   S.cash-=fromMain;const h=holdOf(e,id);h.v+=amt;h.b+=amt;
-  lgFlow(e,id,-amt);if(e!=='cto')lgEnv(e,-fromMain);
+  lgFlow(e,id,-amt);mvRec({e,id,a:amt});if(e!=='cto')lgEnv(e,-fromMain);
   return null;
 }
 function taxGain(g){
@@ -966,16 +978,16 @@ function sellIn(e,id,amt){
   amt=Math.min(Math.floor(amt*100)/100,h.v);if(!(amt>0))return {err:'Indique un montant.'};
   if(h.v-amt<1)amt=h.v;
   const basis=h.b*(amt/h.v);h.v-=amt;h.b-=basis;if(h.v<.01){h.v=0;h.b=0;}
-  if(e==='cto'){const tax=taxGain(amt-basis);S.cash+=amt-tax;lgFlow(e,id,amt-tax);return {amt,tax};}
-  S.acc[e].cash+=amt;lgFlow(e,id,amt);return {amt,tax:0,inEnv:true};
+  if(e==='cto'){const tax=taxGain(amt-basis);S.cash+=amt-tax;lgFlow(e,id,amt-tax);mvRec({e,id,a:-amt,tax});return {amt,tax};}
+  S.acc[e].cash+=amt;lgFlow(e,id,amt);mvRec({e,id,a:-amt});return {amt,tax:0,inEnv:true};
 }
 function livIn(amt){
   amt=Math.floor(amt);if(!(amt>0))return 'Indique un montant.';
   if(amt>S.cash+0.5)return `Liquidités insuffisantes : il te reste ${fmt(S.cash)}.`;
   const room=livretCap()-S.liv;if(amt>room+0.5)return `Plafond du Livret A (${fmt(livretCap())}) : tu peux encore verser ${fmt(Math.max(0,room))}.`;
-  S.liv+=amt;S.cash-=amt;lgFlow('liv','livret',-amt);return null;
+  S.liv+=amt;S.cash-=amt;lgFlow('liv','livret',-amt);mvRec({e:'liv',id:'livret',a:amt});return null;
 }
-function livOut(amt){amt=Math.min(amt,S.liv);if(!(amt>0))return {err:'Ton Livret A est vide.'};S.liv-=amt;if(S.liv<.01)S.liv=0;S.cash+=amt;lgFlow('liv','livret',amt);return {amt,tax:0};}
+function livOut(amt){amt=Math.min(amt,S.liv);if(!(amt>0))return {err:'Ton Livret A est vide.'};S.liv-=amt;if(S.liv<.01)S.liv=0;S.cash+=amt;lgFlow('liv','livret',amt);mvRec({e:'liv',id:'livret',a:-amt});return {amt,tax:0};}
 function avAbattLeft(){const cap=S.me.marie?9200:4600;return cap-(S.avAb.y===S.year?S.avAb.used:0);}
 function wdCalc(e,amt){
   const A=S.acc[e],tot=envTotal(e),close=e==='pea'&&envYears('pea')<5;
@@ -991,7 +1003,8 @@ function withdraw(e,amt){
   const A=S.acc[e],c=wdCalc(e,amt);
   if(!(c.amt>0))return {err:c.close?'Ton PEA est vide.':'Aucune liquidité dans cette enveloppe : vends d’abord une ligne, l’argent y restera disponible.'};
   const tot=envTotal(e);
-  if(c.close){for(const k in A.hold){lgFlow(e,k,A.hold[k].v);A.cash+=A.hold[k].v;}A.hold={};}
+  if(c.close){for(const k in A.hold){lgFlow(e,k,A.hold[k].v);mvRec({e,id:k,a:-A.hold[k].v});A.cash+=A.hold[k].v;}A.hold={};}
+  if(c.tax>0.5)mvRec({tax:c.tax});
   A.vers-=A.vers*(c.amt/tot);A.cash-=c.amt;if(A.cash<.01)A.cash=0;
   if(e==='av'&&envYears('av')>=8){if(S.avAb.y!==S.year)S.avAb={y:S.year,used:0};S.avAb.used+=Math.min(c.taxable,avAbattLeft());}
   if(c.close){A.open=null;A.vers=0;A.cash=0;}
@@ -1019,7 +1032,7 @@ function raiseCash(ctx){
     break;
   }
   if(S.cash<-1){
-    if(ctx.retired){ctx.ruin=-S.cash;S.yearExt-=S.cash;S.extTot=(S.extTot||0)-S.cash;S.cash=0;}
+    if(ctx.retired){ctx.ruin=-S.cash;S.yearRuin=(S.yearRuin||0)-S.cash;S.yearExt-=S.cash;S.extTot=(S.extTot||0)-S.cash;S.cash=0;}
     else S.flags.faillite=true;
   }
   return ctx;
@@ -1079,11 +1092,11 @@ function buyProp(type,mode,n=20,use){
   const q=propQuote(type,n,use);
   if(mode==='cash'){
     if(S.cash<q.cashNeed)return `Il faut ${fmt(q.cashNeed)} sur ton compte courant (prix + frais de notaire). Tu as ${fmt(S.cash)}.`;
-    S.cash-=q.cashNeed;S.props.push({uid:S.uid++,type,use,buyYear:S.year,cost:q.cashNeed,loan:null,rentMult:1,vacantUntil:0,noRent:0,mode:'comptant',flows:[{t:S.clk.t,y:S.clk.y,a:-q.cashNeed}]});
+    S.cash-=q.cashNeed;S.props.push({uid:S.uid++,type,use,buyYear:S.year,cost:q.cashNeed,loan:null,rentMult:1,vacantUntil:0,noRent:0,mode:'comptant',flows:[]});lgProp(S.props[S.props.length-1],-q.cashNeed);
   }else{
     if(S.cash<q.apport)return `Apport insuffisant : il faut ${fmt(q.apport)} (${pc0(q.ap)} + frais de notaire) sur ton compte courant. Tu as ${fmt(S.cash)}.`;
     if(q.eff>0.35)return `Ta banque refuse : taux d’effort de ${f1(q.eff*100)} % pour un maximum de 35 %.`;
-    S.cash-=q.apport;S.props.push({uid:S.uid++,type,use,buyYear:S.year,cost:q.cashNeed,loan:{p:q.L-q.z,r:q.r,n:q.n,ann:q.annM,z:q.z?{p:q.z,ann:q.annZ}:null},rentMult:1,vacantUntil:0,noRent:0,mode:`crédit ${q.n} ans${q.z?' + PTZ':''}`,flows:[{t:S.clk.t,y:S.clk.y,a:-q.apport}]});
+    S.cash-=q.apport;S.props.push({uid:S.uid++,type,use,buyYear:S.year,cost:q.cashNeed,loan:{p:q.L-q.z,r:q.r,n:q.n,ann:q.annM,z:q.z?{p:q.z,ann:q.annZ}:null},rentMult:1,vacantUntil:0,noRent:0,mode:`crédit ${q.n} ans${q.z?' + PTZ':''}`,flows:[]});lgProp(S.props[S.props.length-1],-q.apport);
   }
   if(rp){S.home={type,own:true,since:S.year};S.flags.ownedRP=true;if(S.flags.rpYear==null)S.flags.rpYear=S.year;if(age(S.year)<30)unlock('proprio');}
   if(S.props.filter(p=>!isRP(p)).length>=2)S.flags.twoRent=true;
@@ -1155,7 +1168,7 @@ function shock(map){
   for(const k in map){
     const d=map[k]/100;
     if(k==='loc'||k==='bur'||k==='rp'){for(const b in BIENS)if(BIENS[b].k===k){const before=S.idx[b].price;S.idx[b].price*=1+d;for(const p of S.props)if(p.type===b)S.shockEur=(S.shockEur||0)+before*d;}}
-    else{S.px[k]*=1+d;for(const e in S.acc){const h=S.acc[e].hold[k];if(h){S.shockEur=(S.shockEur||0)+h.v*d;h.v*=1+d;}}if(k==='monde')S.bench.trk*=1+d;}
+    else{S.px[k]*=1+d;for(const e in S.acc){const h=S.acc[e].hold[k];if(h){S.shockEur=(S.shockEur||0)+h.v*d;h.v*=1+d;}}if(k==='monde'&&S.bench.trk>0)S.bench.trk*=1+d;}
     S.turnShock[k]=(S.turnShock[k]||0)+map[k];
   }
 }
@@ -1165,7 +1178,7 @@ function sellEverywhere(ids){
   return {t,tax};
 }
 const ctoLatent=()=>{let t=0;for(const id in S.acc.cto.hold){const h=S.acc.cto.hold[id];if(META[id].k!=='special'&&h.v>h.b)t+=h.v-h.b;}return t;};
-function purgeCto(){let t=0;for(const id in S.acc.cto.hold){const h=S.acc.cto.hold[id];if(META[id].k==='special'||h.v<=h.b)continue;const tax=taxGain(h.v-h.b);h.v-=tax;h.b=h.v;t+=tax;}return t;}
+function purgeCto(){let t=0;for(const id in S.acc.cto.hold){const h=S.acc.cto.hold[id];if(META[id].k==='special'||h.v<=h.b)continue;const tax=taxGain(h.v-h.b);h.v-=tax;h.b=h.v;t+=tax;}if(t>0.5)mvRec({tax:t});return t;}
 
 /* ===================== RÉPARTITION ===================== */
 const CLASSES=[{k:'safe',n:'Garanti et liquidités',c:'--c1'},{k:'eq',n:'Actions',c:'--c2'},{k:'bond',n:'Obligations',c:'--c3'},{k:'immo',n:'Immobilier net',c:'--c4'},{k:'spec',n:'Or et spéculatif',c:'--c5'}];
@@ -1408,11 +1421,20 @@ const EVT={
     view:()=>({kicker:'Choc énergétique',title:'Un détroit stratégique est bloqué, le baril s’envole',body:`PétroGaule bondit de 30 %, AéroNef chute de 25 % à ${fmtPx(S.px.aero)}. Les économistes craignent un retour de l’inflation et une récession.`,invest:{assets:['aero','petro','or']},pass:'Je ne bouge pas'})},
   guerre:{forced:true,make(){shock({tracker:-8,monde:-6,or:8,petro:15,aero:-12});return {};},
     view:()=>({kicker:'Géopolitique',title:'Un conflit armé éclate aux portes de l’Europe',body:'Les marchés reculent, l’or et le pétrole grimpent. Les analystes se divisent : simple secousse ou début d’une longue crise ?',invest:{assets:['or','monde','tracker']},pass:'Je ne bouge pas'})},
-  geant:{w:()=>2,fiche:p=>p.s,make(y){const s=pick(STOCKS);shock({[s]:-40});setPending(y,s,rnd()<0.55?60:-50);return {s,why:pick(['un scandale comptable','la perte de son plus gros client','une amende record de Bruxelles','un avertissement sur résultats'])};},
-    view:p=>({kicker:'Valeur en chute libre',title:`${META[p.s].n} perd 40 % en une semaine`,body:`En cause : ${p.why}. L’action cote ${fmtPx(S.px[p.s])}. Rebond spectaculaire ou début de la fin ? Lis la fiche avant de décider.`,invest:{assets:[p.s]},pass:'Je m’abstiens'})},
-  bulle:{w:()=>GOOD.includes(S.w.phase)?2:1,fiche:p=>p.s,make(y){const s=pick(STOCKS);shock({[s]:60});setPending(y,s,rnd()<0.5?-45:30);return {s};},
-    view:p=>({kicker:'Euphorie',title:`${META[p.s].n} : +60 % en quelques mois`,body:'Les forums s’enflamment, les analystes relèvent leurs objectifs chaque semaine. Ton voisin, qui n’a jamais investi, vient d’en acheter. Bulle ou vraie croissance ?',invest:{assets:[p.s],cta:'Renforcer'},
-      choices:hv(p.s)>0?[{id:'vendre',label:'Tout vendre et encaisser',desc:`Ta position : ${fmt(hv(p.s))}`}]:[],pass:'Garder sans rien faire'}),
+  // Au plus deux fois par partie, avec trois versions du texte (p.v) pour ne pas lasser.
+  geant:{w:()=>S.usedFut.filter(x=>x==='geant').length<2?2:0,fiche:p=>p.s,make(y){const s=pick(STOCKS);shock({[s]:-40});setPending(y,s,rnd()<0.55?60:-50);return {s,why:pick(['un scandale comptable','la perte de son plus gros client','une amende record de Bruxelles','un avertissement sur résultats']),v:Math.floor(rnd()*3)};},
+    view:p=>{const n=META[p.s].n,px=fmtPx(S.px[p.s]),w=p.why[0].toUpperCase()+p.why.slice(1);
+      const t=[[`${n} perd 40 % en une semaine`,`En cause : ${p.why}. L’action cote ${px}. Rebond spectaculaire ou début de la fin ? Lis la fiche avant de décider.`],
+        [`${n} : −40 % en quelques séances`,`Le marché sanctionne ${p.why}. Les vendeurs se bousculent, l’action cote ${px}. Les uns parlent d’occasion historique, les autres de piège. La fiche de l’analyste t’aidera à trancher.`],
+        [`Panique sur ${n}`,`${w} : en quelques jours, ${n} a perdu 40 % et cote ${px}. Sur les forums, on lit qu’il faut « acheter au son du canon ». Les chiffres de l’entreprise disent-ils la même chose ?`]][p.v||0];
+      return {kicker:'Valeur en chute libre',title:t[0],body:t[1],invest:{assets:[p.s],cta:hv(p.s)>0?'Renforcer':'Acheter'},pass:'Je m’abstiens'};}},
+  bulle:{w:()=>S.usedFut.filter(x=>x==='bulle').length>=2?0:GOOD.includes(S.w.phase)?2:1,fiche:p=>p.s,make(y){const s=pick(STOCKS);shock({[s]:60});setPending(y,s,rnd()<0.5?-45:30);return {s,v:Math.floor(rnd()*3)};},
+    view:p=>{const n=META[p.s].n,px=fmtPx(S.px[p.s]);
+      const t=[[`${n} : +60 % en quelques mois`,'Les forums s’enflamment, les analystes relèvent leurs objectifs chaque semaine. Ton voisin, qui n’a jamais investi, vient d’en acheter. Bulle ou vraie croissance ?'],
+        [`${n} s’envole`,`+60 % en quelques mois : les médias ne parlent que d’elle et l’action cote ${px}. Les plus prudents rappellent que les arbres ne montent jamais jusqu’au ciel.`],
+        [`Tout le monde s’arrache ${n}`,`Des records chaque semaine, +60 % en quelques mois, et même ton coiffeur t’en parle. L’action cote ${px}. Croissance solide ou euphorie qui finira mal ?`]][p.v||0];
+      return {kicker:'Euphorie',title:t[0],body:t[1],invest:{assets:[p.s],cta:hv(p.s)>0?'Renforcer':'Acheter'},
+      choices:hv(p.s)>0?[{id:'vendre',label:'Tout vendre et encaisser',desc:`Ta position : ${fmt(hv(p.s))}`}]:[],pass:hv(p.s)>0?'Garder sans rien faire':'Je reste à l’écart'};},
     act(c,p){const pd=S.pending[S.year]&&S.pending[S.year][p.s];if(pd!=null&&pd<0)unlock('sommet');const r=sellEverywhere([p.s]);return {msg:`Tu vends ${META[p.s].n} pour ${fmt(r.t)}${r.tax>0.5?` (impôt ${fmt(r.tax)})`:''}.`};}},
   taux:{w:(y,f)=>f.mac.rate-S.w.rate>=.75?5:0,make(y,f){return {r:f.mac.rate,infl:S.w.infl};},
     view:p=>({kicker:'Banque centrale',title:`La BCE relève son taux à ${rate(p.r)}`,body:`L’inflation a atteint ${f1(p.infl)} % l’an dernier. Les OAT à 10 ans rapportent ${rate(S.w.r10)}, le crédit immobilier coûte ${rate(S.w.credit)}. Quand les taux montent, les obligations déjà émises perdent de la valeur.`,invest:{assets:['oat']},pass:'Je ne change rien'})},
@@ -1627,6 +1649,13 @@ function conseils(){
   if(cs<3&&!retired(y))add(`Ton coussin de sécurité ne couvre que ${f1(cs)} mois de dépenses. Vise 3 à 6 mois sur le Livret A avant d’investir : un pépin ne t’obligera pas à vendre au mauvais moment.`,{act:'tip-tab',tab:'liv',label:'Aller au Livret A'});
   if(isIdle()&&!S.lock&&cs>=3){const idle=idleAmt();add(`${fmt(idle)} dorment sans rien rapporter.${w.infl>2?` Avec ${f1(w.infl)} % d’inflation, ils perdent environ ${fmt(idle*w.infl/100)} par an.`:''}`,
     {act:'view',view:'portefeuille',label:'Voir où investir'});}
+  // Profil selon l'horizon : beaucoup d'actions quand on a le temps, moins à l'approche de la retraite (règle classique, sans lire l'avenir).
+  if(!retired(y)&&T>5000&&cs>=3){const ag=age(y);
+    if(ag<50&&eqs<.7&&(S.profile==null||S.profile<.8))add(`Tu as ${ag} ans et plus de quinze ans devant toi : les baisses de la Bourse ont le temps de se rattraper. Un profil dynamique (80 % d’actions) rapporte en général plus sur la durée que le Livret A et le fonds euros.`,{act:'view',view:'portefeuille',label:'Choisir mon profil',k:'prof',p:.8});
+    else if(ag>=55&&eqs>.6&&(S.profile==null||S.profile>.5))add(`À ${ag} ans, la retraite approche : une chute juste avant de puiser dans ton épargne coûterait cher. Réduire les actions à 50 % limite ce risque.`,{act:'view',view:'portefeuille',label:'Choisir mon profil'});}
+  // Une action isolée gardée plus d'un an : rebasculer sur l'ETF Monde répartit le risque.
+  {const L=Object.values(S.lg.lines).find(L=>STOCKS.includes(L.id)&&L.first<y&&ev(L.env,L.id)>Math.max(1000,.03*T));
+    if(L)add(`Tu gardes ${nm(L.id)} en direct (${fmt(ev(L.env,L.id))}). Une action seule est bien plus risquée qu’un fonds : rebasculer sur l’ETF Monde garde ton gain et répartit le risque.`,{act:'tip-tab',tab:L.env,label:'Voir cette ligne',k:'sell',e:L.env,id:L.id});}
   if(homeCap()<need())add(`À ${need()} dans ${homeName().toLowerCase()}, on se marche dessus : l’humeur et le couple en pâtissent chaque année.`,{act:'view',view:'immo',label:'Voir les logements'});
   if(!crash&&risk>=.1&&eqs>.65&&T>10000){const why=[w.r10<w.rate?'courbe des taux inversée':'',w.cg>4?'crédit trop gonflé':'',w.pe>22?'Bourse chère':'',w.phase==='surchauffe'?'économie en surchauffe':''].filter(Boolean).join(', ');
     add(`Plusieurs voyants sont à l’orange (${why}) : une forte baisse devient plus probable. Avec ${pc0(eqs)} d’actions, une chute de 35 % te coûterait environ ${fmt(.35*a.eq)}. Si ça t’empêche de dormir, allège.`,{act:'view',view:'portefeuille',label:'Voir mon portefeuille'});}
@@ -1753,7 +1782,7 @@ function pickLife(crash){
 }
 const evDef=()=>S.event?EVT[S.event.id]:null;
 function startTurn(y){
-  S.year=y;S.clk={t:y,y};S.phase='turn';S.turnShock={};S.lock=false;S.month='Janvier';
+  S.year=y;S.clk={t:y,y};S.phase='turn';S.turnShock={};S.lock=false;S.month='Janvier';S.moves=[];
   S.nextY=Math.min(y+1,YN+1);
   if(!S.fut[y])S.fut[y]=genYear(y);
   const f=S.fut[y];
@@ -1829,6 +1858,16 @@ function whyText(y,f,mac,r,b){
   let t=parts.length?`Ce qui a fait ton année : ${parts.join(' ; ')}.`:'';
   if(S.shockEur&&Math.abs(S.shockEur)>=lim)t+=` En janvier, le choc t’avait déjà ${S.shockEur<0?'coûté':'rapporté'} ${fmt(Math.abs(S.shockEur))}.`;
   return t.trim();
+}
+// Ce que les ordres de janvier ont rapporté (ou coûté) par rapport à ne rien toucher : chaque euro déplacé aurait suivi
+// la ligne d'où il venait. On mesure la croissance réelle de chaque ligne sur l'année (frais, dividendes taxés compris) ;
+// l'argent sorti va sur le compte courant, qui ne rapporte rien. Les impôts payés pour vendre comptent comme un coût.
+function movesGain(b,r,mac){
+  const mv=S.moves||[];if(!mv.length)return null;
+  const g=(e,id)=>{const l=b.lines.find(x=>x.env===e&&x.id===id&&x.sv>0);if(l)return l.ev/l.sv-1;
+    if(id==='livret')return mac.livret/100;if(id==='euros')return mac.euros/100*(1-psRate());return r[id]||0;};
+  let t=0;for(const m of mv){if(m.tax)t-=m.tax;if(m.id)t+=m.a*g(m.e,m.id);}
+  return t;
 }
 function simulateYear(y){
   S.clk={t:y+1,y};
@@ -1907,13 +1946,17 @@ function simulateYear(y){
   // Affichage : un propriétaire ne paie pas de loyer. La valeur locative (débitée côté vie, recréditée côté bien pour le TRI) s'annule, on ne la montre pas.
   if(b.flows.rp>0){b.flows.logement+=b.flows.rp;b.flows.rp=0;}
   if(S.page){b.flows.plaisir=-(S.page.spent||0);b.flows.imprevu=-(S.page.imp?S.page.imp.c:0);}
-  S.bench.liv=Math.max(0,S.bench.liv*(1+mac.livret/100)+S.yearExt);
-  S.bench.trk=Math.max(0,S.bench.trk*(1+r.monde)+S.yearExt);
-  S.yearExt=0;
+  b.choice=movesGain(b,r,mac);
   const g=1+mac.infl/100;S.defl*=g;
   if(ret)S.me.besoin*=g;
   const ctx=raiseCash({y,retired:ret});if(ctx.ruin){S.me.humeur=clamp(S.me.humeur-15,0,100);S.me.ruined=true;}b.notes.push(...raiseNotes(ctx,ret?'Pour financer ta retraite':'Découvert'));
   b.flows.impots+=ctx.tax;
+  // Les repères suivent ta vie (flux externes) et ton immobilier (flux du registre, ventes forcées comprises) ; une dette ne rapporte pas le rendement du marché.
+  // Ce que la ruine t'a épargné (pas de dette à la retraite) ne passe pas au repère : il a sa propre règle, plancher à zéro une fois retraité.
+  const bf=S.yearExt-(S.yearRuin||0)+(S.yearProp||0),grow=(v,x)=>{const n=(v>0?v*(1+x):v)+bf;return ret&&n<0?0:n;};
+  S.bench.liv=grow(S.bench.liv,mac.livret/100);
+  S.bench.trk=grow(S.bench.trk,r.monde);
+  S.yearExt=0;S.yearProp=0;S.yearRuin=0;
   // l'économie de l'année devient le passé connu
   b.notes.unshift(`Économie ${y} : ${PHASES[f.phase].n}, croissance ${f1(mac.g)} %, inflation ${f1(mac.infl)} %, Bourse de Paris ${pct((1+(f.shock?f.shock.tracker/100:0))*(1+r.tracker)-1,0)}, ETF Monde ${pct((1+(f.shock?f.shock.monde/100:0))*(1+r.monde)-1,0)}.`);
   if(f.elec){const E=f.elec[f.elec.win],L=f.elec[f.elec.win==='A'?'B':'A'];
@@ -1941,7 +1984,7 @@ function simulateYear(y){
   {const h=S.acc.cto.hold.jeton;if(h&&h.b>0&&h.v>=10*h.b)unlock('lune');}
   if(S.acc.pea.open!=null&&y+1-S.acc.pea.open>=20&&envTotal('pea')/S.defl>=1e6)unlock('patient');
   b.r={monde:r.monde,tracker:r.tracker,telecom:r.telecom,luxe:r.luxe,banque:r.banque,petro:r.petro,aero:r.aero,pharma:r.pharma,or:r.or};
-  S.hist.push({x:y+1,net:b.netEnd,liv:S.bench.liv,trk:S.bench.trk});
+  {const br=benchRef();S.hist.push({x:y+1,net:b.netEnd,liv:br.liv,trk:br.trk});}
   return b;
 }
 function endTurn(){
@@ -1959,10 +2002,14 @@ function nextBilan(){
 }
 function finalScore(){
   const real=net()/S.defl,be=S.well.n?S.well.sum/S.well.n:50,mult=.4+1.2*be/100;
-  const ref=S.bench.trk,nn=net(),mt=ref<1000?(nn>1000?2:0):nn>=ref*1.05?2:nn>=ref*.75?1:0,lt=be>=62?2:be>=48?1:0;
+  // L'immobilier est identique des deux côtés : l'écart se mesure par rapport aux placements du repère, pas au patrimoine total.
+  // On se compare au meilleur des deux placements simples (ETF Monde ou Livret A). Sans aucun placement, aucun mérite de placement.
+  const br=benchRef(),liv=br.liv>br.trk,ref=liv?br.liv:br.trk,nn=net(),sc=Math.max(Math.abs(liv?S.bench.liv:S.bench.trk),S.start||0,1),dv=(nn-ref)/sc;
+  const never=!Object.values(S.lg.lines).some(L=>L.flows.some(f=>f.a<0));
+  const mt=S.me.ruined||never?0:dv>=.05?2:dv>=-.25?1:0,lt=be>=62?2:be>=48?1:0;
   const T=[['Naufragé de la Corbeille','Épargnant à la traîne','Cigale heureuse'],['Bourreau de travail','Épargnant équilibré','Sage de la Corbeille'],['Loup de la Corbeille','Investisseur avisé','Légende de la Corbeille']];
   const gl=(S.goals||[]).map(g=>({g,st:GOALS[g].st(true)})),gm=1+gl.filter(x=>x.st===1).reduce((a,x)=>a+GOALS[x.g].bonus,0),coef=S.coef||1;
-  return {real,be,mult,gm,gl,coef,score:Math.round(real/1000*mult*gm*coef),title:S.flags.faillite?'Faillite personnelle':T[mt][lt],mt,lt};
+  return {real,be,mult,gm,gl,coef,score:Math.round(real/1000*mult*gm*coef),title:S.flags.faillite?'Faillite personnelle':T[mt][lt],mt,lt,never};
 }
 
 /* ===================== SAUVEGARDE ===================== */
@@ -1980,7 +2027,7 @@ function legacyGame(){
 function dropLegacy(){try{localStorage.removeItem(OLDKEY);}catch(e){}}
 
 /* ===================== INTERFACE ===================== */
-const U={setup:{city:'lille',sal:2,cap:1,couple:false,goals:['rp35','serein']},view:'profil',city:null,dossier:null,dosMsg:null,anim:null,animTok:0,copied:null,invOpen:false,plan:null,allocMsg:null,tab:'pea',open:null,msg:{},amt:{},wd:{},evAmt:'',evAsset:null,evEnv:null,evErr:'',confirmReset:false,confirmSell:null,confirmClose:false,deskErr:'',envMsg:{},legacy:null,dur:null,lifeErr:'',achErr:'',homeMsg:null,onbErr:'',scroll:null,fresh:{},prevMoney:null,shownAch:[],toast:null,fx:true};
+const U={setup:{city:'lille',sal:2,cap:1,couple:false,goals:['rp35','serein']},view:'profil',city:null,dossier:null,dosMsg:null,anim:null,animTok:0,copied:null,plan:null,allocMsg:null,tab:'pea',open:null,msg:{},amt:{},wd:{},evAmt:'',evAsset:null,evEnv:null,evErr:'',confirmReset:false,confirmSell:null,confirmClose:false,deskErr:'',envMsg:{},legacy:null,dur:null,lifeErr:'',achErr:'',homeMsg:null,onbErr:'',fresh:{},quiet:null,animList:null,broken:false,prevMoney:null,shownAch:[],toast:null,fx:true};
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const TICKS=[Y0,Y0+10,Y0+20,Y0+30,Y0+40,YN];
 
@@ -2027,14 +2074,14 @@ function donut(a,size=120){
 const legendHtml=a=>{const tot=Object.values(a).reduce((x,y)=>x+y,0)||1;return `<div class="legend2">${CLASSES.filter(c=>a[c.k]>0.5).map(c=>`<div><span class="sw" style="background:var(${c.c})"></span><span>${c.n}</span><b class="num">${pc0(a[c.k]/tot)}</b></div>`).join('')||'<span class="mut small">Rien encore</span>'}</div>`;};
 // ----- barre du haut : ton argent, toujours visible ; les montants défilent quand ils changent -----
 function moneyVals(){return {cash:S.cash,liv:S.liv,fin:envTotal('cto')+envTotal('pea')+envTotal('av'),immo:propsValue()-debtTotal(),net:net()};}
-function moneyBar(){
+function moneyBar(blk=''){
   if(!S)return '';
   const end=S.phase==='end',bil=S.phase==='bilan',y=bil?S.bilans[0].y:S.year,v=moneyVals(),prev=U.prevMoney||v;
   const date=end?`31 déc. ${YN}`:bil?`31 déc. ${y}`:`Janvier ${y}`,ag=end?75:age(bil?y+1:y);
   const chip=(k,l)=>{const to=Math.round(v[k]),from=Math.round(prev[k]??to),d=to-from;
     return `<div class="mchip ${k==='net'?'net':''} ${to<0?'neg':''}"><span>${l}</span><b class="num" data-count="${to}" data-from="${from}">${fmt(from)}</b>${Math.abs(d)>=1?`<em class="delta ${d>0?'up':'down'}">${d>0?'+':'−'}${fmt(Math.abs(d))}</em>`:''}</div>`;};
   const reset=`<button class="ghost sm ${U.confirmReset?'danger':''}" data-act="reset">${U.confirmReset?'Tout effacer ?':'Nouvelle partie'}</button>`;
-  return `<header class="hud"><div class="brand"><b class="logo-s">La <i>Corbeille</i></b><span>${date} · ${ag} ans</span></div>
+  return `<header class="hud"${blk}><div class="brand"><b class="logo-s">La <i>Corbeille</i></b><span>${date} · ${ag} ans</span></div>
     <div class="mchips">${chip('cash','Compte courant')}${chip('liv','Livret A')}${chip('fin','Placements')}${chip('immo','Immobilier net')}${chip('net','Patrimoine net')}</div>${reset}</header>`;
 }
 function animateCounters(){
@@ -2048,7 +2095,6 @@ function navBar(blk=''){
   return `<nav class="navbar"${blk}><div class="vtabs" role="tablist" aria-label="Sections">${VIEWS.map(([k,l])=>`<button role="tab" aria-selected="${v===k}" data-act="view" data-view="${k}">${l}</button>`).join('')}</div>
     <div class="nextbox">${ready&&isIdle()&&!S.lock?`<span class="hint">${fmt(idleAmt())} dorment</span>`:''}<button class="primary next" data-act="end" ${ready?'':'disabled'}>${last?'Voir la fin':`Passer à ${S.year+1}`} →</button></div></nav>`;
 }
-function tabsNav(){return navBar();}
 // ----- fenêtre des décisions obligatoires : une à la fois, rien d'autre n'est accessible tant qu'elles ne sont pas prises -----
 const GATE=['weekend','burnout','panique','retraite','fire','licenciement','logement'];
 function decisionOrder(){
@@ -2068,10 +2114,26 @@ function decisionModal(){
   const shocks=life?'':Object.entries(S.turnShock).map(([x,d])=>`<span class="chip ${cls(d)}">${shockName(x)} ${pct(d/100,0)}</span>`).join('');
   const act=o.answered?`<p class="result">${o.result}</p><div class="btns end"><button class="primary" data-act="dec-ok" data-k="${k}">${i<n?'Décision suivante →':'Voir mon année →'}</button></div>`
     :life?`<div class="choices">${v.choices.map(c=>`<button class="choice" data-act="life" data-c="${c.id}"><b>${c.label}</b><small>${c.desc}</small></button>`).join('')}</div>${U.lifeErr?`<p class="err">${U.lifeErr}</p>`:''}`:eventDecision(v,o);
-  return `<div class="overlay" role="dialog" aria-modal="true" aria-labelledby="dec-t"><div class="dmodal ${life?'life':''}">
+  return `<div class="overlay" role="dialog" aria-modal="true" aria-labelledby="dec-t"><div class="dmodal split ${life?'life':''}">
     <div class="dm-head"><div class="dm-ico">${icon(KICK[v.kicker]||'journal',44)}</div><div><span class="lbl">${life?'Vie perso · ':''}${v.kicker}${n>1?` · décision ${i} sur ${n}`:''}</span><h2 id="dec-t">${v.title}</h2></div></div>
     <div class="dm-body"><p>${v.body}</p>${shocks?`<div class="shocks">${shocks}</div>`:''}${!life&&o.fiche&&!o.answered?`<details><summary>La fiche de l’analyste</summary>${ficheHtml(o.fiche)}</details>`:''}${!life&&!o.answered?advHtml():''}</div>
     ${o.answered?'':'<p class="must">Choix obligatoire pour continuer</p>'}<div class="decision">${act}</div></div></div>`;
+}
+// ----- années calmes : passées d'affilée dans l'animation, résumées ici avant la prochaine décision -----
+const autoBtn=()=>`<button class="ghost sm autot" data-act="auto" aria-pressed="${S.autoPass!==false}"><i aria-hidden="true"></i>Passer les années calmes</button>`;
+function autoPass(){
+  const q=[];
+  while(S.autoPass!==false&&S.phase==='turn'&&!S.onb&&!S.event&&!S.life){endTurn();q.push(S.bilans[0]);nextBilan();}
+  return q;
+}
+function quietModal(){
+  const q=U.quiet,a=q[0],z=q[q.length-1],d=a.netStart>0?z.netEnd/a.netStart-1:0;
+  const rows=q.map(b=>{const g=b.netStart>0?b.netEnd/b.netStart-1:0,eco=(b.notes[0]||'').replace(/^Économie \d+ : /,''),o=b.notes.slice(1).find(n=>!/ conseillait /.test(n));
+    return `<li><b>${b.y}</b><span class="small mut">${eco}</span><span class="num ${cls(g)}">${pct(g)}</span>${o?`<p>${o}</p>`:''}</li>`;}).join('');
+  return `<div class="overlay" role="dialog" aria-modal="true" aria-labelledby="q-t"><div class="dmodal split wide">
+    <div class="dm-head"><div class="dm-ico">${icon('soleil',44)}</div><div><span class="lbl">Années calmes · aucune décision à prendre</span><h2 id="q-t">${q.length>1?`De ${a.y} à ${z.y}`:`L’année ${a.y}`}</h2></div></div>
+    <div class="dm-body"><p>Ton patrimoine passe de ${fmt(a.netStart)} à <b>${fmt(z.netEnd)}</b> (<span class="${cls(d)}">${pct(d)}</span>).</p><ul class="quietl">${rows}</ul></div>
+    <div class="decision"><div class="btns end">${autoBtn()}<button class="primary" data-act="quiet-ok">Voir ${S.year} →</button></div></div></div></div>`;
 }
 // ----- onglet Profil -----
 const NOTEI={eco:'journal',argent:'piece',famille:'bebe',coeur:'coeur',maison:'maison'};
@@ -2211,11 +2273,11 @@ function onbView(){
     <div class="btns end"><button class="primary" data-act="onb-next" ${S.onbHome?'':'disabled'}>Commencer ${S.year} →</button></div></div></div>`;
 }
 function turnView(){
-  if(S.onb)return `${moneyBar()}<main class="stage" inert></main>${onbView()}`;
-  const v=U.view||'profil',modal=decisionModal(),dos=U.dossier&&BIENS[U.dossier.t]&&v==='immo'?`<div class="overlay" role="dialog" aria-modal="true" aria-label="Dossier de crédit"><div class="dmodal wide">${dossierHtml()}</div></div>`:'';
+  if(S.onb)return `${moneyBar(' inert')}<main class="stage" inert></main>${onbView()}`;
+  const v=U.view||'profil',modal=U.quiet?quietModal():decisionModal(),dos=U.dossier&&BIENS[U.dossier.t]&&v==='immo'?`<div class="overlay" role="dialog" aria-modal="true" aria-label="Dossier de crédit"><div class="dmodal wide">${dossierHtml()}</div></div>`:'';
   const body=v==='portefeuille'?portefeuilleTab():v==='immo'?immoTab():v==='patrimoine'?patrimoineTab():profilTab();
   const t=U.toast?`<div class="toast2" role="status">${U.toast}</div>`:'',blk=modal||dos?' inert':'';
-  return `${moneyBar()}${navBar(blk)}<main class="stage"${blk}>${body}</main>${toastsHtml()}${t}${modal||dos}`;
+  return `${moneyBar(blk)}${navBar(blk)}<main class="stage"${blk}>${body}</main>${toastsHtml()}${t}${modal||dos}`;
 }
 function toastsHtml(){
   const seen=U.shownAch||[],n=(S.achNew||[]).filter(id=>!seen.includes(id));if(!n.length)return '';
@@ -2338,31 +2400,7 @@ function invBody(){
   return `${invTable('Immobilier',d.props,'Valeur nette')}${invTable('Placements financiers',d.fin,'Valeur actuelle')}${invTable('Enveloppes fiscales',d.envs,'Valeur actuelle')}
     <p class="small mut">Investi : l’argent sorti de ta poche (achats, apport, mensualités non couvertes par les loyers, frais). Récupéré : ventes et loyers nets d’impôt. Rendement / an : taux de rendement interne, qui tient compte de la date de chaque flux. Compte-titres : valeur avant impôt de sortie ; dans le PEA et l’assurance-vie, l’impôt se paie au retrait (ligne « Enveloppes fiscales »). Immobilier détenu : prix de vente estimé, net des frais, du crédit restant et de l’impôt.</p>`;
 }
-function invSec(){
-  return `<section class="sec"><details id="inv-d" class="invd" ${U.invOpen?'open':''}><summary><span class="h2like">Mes investissements</span><span class="mut small">Achats, ventes et rendement net de chaque placement</span></summary>${invBody()}</details></section>`;
-}
 const PROFILES=[[.2,'Prudent'],[.5,'Équilibré'],[.8,'Dynamique']];
-function allocSec(){
-  const a=alloc(),tot=Object.values(a).reduce((x,y)=>x+y,0)||1,eqs=eqShare(),dis=S.lock?'disabled':'',pr=S.profile;
-  const segs=CLASSES.filter(c=>a[c.k]>0.5).map(c=>`<i style="width:${a[c.k]/tot*100}%;background:var(${c.c})" title="${c.n} : ${fmt(a[c.k])} (${pc0(a[c.k]/tot)})"></i>`).join('');
-  const leg=CLASSES.filter(c=>a[c.k]>0.5).map(c=>`<div><span class="sw" style="background:var(${c.c})"></span><span>${c.n}</span><span class="v">${fmt(a[c.k])} · ${pc0(a[c.k]/tot)}</span></div>`).join('');
-  const env=[['Compte courant',S.cash],['Livret A',S.liv],['Compte-titres',envTotal('cto')],['PEA',envTotal('pea')],['Assurance-vie',envTotal('av')]].filter(x=>x[1]>0.5).map(x=>`${x[0]} ${fmt(x[1])}`).join(' · ');
-  const debt=debtTotal();
-  const idle=isIdle()&&!S.lock?`<div class="idle"><span><b>${fmt(idleAmt())}</b> dorment sans rien rapporter${envCash()>0.5?`, dont ${fmt(envCash())} dans tes enveloppes`:''}.</span>${pr==null?'<span class="small mut">Choisis un profil ci-dessous pour les placer en un clic.</span>':`<button class="primary" data-act="place">Placer selon mon profil ${pc0(pr)} actions</button>`}</div>`:'';
-  const plan=U.plan?`<div class="plan"><b>Ordres prévus pour viser ${pc0(U.plan.p)} d’actions</b>${U.plan.ops.length?`<ul>${U.plan.ops.map(o=>`<li>${opText(o)}</li>`).join('')}</ul>`:'<p class="mut">Ton portefeuille est déjà à la cible.</p>'}
-    <p class="small mut">Part actions après : ${pc0(U.plan.after)}${U.plan.tax>0.5?` · impôt estimé ${fmt(U.plan.tax)}`:' · aucun impôt'}. Tes autres lignes (actions, Tracker, fonds thématiques) ne sont pas touchées.</p>
-    <div class="btns">${U.plan.ops.length?'<button class="primary" data-act="rebal-ok">Valider ces ordres</button>':''}<button class="ghost" data-act="rebal-cancel">Annuler</button></div></div>`:'';
-  return `<section class="sec" id="alloc"><div class="sec-h"><h2>Ta répartition</h2><span class="mut">${fmt(tot)} d’actifs${debt>0.5?` · ${fmt(debt)} de crédit déduits de l’immobilier`:''}</span></div>
-    <div class="alloc">${idle}
-      <div class="abar" role="img" aria-label="Répartition du patrimoine">${segs}</div>
-      <div class="alegend">${leg}</div>
-      <p class="small mut">${env}</p>
-      <div class="panel"><div class="profiles"><span class="small"><b>Ton profil</b></span>${PROFILES.map(([p,l])=>`<button class="pchip" aria-pressed="${pr===p}" data-act="prof" data-p="${p}">${l} · ${pc0(p)} actions</button>`).join('')}</div>
-        <div class="slider"><label for="prof-r">Sur mesure</label><input id="prof-r" type="range" min="0" max="100" step="5" value="${Math.round((pr??eqs)*100)}"><span class="num" id="prof-v">${Math.round((pr??eqs)*100)} % actions</span></div>
-        <p class="small mut">Aujourd’hui : <b>${pc0(eqs)}</b> d’actions dans ton épargne financière${pr!=null?`, pour une cible de ${pc0(pr)}`:''}. L’immobilier, l’or et le spéculatif ne comptent pas dans ce calcul. La part actions va sur l’ETF Monde, dans le PEA puis l’assurance-vie ; la part prudente va sur le Livret A, puis le fonds euros.</p>
-        <div class="btns"><button class="secondary" data-act="place" ${dis||(pr==null?'disabled':'')}>Placer l’argent qui dort</button><button class="secondary" data-act="rebal-preview" ${dis||(pr==null?'disabled':'')}>Rééquilibrer tout le portefeuille</button></div>
-        ${U.allocMsg?`<p class="ok">${U.allocMsg}</p>`:''}${plan}</div></div></section>`;
-}
 function book(){
   const tab=U.tab;
   const tabs=[['liv','Livret A',S.liv],['cto','Compte-titres',envTotal('cto')],['pea','PEA',envTotal('pea')],['av','Assurance-vie',envTotal('av')]]
@@ -2401,7 +2439,7 @@ function chart(hist,h=230){
     <path d="${path('trk')}" fill="none" stroke="var(--muted)" stroke-width="1.6" stroke-dasharray="6 4"/>
     <path d="${path('net')}" fill="none" stroke="var(--accent)" stroke-width="2.6" stroke-linejoin="round"/>
     <circle cx="${X(last.x)}" cy="${Y(last.net)}" r="4" fill="var(--accent)"/></svg>
-    <div class="legend"><span><i></i>Ton patrimoine net</span><span><i class="t"></i>Mêmes versements que toi, tout sur l’ETF Monde</span><span><i class="l"></i>Mêmes versements, tout sur le Livret A sans plafond</span></div></div>`;
+    <div class="legend"><span><i></i>Ton patrimoine net</span><span><i class="t"></i>Même vie, placements sur l’ETF Monde</span><span><i class="l"></i>Même vie, placements sur le Livret A</span></div></div>`;
 }
 const lineName=l=>l.env==='liv'?'Livret A':`${nm(l.id)} <small>${l.env==='cto'?'CTO':l.env==='pea'?'PEA':'AV'}</small>`;
 function bilanView(){
@@ -2421,9 +2459,10 @@ function bilanView(){
         <div><span class="lbl">Sur l’année</span><div class="v num ${cls(d)}">${pct(d)}</div></div>
         <div><span class="lbl">Inflation</span><div class="v num">${f1(b.infl)} %</div></div>
         <div class="moodv">${figure('me',m1)}<div><span class="lbl">Humeur · couple</span><div class="v num">${Math.round(b.me.humeur)} · ${b.me.relation==null?'—':Math.round(b.me.relation)}</div></div></div></div>
-      <button class="primary next" data-act="next">${nextLbl}</button></div>
+      <div class="btns">${autoBtn()}<button class="primary next" data-act="next">${nextLbl}</button></div></div>
     <div class="g-bilan">
       <section class="card b-why"><div class="ch"><h3>Ce qui s’est passé</h3></div>${b.why?`<p class="pourquoi">${b.why}</p>`:''}
+        ${b.choice!=null&&Math.abs(b.choice)>=50?`<p class="choix ${b.choice>0?'good':'bad'}"><b>Tes choix de placement cette année : <span class="num">${b.choice>0?'+':'−'}${fmt(Math.abs(b.choice))}</span></b> par rapport à ne rien toucher en janvier${b.choice>0?'.':' (impôts de vente compris).'}</p>`:''}
         ${b.notes.length?`<ul class="news">${b.notes.map(n=>`<li><span class="ni">${icon('journal',20)}</span><span>${n}</span></li>`).join('')}</ul>`:''}
         ${b.me.relation!=null&&b.me.relation<30?'<p class="warn small">Ton couple s’use : pense à t’en occuper.</p>':''}</section>
       <section class="card b-pos"><div class="ch"><h3>Tes positions</h3></div><table><thead><tr><th>Position</th><th class="n">31 déc.</th><th class="n">Perf.</th></tr></thead>
@@ -2456,8 +2495,8 @@ function shareText(){
   return `La Corbeille · ${profLabel()} · ${fs.title} · score ${NF.format(fs.score)} · ${fmt(fs.real)} en euros de ${Y0} · ${na}/${ACH.length} succès. À toi de jouer !`;
 }
 function endView(){
-  const n=net(),fs=finalScore(),trk=S.bench.trk,liv=S.bench.liv;
-  const moneyTxt=['L’ETF Monde sans rien toucher aurait fait nettement mieux.','Tu fais à peu près jeu égal avec l’ETF Monde laissé à lui-même.','Tu bats nettement l’ETF Monde laissé à lui-même.'][fs.mt];
+  const n=net(),fs=finalScore(),{trk,liv}=benchRef();
+  const moneyTxt=fs.never?'Tu n’as jamais rien placé : ton argent a dormi pendant cinquante ans.':['Avec la même vie et le même immobilier, des placements simples (ETF Monde ou Livret A) auraient fait nettement mieux.','Tu fais à peu près jeu égal avec le meilleur placement simple (ETF Monde ou Livret A), à vie et immobilier identiques.','Tu bats nettement l’ETF Monde et le Livret A, à vie et immobilier identiques.'][fs.mt];
   const lifeTxt=['Ta vie perso a été sacrifiée.','Une vie perso correcte, avec des hauts et des bas.','Et une vie perso épanouie.'][fs.lt];
   return `${moneyBar()}<main class="stage"><section class="bilan">
     <div class="une-mast"><span>Le Courrier de la Corbeille · Édition spéciale</span><span>31 décembre ${YN}</span></div>
@@ -2470,8 +2509,8 @@ function endView(){
     <p class="mut small">Score = patrimoine en milliers d’euros de ${Y0} × bien-être (${f1(fs.mult)}) × objectifs atteints (${fs.gm.toFixed(2).replace('.',',')}) × difficulté de ton profil (${String(fs.coef).replace('.',',')}). Le bien-être moyen combine ton humeur et ton couple sur 51 ans.</p>
     <div class="share"><div class="btns"><button class="primary" data-act="copy">${U.copied===true?'Copié !':'Copier mon résultat'}</button><span class="small mut">Pour défier tes potes</span></div>${U.copied==='fallback'?`<textarea id="share-txt" readonly aria-label="Résultat à copier">${esc(shareText())}</textarea>`:''}</div>
     <div class="bigline"><div><span class="lbl">Patrimoine net ${YN}</span><div class="v">${fmt(n)}</div></div>
-      <div><span class="lbl">Mêmes versements, ETF Monde</span><div class="v mut">${fmt(trk)}</div></div>
-      <div><span class="lbl">Mêmes versements, Livret A</span><div class="v mut">${fmt(liv)}</div></div></div>
+      <div><span class="lbl">Même vie, placements sur l’ETF Monde</span><div class="v mut">${fmt(trk)}</div></div>
+      <div><span class="lbl">Même vie, placements sur le Livret A</span><div class="v mut">${fmt(liv)}</div></div></div>
     ${chart(S.hist)}
     ${(()=>{const c=coups();const li=x=>`<li><b>${x.name}</b> <span class="mut small">${x.sub} · ${x.per}</span><br><span class="num ${cls(x.gain)}">${x.gain>=0?'+':'−'}${fmt(Math.abs(x.gain))}</span>${x.irr!=null?` <span class="small mut">(${pct(x.irr)} par an)</span>`:''}</li>`;
       return c.best.length||c.worst.length?`<div class="coups"><div><div class="sec-h"><h2>Tes meilleurs coups</h2></div><ol>${c.best.map(li).join('')||'<li class="mut">Aucun gain notable.</li>'}</ol></div><div><div class="sec-h"><h2>Tes pires coups</h2></div><ol>${c.worst.map(li).join('')||'<li class="mut">Aucune perte. Bien joué.</li>'}</ol></div></div>`:'';})()}
@@ -2512,7 +2551,7 @@ function introView(){
     </aside></section></main>`;
 }
 function animHtml(){
-  const b=S.bilans[U.anim.i];if(!b)return '';
+  const b=(U.animList||S.bilans)[U.anim.i];if(!b)return '';
   const fl=(b.flows.epargne||0)+(b.flows.retraite||0),dl=b.netEnd-b.netStart,mk=b.netStart>0?(dl-fl)/b.netStart:0;
   const tick=b.r?Object.entries(b.r).filter(([k,v])=>v!=null).map(([k,v])=>`${nm(k).toUpperCase()} ${pct(v)}`).join('   ·   '):'';
   const achs=Object.entries(S.ach||{}).filter(([id,y])=>y===b.y).map(([id])=>`<li class="anim-ach">Succès débloqué : ${ACHM[id].n}</li>`).join('');
@@ -2525,20 +2564,44 @@ function animHtml(){
 function canAnim(){try{return typeof window!=='undefined'&&!window.matchMedia('(prefers-reduced-motion: reduce)').matches;}catch(e){return false;}}
 function runAnim(){
   const tok=++U.animTok;if(!U.anim)return;
-  const b=S.bilans[U.anim.i],el=document.getElementById('anim-net'),t0=performance.now(),D=800;
+  const L=U.animList||S.bilans,b=L[U.anim.i],el=document.getElementById('anim-net'),t0=performance.now(),D=U.animList?650:800;
   const step=now=>{if(tok!==U.animTok||!U.anim)return;const k=Math.min(1,(now-t0)/D),e=1-Math.pow(1-k,3);if(el)el.textContent=fmt(b.netStart+(b.netEnd-b.netStart)*e);if(k<1)requestAnimationFrame(step);};
   requestAnimationFrame(step);
-  setTimeout(()=>{if(tok!==U.animTok||!U.anim)return;U.anim.i++;if(U.anim.i>=S.bilans.length)U.anim=null;render();if(U.anim)runAnim();},1400);
+  setTimeout(()=>{if(tok!==U.animTok||!U.anim)return;U.anim.i++;if(U.anim.i>=L.length){U.anim=null;U.animList=null;}render();if(U.anim)runAnim();},U.animList?1150:1400);
 }
+// Écran de secours : la partie enregistrée ne se relit pas. Elle est mise de côté (clé « -abimee ») avant d'en recommencer une.
+function brokenView(){
+  return `<main class="stage"><section class="card broken"><div class="ch"><h2>Ta partie n’a pas pu être rechargée</h2></div>
+    <p>La sauvegarde de ce navigateur est abîmée : le jeu ne parvient pas à la relire. Une copie est mise de côté avant que tu recommences.</p>
+    <div class="btns"><button class="primary" data-act="broken-new">Recommencer une partie</button></div></section></main>`;
+}
+function stash(){try{const t=localStorage.getItem(KEY);if(t)localStorage.setItem(KEY+'-abimee',t);}catch(e){}}
+// Garde le focus clavier au même endroit après un rendu (même bouton, même champ), et toujours dans la fenêtre ouverte.
+const sig=el=>el&&el.dataset?Object.keys(el.dataset).sort().map(k=>k+'='+el.dataset[k]).join('&')+'|'+(el.id||''):'';
+function restoreFocus(was){
+  const box=document.querySelector('.anim')||document.querySelector('.overlay');
+  let el=null;
+  if(was)el=[...document.querySelectorAll('button,input,select,textarea')].find(x=>sig(x)===was&&!x.closest('[inert]'));
+  // Fenêtre qui s'ouvre : le focus va sur la fenêtre elle-même (pas sur un champ, pour ne pas ouvrir le clavier du téléphone).
+  if(box&&(!el||!box.contains(el))){el=box.querySelector('.dmodal')||box.querySelector('.anim-in')||box;el.setAttribute('tabindex','-1');}
+  if(el&&document.activeElement!==el){try{el.focus({preventScroll:true});}catch(e){}}
+}
+function markMore(){document.querySelectorAll('.card,.dm-body,.dmodal:not(.split):not(.onb)').forEach(el=>el.classList.toggle('more',el.scrollHeight-el.scrollTop-el.clientHeight>4));}
 function render(){
   const app=document.getElementById('app');
+  const ae=document.activeElement,was=ae&&ae!==document.body&&app.contains(ae)?sig(ae):'';
   let body;
-  if(!S)body=introView();
-  else if(S.phase==='turn')body=turnView();
-  else if(S.phase==='bilan')body=bilanView();
-  else body=endView();
+  try{
+    if(U.broken)body=brokenView();
+    else if(!S)body=introView();
+    else if(S.phase==='turn')body=turnView();
+    else if(S.phase==='bilan')body=bilanView();
+    else body=endView();
+  }catch(e){if(!S)throw e;console.error(e);stash();U.broken=true;U.anim=null;body=brokenView();}
+  if(U.broken)S=null;
   app.className='wrap'+(U.fx?' fx':'');
-  app.innerHTML=header()+body+(U.anim&&S&&S.phase==='bilan'?animHtml():'');
+  app.innerHTML=header()+body+(U.anim&&S?animHtml():'');
+  restoreFocus(was);markMore();
   U.fx=false;
   if(!S)U.prevMoney=null;
   else if(!U.anim){U.prevMoney=moneyVals();U.shownAch=[...new Set([...(U.shownAch||[]),...(S.achNew||[])])];animateCounters();}
@@ -2576,7 +2639,7 @@ function onClick(ev_){
     case 'home-rent':{const e=moveTo(t.dataset.t);if(e){U.homeMsg={t:e};U.dosMsg={t:e};}else{U.toast=`Tu emménages : ${homeName()}.`;U.dossier=null;}save();break;}
     case 'legacy-ok':dropLegacy();U.legacy=null;break;
     case 'goal':{const k=t.dataset.k,g=U.setup.goals;if(g.includes(k))U.setup.goals=g.filter(x=>x!==k);else U.setup.goals=[...g,k].slice(-2);break;}
-    case 'skip-anim':U.anim=null;U.animTok++;break;
+    case 'skip-anim':U.anim=null;U.animList=null;U.animTok++;break;
     case 'copy':{const txt=shareText();try{navigator.clipboard.writeText(txt).then(()=>{U.copied=true;render();},()=>{U.copied='fallback';render();setTimeout(()=>{const ta=document.getElementById('share-txt');if(ta)ta.select();},0);});}catch(er){U.copied='fallback';}break;}
     case 'tip-tab':U.view='portefeuille';U.tab=t.dataset.tab;U.open=null;U.envMsg={};U.fx=true;break;
     case 'prof':S.profile=+t.dataset.p;save();break;
@@ -2603,16 +2666,19 @@ function onClick(ev_){
     case 'prop-sell':{const u=+t.dataset.u;if(U.confirmSell===u){const c=sellProp(u,undefined,undefined,'Vente');U.deskErr={t:`Bien vendu : ${fmt(c.net)} net après crédit et impôt.`,ok:true};U.confirmSell=null;save();}else U.confirmSell=u;break;}
     case 'reneg':{const er=reneg(+t.dataset.u);U.deskErr=er?{t:er}:{t:'Crédit renégocié : tes mensualités baissent.',ok:true};save();break;}
     case 'end':U.open=null;U.msg={};U.deskErr='';U.evErr='';U.envMsg={};U.fresh={};U.dossier=null;U.fx=true;S.achNew=[];endTurn();if(S.phase==='bilan'&&canAnim()){U.anim={i:0};render();runAnim();return;}break;
-    case 'next':S.achNew=[];nextBilan();U.view='profil';U.dossier=null;U.fresh={};U.fx=true;U.evAmt='';U.evAsset=null;U.evEnv=null;break;
+    case 'next':{S.achNew=[];nextBilan();U.view='profil';U.dossier=null;U.fresh={};U.fx=true;U.evAmt='';U.evAsset=null;U.evEnv=null;
+      const q=autoPass();U.quiet=q.length&&S.phase==='turn'?q:null;
+      if(q.length&&canAnim()){U.animList=q;U.anim={i:0};render();runAnim();return;}break;}
+    case 'quiet-ok':U.quiet=null;U.fx=true;break;
+    case 'auto':S.autoPass=S.autoPass===false;save();break;
+    case 'broken-new':U.broken=false;S=null;wipe();U.fx=true;break;
   }
   render();
-  if(U.scroll){const el=document.getElementById(U.scroll);U.scroll=null;if(el)el.scrollIntoView({behavior:canAnim()?'smooth':'auto',block:'start'});}
 }
 function onInput(e){
   const t=e.target;
   if(t.dataset.amt){const key=t.dataset.amt;U.amt[key]=t.value;const [en,id]=key.split(':');const sp=document.getElementById('tx-'+key);if(sp&&en==='cto'){const x=estTaxCto(id,+t.value||0);sp.textContent=x>0.5?`Impôt estimé sur ce montant : ${fmt(x)}.`:'';}}
   if(t.dataset.wd){const en=t.dataset.wd;U.wd[en]=t.value;const sp=document.getElementById('wdtax-'+en);if(sp){const c=wdCalc(en,+t.value||S.acc[en].cash);sp.textContent=c.amt>0?`Impôt estimé : ${fmt(c.tax)}`:'';}}
-  if(t.id==='prof-r'){const v=+t.value;const sp=document.getElementById('prof-v');if(sp)sp.textContent=v+' % actions';if(e.type==='change'){S.profile=v/100;U.plan=null;save();render();}}
   if(t.id==='ev-amt')U.evAmt=t.value;
   if(t.id==='dur'&&e.type==='change'){U.dur=+t.value;render();}
   if(t.id==='ev-asset'&&e.type==='change'){U.evAsset=t.value;U.evEnv=null;render();}
@@ -2635,14 +2701,25 @@ function migrate(o){
   return o;
 }
 function boot(data){
-  S=migrate((data&&data.S&&data.S.v===3)?data.S:load());
+  try{S=migrate((data&&data.S&&data.S.v===3)?data.S:load());}catch(e){S=null;U.broken=true;stash();}
+  // Partie d'avant la 3.5 : le repère ne suivait pas l'immobilier. On le recale sur tes placements actuels, la comparaison repart d'aujourd'hui.
+  if(S&&S.autoPass==null)S.autoPass=true;
+  if(S&&!S.benchV){const f=net()-propNet();S.bench={liv:f,trk:f};S.yearProp=0;S.benchV=2;}
+  if(S&&!S.moves)S.moves=[];
   if(!S)U.legacy=legacyGame();
   if(typeof document!=='undefined'){
     document.addEventListener('click',onClick);
     document.addEventListener('input',onInput);
     document.addEventListener('change',onInput);
-    document.addEventListener('keydown',e=>{if(e.key==='Escape'&&U.dossier){U.dossier=null;render();}});
-    document.addEventListener('toggle',e=>{if(e.target&&e.target.id==='inv-d')U.invOpen=e.target.open;},true);
+    document.addEventListener('keydown',e=>{
+      if(e.key==='Escape'&&U.dossier){U.dossier=null;render();return;}
+      // Tab reste dans la fenêtre ouverte
+      const box=e.key==='Tab'&&(document.querySelector('.anim')||document.querySelector('.overlay'));if(!box)return;
+      const f=[...box.querySelectorAll('button:not(:disabled),input,select,textarea,summary')];if(!f.length)return;
+      const i=f.indexOf(document.activeElement);
+      if(e.shiftKey&&i<=0){e.preventDefault();f[f.length-1].focus();}else if(!e.shiftKey&&(i<0||i===f.length-1)){e.preventDefault();f[0].focus();}});
+    document.addEventListener('scroll',e=>{const el=e.target;if(el&&el.classList&&el.classList.contains('more')!==(el.scrollHeight-el.scrollTop-el.clientHeight>4))el.classList.toggle('more');},true);
+    window.addEventListener('resize',markMore);
     render();
   }
 }

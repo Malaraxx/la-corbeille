@@ -38,7 +38,7 @@ vm.runInContext(js + `;globalThis.T={get S(){return S},set S(v){S=v},newGame,sta
   buyProp,sellProp,reneg,canReneg,answerEvent,answerLife,evDef,LIFE,EVT,net,tradable,ORDER,ENVS,META,EQUITY,STOCKS,THEMES,PRESETS,GOALS,ACH,ADV,PHASES,GOOD,Y0,YN,
   eligEnvs,peaCap,envTotal,turnReady,finalScore,placeIdle,rebalance,dry,alloc,eqShare,irr,invData,coups,epilogue,shareText,genYear,peekR,hv,ev,conseils,rappels,pct,f1,
   homeOptions,recoHome,onbHome,onbNext,onbView,budgetTable,kidsCost,rpOf,PRESETS,EPARGNES,SALAIRES,coefOf,BIENS,dossierHtml,acheter,achatState,ACHATS,migrate,bestRental,bestBuy,buyHome,moveTo,propQuote,coussin,yearlySave,monthlySpend,CITIES,loanLeft,
-  turnView,bilanView,endView,introView,moneyBar,profilTab,portefeuilleTab,immoTab,patrimoineTab,allocSec,invSec,animHtml,toastsHtml,advHtml,spark,save,load,legacyGame,U};`, ctx);
+  benchRef,envTotal,turnView,bilanView,endView,introView,moneyBar,profilTab,portefeuilleTab,immoTab,patrimoineTab,animHtml,toastsHtml,advHtml,spark,save,load,legacyGame,U};`, ctx);
 const T = ctx.T;
 
 // ---------- mini framework
@@ -367,6 +367,61 @@ test('Sauvegarde : l’état survit à un aller-retour JSON, ancienne version cl
   delete store['la-corbeille-v2'];
 });
 
+// Joueur qui n'investit jamais : tout reste sur le compte courant ; il peut acheter sa résidence principale et se faire plaisir.
+function playNoInvest(arch, owner, onYear) {
+  T.newGame(arch, []);
+  let guard = 0;
+  while (T.S.phase !== 'end' && guard++ < 200) {
+    const S = T.S;
+    if (S.phase !== 'turn') { T.nextBilan(); continue; }
+    // Les flux de janvier déjà passés (imprévu payé au début du tour) n'arrivent au repère qu'au bilan : on part du compte d'avant.
+    const b0 = S.bench.trk, c0 = S.cash - S.yearExt - (S.yearProp || 0);
+    if (S.life) { for (const c of S.life.v.choices) if (!S.life.answered) T.answerLife(c.id); }
+    if (S.event) T.answerEvent('pass');
+    if (!S.lock) {
+      if (owner && !T.rpOf()) { const b = T.bestBuy(); if (b && b.ok) T.buyHome(b.type, b.n); }
+      if (R() < .5) T.acheter(pickR(Object.keys(T.ACHATS)));
+    }
+    T.endTurn();
+    if (onYear) onYear(S, b0, c0);
+  }
+  return T.S;
+}
+const INVESTED = S => T.envTotal('cto') + T.envTotal('pea') + T.envTotal('av') + S.liv;
+
+test('Score : un joueur qui n’a jamais investi n’est jamais classé au-dessus d’« Épargnant équilibré »', () => {
+  const n = FULL ? 160 : 40, top = ['Légende de la Corbeille', 'Investisseur avisé', 'Loup de la Corbeille', 'Sage de la Corbeille'];
+  let checked = 0, zero = 0;
+  for (let i = 0; i < n; i++) {
+    const S = playNoInvest(pickR(Object.keys(T.PRESETS)), i % 2 === 0);
+    if (INVESTED(S) > 1) continue; // une décision de vie a placé de l'argent : la partie ne compte pas
+    const fs = T.finalScore(); checked++;
+    if (fs.mt === 0) zero++;
+    check(!top.includes(fs.title) && fs.mt <= 1, `jamais investi mais classé « ${fs.title} » (patrimoine ${Math.round(T.net())} €, repère ${Math.round(T.benchRef().trk)} €)`);
+  }
+  check(checked >= n / 2, `trop peu de parties sans placement (${checked})`);
+  console.log(`    ${checked} parties sans placement, ${zero} classées « à la traîne » côté argent`);
+});
+
+test('Score : le repère ETF Monde d’un propriétaire suit ses flux de vie et d’immobilier, sans plancher à zéro', () => {
+  let years = 0, maxErr = 0, neg = 0;
+  for (let i = 0; i < (FULL ? 60 : 16); i++) {
+    playNoInvest(pickR(Object.keys(T.PRESETS)), true, (S, b0, c0) => {
+      if (S.phase !== 'bilan' || INVESTED(S) > 1 || S.me.ruined) return; // ruiné : le repère a sa propre règle (plancher à zéro)
+      // Sans placement, l'argent qui bouge sur le compte courant est exactement ce que reçoit le repère.
+      const r = S.lastR.monde, y = S.bilans[0].y, ret = S.me.retireYear != null && y >= S.me.retireYear, e0 = (b0 > 0 ? b0 * (1 + r) : b0) + (S.cash - c0), exp = ret && e0 < 0 ? 0 : e0, err = Math.abs(S.bench.trk - exp);
+      maxErr = Math.max(maxErr, err); years++; if (S.bench.trk < 0) neg++;
+      check(err < 1, `repère incohérent en ${S.bilans[0].y} : ${S.bench.trk.toFixed(2)} au lieu de ${exp.toFixed(2)}`);
+      check(Math.abs(S.hist[S.hist.length - 1].trk - T.benchRef().trk) < 1, 'courbe du repère sans l’immobilier');
+    });
+    const S = T.S;
+    // Le Livret A rapporte toujours au moins autant que le compte courant : un joueur sans placement ne peut pas battre ce repère.
+    if (INVESTED(S) <= 1) check(T.benchRef().liv > T.net() - 1, `un joueur sans placement bat le repère Livret A (${Math.round(T.net())} > ${Math.round(T.benchRef().liv)})`);
+  }
+  check(years > 100, 'trop peu d’années vérifiées');
+  console.log(`    ${years} années · écart max ${maxErr.toFixed(4)} € · ${neg} années avec un repère négatif`);
+});
+
 test('Profils tout faits et immobilier multi-villes', () => {
   for (const a of Object.keys(T.PRESETS)) { const v = T.EPARGNES[T.PRESETS[a].cap].v; T.newGame(a, ['famille']); check(T.S.cash === v && T.S.start === v, `capital de départ faux pour ${a}`); T.turnView(); }
   T.newGame('heritier', []); T.S.cash = 3e6; T.S.start = 3e6;
@@ -383,15 +438,27 @@ if (BALANCE) {
   const BAL = { diner: 'rdv', promo: 'oui', vacances: 'oui', mariage: 'oui', enfant: 'non', sport: 'oui', ami: 'non', weekend: 'partir', burnout: 'arret', rupture: 'ok', panique: 'tenir', rencontre: 'oui', logement: 'louer', panne: 'reparer', fire: 'non', licenciement: 'chercher' };
   const MONEY = { ...BAL, diner: 'diner', vacances: 'non', mariage: 'non', sport: 'non', weekend: 'ecrans', rencontre: 'non' };
   const peaMonde = S => { const room = T.peaCap() - S.acc.pea.vers, a = Math.min(S.cash + S.acc.pea.cash, Math.max(0, room) + S.acc.pea.cash); if (a > 1) T.buyIn('pea', 'monde', a); if (S.cash > 1) T.buyIn('cto', 'monde', S.cash); };
-  const run = (arch, pol, n = 100) => { const r = []; for (let i = 0; i < n; i++) { const S = play(arch, [], pol); r.push({ real: T.finalScore().real, score: T.finalScore().score, ratio: S.bench.trk > 1000 ? T.net() / S.bench.trk : 1 }); } return r; };
+  const run = (arch, pol, n = 100) => { const r = []; for (let i = 0; i < n; i++) { const S = play(arch, [], pol); r.push({ real: T.finalScore().real, score: T.finalScore().score, ratio: T.benchRef().trk > 1000 ? T.net() / T.benchRef().trk : 1 }); } return r; };
 
   const passive = run('heritier', { life: choose(BAL), port: peaMonde });
   const career = run('heritier', { life: choose(MONEY), port: peaMonde });
-  // Joueur qui suit les conseils de Sophie (boutons des post-it), sinon place selon un profil équilibré.
-  const sophie = { life: choose(BAL), port: S => {
+  // Joueur qui suit Sophie : ses conseils de l'onglet Profil (boutons) et son avis sur les événements quand elle en donne un
+  // (acheter 10 % du patrimoine si elle y croit, vendre une bulle si elle s'en méfie). Sinon il place selon un profil équilibré.
+  const sophieEv = (S, v) => {
+    const A = S.event && S.event.adv, so = A && A.list.find(x => x.w === 'sophie'); if (!so) return null;
+    if (!so.buy) return v.choices && v.choices.some(c => c.id === 'vendre') ? ['choice', 'vendre'] : null;
+    if (!T.tradable(A.a)) return null;
+    const envs = T.eligEnvs(A.a), e = envs.includes('pea') && T.peaCap() - S.acc.pea.vers > 1000 ? 'pea' : envs.includes('av') ? 'av' : 'cto';
+    const amt = Math.floor(T.net() * .1), have = S.cash + (e === 'cto' ? 0 : S.acc[e].cash);
+    if (have < amt && T.ev(e, 'monde') > 0) T.sellIn(e, 'monde', Math.min(T.ev(e, 'monde'), amt - have));
+    const got = Math.floor(Math.min(amt, S.cash + (e === 'cto' ? 0 : S.acc[e].cash)));
+    return got > 0 ? ['invest', A.a, got, e] : null; };
+  const sophie = { life: choose(BAL), event: sophieEv, port: S => {
     if (S.profile == null) S.profile = .6;
     for (const c of T.conseils()) { const b = c.btn; if (!b) continue;
       else if (b.act === 'reneg') T.reneg(b.u);
+      else if (b.k === 'prof' && S.profile !== b.p) { S.profile = b.p; T.rebalance(b.p); }
+      else if (b.k === 'sell') T.sellIn(b.e, b.id, T.ev(b.e, b.id));
       else if (b.act === 'tip-tab' && b.tab === 'liv') T.livIn(Math.min(S.cash, 4 * T.monthlySpend())); }
     T.placeIdle(S.profile, []); } };
   const r0 = run('heritier', sophie), calm = run('heritier', { life: choose(BAL), port: S => T.placeIdle(.6, []) });
@@ -407,8 +474,9 @@ if (BALANCE) {
 
   const pr = med(passive.map(x => x.ratio));
   warn(pr >= .85 && pr <= 1, 'Passif PEA / repère ETF Monde sans frais', pr.toFixed(2), '0,85 – 1');
-  const g0 = med(r0.map(x => x.real)) / med(calm.map(x => x.real));
-  warn(g0 >= .95 && g0 <= 1.4, 'Élève de Sophie / passif à 60 % d’actions', '×' + g0.toFixed(2), '×0,95 – ×1,4');
+  const g0 = med(r0.map(x => x.real)) / med(calm.map(x => x.real)), gn = med(r0.map(x => x.real)) / med(naive.map(x => x.real));
+  warn(g0 >= 1, 'Élève de Sophie / passif à 60 % d’actions', '×' + g0.toFixed(2), '≥ ×1,0');
+  warn(gn >= 1.3, 'Élève de Sophie / acheteur naïf de paniques', '×' + gn.toFixed(2), '≥ ×1,3');
   const fr = med(fiche.map(x => x.real)) / med(naive.map(x => x.real));
   warn(fr >= 1.15, 'Lecteur de fiches / acheteur naïf de paniques', '×' + fr.toFixed(2), '≥ ×1,15');
   warn(med(career.map(x => x.score)) < med(passive.map(x => x.score)), 'Score carriériste < score équilibré', `${med(career.map(x => x.score))} < ${med(passive.map(x => x.score))}`, 'vrai');

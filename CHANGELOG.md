@@ -1,5 +1,16 @@
 # Journal des versions
 
+## 3.5.0 — Un score juste, des années qui filent (8 novembre 2026)
+- **Plus de « Légende » imméritée.** Le repère de fin de partie devient « ta vie et ton immobilier à l'identique, mais tes placements sur l'ETF Monde » (et la même chose sur le Livret A). Il paie les mêmes apports, mensualités et loyers que toi et n'est plus bloqué à zéro. Avant, chez un propriétaire, il pouvait tomber à zéro et sacrer « Légende » quelqu'un qui avait laissé son argent dormir cinquante ans. Un joueur qui n'a jamais rien placé, ou qui a été ruiné, ne peut plus être classé au-dessus d'« Épargnant équilibré ». Deux tests le vérifient. Les parties en cours voient leur repère recalé sur leurs placements du moment.
+- **Les années calmes passent toutes seules** : quand une année n'a aucune décision, elle défile dans l'animation jusqu'à la prochaine décision, puis une fenêtre résume chaque année passée. Interrupteur « Passer les années calmes » au bilan.
+- **Moins de répétitions** : la valeur en chute et la bulle arrivent au plus deux fois par partie, avec trois textes différents. « Acheter » au lieu de « Renforcer » quand tu n'as pas l'action.
+- **Sophie** conseille aussi un profil selon ton âge (plus d'actions quand tu as le temps, moins près de la retraite) et de rebasculer sur l'ETF Monde une action isolée gardée plus d'un an. Ses conseils ne lisent jamais l'avenir.
+- **Bilan** : une ligne chiffre ce que tes choix de placement de l'année t'ont rapporté (ou coûté) par rapport à ne rien toucher.
+- **Fenêtres** : jamais plus hautes que l'écran, même sur un portable de 600 pixels de haut ou un téléphone de 360 × 640 ; les boutons de choix restent visibles en bas et le texte défile au-dessus.
+- **Clavier** : le focus reste sur le bouton cliqué, va dans la fenêtre qui s'ouvre et ne peut plus en sortir avec Tab ; la barre du haut est inaccessible tant qu'une fenêtre est ouverte.
+- **Une carte coupée le montre** (dégradé et ▾ en bas). Vert et orange plus foncés en thème clair (contraste 4,7). Sauvegarde illisible : un écran propose de recommencer et garde une copie.
+- Ménage : code de l'ancienne interface supprimé ; documentation mise à jour.
+
 ## 3.4.0 — Tout sur un écran, des décisions qui s'imposent (8 novembre 2026)
 - **Un seul écran, sans défiler** : ton argent en haut, les onglets et le bouton « Passer à l'année suivante » juste dessous, puis des cartes qui tiennent dans la fenêtre (une carte trop longue défile seule). Sur téléphone, seule la zone centrale défile.
 - **Décisions obligatoires en fenêtre** : chaque année commence par elles, une à la fois (« décision 1 sur 2 »), avec une illustration. Rien d'autre n'est accessible tant qu'elles ne sont pas prises. Le résultat s'affiche, puis « Décision suivante » ou « Voir mon année ».
