@@ -311,7 +311,9 @@ Coupés par défaut, bouton haut-parleur dans la barre du haut. Synthétisés (W
 ### Confort
 - **Annuler le dernier ordre** : l'état d'avant chaque ordre du tour (achat, vente, retrait, placement, rééquilibrage, achat ou vente immobilière, déménagement, renégociation, achat plaisir) est gardé dans `U.undoS` ; le bouton « ↶ Annuler … » de la navigation le restaure. Effacé à la fin de l'année.
 - **Premiers pas** (`TUTO`, `tutoCard`) : pendant les deux premières années, une liste qui se coche toute seule remplace la carte des objectifs (budget, onglet Portefeuille, Livret A ou enveloppe ouverte, onglet Immobilier, année suivante). « Masquer » pose `S.tutoDone`.
-- **Saisie rapide** : boutons +500, +1 000, +5 000 et « Effacer » dans le carnet d'ordres et les fenêtres d'investissement.
+- **Saisie rapide** : boutons +500, +1 000, +5 000 et « Effacer » dans le carnet d'ordres et les fenêtres d'investissement. « Le maximum » (`maxFor`) respecte les plafonds du Livret A et du PEA.
+- **Défilement gardé** : `render()` remet chaque zone (`.card`, `.stage`, `.dm-body`, `.dmodal`, `.tbl-wrap`) et la fenêtre à leur position tant que l'écran ne change pas (`U.scKey`).
+- **Dossier refusé** pour le taux d'effort : le plus petit apport (par pas de 5 %) et la durée qui passent sont proposés (`dos-fix`).
 - **Repères d'une valeur** (`reperes(id)`) : cours, variation sur 1 et 5 ans, dividende, comportement face au marché, secteur ; dans la fiche analyste (ouverte d'office) et à l'ouverture d'un ordre.
 - **Glossaire** (`GLOSS`, `gl(terme)`) : mots soulignés en pointillé, définition au survol ou au toucher (fiche analyste, dossier de crédit, conseils, rendement) et liste complète dans les règles.
 - **Graphique annoté** : bandes rouges pour les années de krach, losanges pour les présidentielles (avec le nom de l'élu·e au survol).

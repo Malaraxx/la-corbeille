@@ -2861,6 +2861,9 @@ function dossierHtml(){
   const tax=use==='loc'?(mb?.5*rentIn:Math.max(0,rentIn-ch-q.L*q.r))*(S.pol.irLoyer+psRate()):0;
   const after=use==='rp'?yearlySave()+housingOut()-(q.ann+ch)+oRent:yearlySave()-q.ann-ch+rentIn-tax;
   const why=ret?'À la retraite, la banque ne prête plus sur ces durées.':use==='rp'&&rp&&rp.type===t?'Tu y vis déjà.':use==='rp'&&!inCity?`Pour y vivre, il faudrait habiter ${CITIES[B.v].n}. Tu vis à ${CITIES[S.city].n}.`:cash<q.apport?`Il te manque ${fmt(q.apport-cash)} d’apport (compte courant + Livret A).`:q.eff>.35?`Taux d’effort de ${f1(q.eff*100)} % : au-delà de 35 %, la banque refuse.`:'';
+  // Refus pour le taux d'effort alors que l'apport est là : on cherche le plus petit apport (par pas de 5 %) qui passe, avec la durée qui va avec.
+  let fix=null;
+  if(why&&!ret&&!sw&&cash>=q.apport&&q.eff>.35&&!(use==='rp'&&(!inCity||(rp&&rp.type===t))))for(let a=Math.max(.05,Math.round(q.ap*20)/20);a<=apMax+1e-9;a+=.05){const d=bestDur(t,use,a),qq=propQuote(t,d,use,a);if(qq.eff<=.35){fix={a,d,qq};break;}}
   const r=(l,v,c='')=>`<tr class="${c}"><td>${l}</td><td class="n">${v}</td></tr>`;
   return `<div class="dossier" id="dossier"><div class="dm-head"><div class="dm-ico">${icon(bur?'immeuble':B.cap>=4?'maison':'immeuble',40)}</div><div><span class="lbl">Dossier de crédit</span><h2>${B.n}</h2></div>
       <button class="ghost sm close" data-act="dos-close" aria-label="Fermer le dossier">Fermer</button></div>
@@ -2877,6 +2880,7 @@ function dossierHtml(){
       ${use==='loc'?r(`Loyer attendu (${pc0(vac)} de vacance${mb?', meublé +15 %':''})`,fmt(rentIn/12)+'/mois')+r(mb?'Impôt (la moitié des loyers est imposée)':'Impôt sur les loyers',fmt(tax/12)+'/mois')+(mb?r('Mobilier, à l’achat',fmt(Math.round(5000*S.defl/10)*10)):''):''}
     </tbody></table>
     <div class="verdict ${why?'no':'yes'}"><span class="lbl">Réponse de la banque</span><b>${why?'Refusé':'Accordé'}</b><p>${why||`Taux d’effort de ${f1(q.eff*100)} %, sous la limite de 35 %.`}</p>
+      ${fix?`<p class="small">Avec ${fmt(fix.qq.apport)} d’apport (${pc0(fix.a)} du prix + frais) sur ${fix.d} ans, ton taux d’effort tombe à ${f1(fix.qq.eff*100)} % : la banque accepte.</p><div class="btns"><button class="secondary" data-act="dos-fix" data-v="${fix.a}" data-d="${fix.d}">Mettre cet apport</button></div>`:why&&!ret&&cash>=q.apport&&q.eff>.35&&!sw?`<p class="small mut">Même avec tout ton disponible, ça ne passe pas : il faudrait plus de revenus, ou moins de crédits en cours.</p>`:''}
       <div class="kv"><span>${gl('Taux d’effort')}</span><span class="${q.eff>.35?'down':''}">${f1(q.eff*100)} %</span><span>Mis de côté chaque mois après l’achat</span><span class="${after<0?'down':''}">${after<0?'−':''}${fmt(Math.abs(after)/12)}</span>${use==='rp'?`<span>Louer le même bien</span><span>${fmt(ix.rent/12)}/mois</span>`:''}</div>
       <div class="btns"><button class="primary" data-act="dos-buy" data-m="credit" ${why?'disabled':''}>Acheter à crédit</button>
       <button class="secondary" data-act="dos-buy" data-m="cash" ${ret||cash<q.cashNeed||(use==='rp'&&(!inCity||(rp&&old==='louer')))?'disabled':''}>Comptant · ${fmt(q.cashNeed)}</button>
@@ -3068,7 +3072,7 @@ function bookRow(e,id){
       :`Achat : utilise d’abord les liquidités de l’enveloppe (${fmt(S.acc[e].cash)}), puis ton compte courant${e==='pea'?`, dans la limite du plafond (reste ${fmt(Math.max(0,peaCap()-S.acc.pea.vers))})`:''}. Vente : sans impôt, l’argent reste dans l’enveloppe.`;
     const buyL=e==='liv'?'Verser':'Acheter',sellL=e==='liv'?'Retirer':'Vendre';
     row+=`<div class="order"><label for="amt-${key}">Montant</label><input id="amt-${key}" type="number" inputmode="numeric" min="0" step="100" value="${esc(a)}" data-amt="${key}">
-      <div class="minis">${[500,1000,5000].map(v=>`<button class="mini" data-act="add" data-key="${key}" data-v="${v}">+${NF.format(v)}</button>`).join('')}<button class="mini" data-act="add" data-key="${key}" data-v="0">Effacer</button><button class="mini" data-act="fill" data-key="${key}" data-f=".25">25 % dispo</button><button class="mini" data-act="fill" data-key="${key}" data-f="1">Tout le dispo</button>${h.v>0?`<button class="mini" data-act="fill" data-key="${key}" data-f="pos">Toute la position</button>`:''}</div>
+      <div class="minis">${[500,1000,5000].map(v=>`<button class="mini" data-act="add" data-key="${key}" data-v="${v}">+${NF.format(v)}</button>`).join('')}<button class="mini" data-act="add" data-key="${key}" data-v="0">Effacer</button><button class="mini" data-act="fill" data-key="${key}" data-f=".25">25 % dispo</button><button class="mini" data-act="fill" data-key="${key}" data-f="1">${e==='liv'||e==='pea'?`Le maximum · ${fmt(maxFor(e))}`:'Tout le dispo'}</button>${h.v>0?`<button class="mini" data-act="fill" data-key="${key}" data-f="pos">Toute la position</button>`:''}</div>
       <div class="btns"><button class="primary" data-act="buy" data-key="${key}">${buyL}</button>${h.v>0?`<button class="secondary sell" data-act="sell" data-key="${key}">${sellL}</button>`:''}</div>
       ${reperes(id)}<p class="note">${note}</p>
       ${U.msg[key]?`<p class="${U.msg[key].ok?'ok':'err'}" style="flex-basis:100%">${U.msg[key].t}</p>`:''}</div>`;
@@ -3475,8 +3479,13 @@ function render(){
     else body=endView();
   }catch(e){if(!S)throw e;console.error(e);stash();U.broken=true;U.anim=null;body=brokenView();}
   if(U.broken)S=null;
+  // Un clic re-dessine tout : on garde la position de défilement de chaque zone tant qu'on reste sur le même écran.
+  const SCR='.card,.stage,.dm-body,.dmodal,.tbl-wrap',scKey=S?[S.phase,S.year,S.half,U.view,U.dossier&&U.dossier.t,U.rules,U.lb].join('|'):'intro',same=scKey===U.scKey;
+  const scr=same?[...app.querySelectorAll(SCR)].map(el=>el.scrollTop):[],wy=typeof window!=='undefined'?window.scrollY:0;
   app.className='wrap'+(U.fx?' fx':'');
   app.innerHTML=header()+body+(U.anim&&S?animHtml():'')+(U.rules?rulesModal():U.lb?lbModal():'');
+  if(same){app.querySelectorAll(SCR).forEach((el,i)=>{if(scr[i])el.scrollTop=scr[i];});if(wy)window.scrollTo(0,wy);}
+  U.scKey=scKey;
   restoreFocus(was);markMore();
   U.fx=false;
   if(!S)U.prevMoney=null;
@@ -3485,6 +3494,8 @@ function render(){
 
 /* ===================== ÉVÉNEMENTS DOM ===================== */
 function availFor(e){return S.cash+(e==='pea'||e==='av'?S.acc[e].cash:0);}
+// Ce qu'on peut vraiment verser : le disponible, dans la limite du plafond (Livret A, PEA).
+function maxFor(e){const a=Math.max(0,availFor(e));return Math.floor(e==='liv'?Math.min(a,Math.max(0,livretCap()-S.liv)):e==='pea'?Math.min(a,Math.max(0,peaCap()-S.acc.pea.vers)+S.acc.pea.cash):a);}
 function onClick(ev_){
   const t=ev_.target.closest('[data-act]');if(!t||t.disabled)return;
   const a=t.dataset.act,key=t.dataset.key;
@@ -3518,6 +3529,7 @@ function onClick(ev_){
     case 'dossier':U.dossier={t:t.dataset.t,use:BIENS[t.dataset.t].k==='bur'?'loc':'rp'};U.dur=null;U.fx=true;break;
     case 'dos-close':U.dossier=null;break;
     case 'dos-old':if(U.dossier){U.dossier.old=t.dataset.o;U.dur=null;}break;
+    case 'dos-fix':if(U.dossier){U.dossier.ap=Math.round(+t.dataset.v*100)/100;U.dur=+t.dataset.d;}break;
     case 'dos-ap':if(U.dossier){const v=t.dataset.v;U.dossier.ap=v===''?null:v==='max'?'max':+v;U.dur=null;}break;
     case 'dos-meuble':if(U.dossier)U.dossier.meuble=t.dataset.m==='1';break;
     case 'dos-use':if(U.dossier){U.dossier.use=t.dataset.u;U.dur=null;}break;
@@ -3548,7 +3560,7 @@ function onClick(ev_){
     case 'reset':if(U.confirmReset){U.confirmReset=false;wipe();S=null;U.fx=true;}else U.confirmReset=true;break;
     case 'tab':U.tab=t.dataset.tab;U.open=null;U.envMsg={};break;
     case 'open':U.open=U.open===key?null:key;U.msg={};break;
-    case 'fill':{const f=t.dataset.f;U.amt[key]=f==='pos'?Math.floor((e==='liv'?S.liv:ev(e,id))*100)/100:Math.floor(availFor(e)*+f);break;}
+    case 'fill':{const f=t.dataset.f;U.amt[key]=f==='pos'?Math.floor((e==='liv'?S.liv:ev(e,id))*100)/100:+f===1?maxFor(e):Math.floor(Math.min(maxFor(e),availFor(e)*+f));break;}
     case 'buy':{const v=+(U.amt[key]||0);const er=e==='liv'?livIn(v):buyIn(e,id,v);U.msg[key]=er?{t:er}:{t:`${e==='liv'?'Versement':'Achat'} de ${fmt(v)} exécuté.`,ok:true};if(!er)U.amt[key]='';save();break;}
     case 'sell':{const v=+(U.amt[key]||0);const r=e==='liv'?livOut(v):sellIn(e,id,v);U.msg[key]=r.err?{t:r.err}:{t:`${e==='liv'?'Retrait':'Vente'} de ${fmt(r.amt)} exécuté${r.tax>0.5?`, impôt ${fmt(r.tax)}`:''}${r.inEnv?', l’argent reste dans l’enveloppe':''}.`,ok:true};if(!r.err)U.amt[key]='';save();break;}
     case 'wd-all':U.wd[t.dataset.env]=Math.floor(S.acc[t.dataset.env].cash*100)/100;break;

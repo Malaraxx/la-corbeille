@@ -1,5 +1,10 @@
 # Journal des versions
 
+## 3.12.1 — Plus de confort (8 novembre 2026)
+- **Dossier de crédit** : quand la banque refuse pour le taux d'effort, le dossier propose l'apport et la durée qui passent, en un clic (« Mettre cet apport »).
+- **La page ne remonte plus** après un clic (+500, Effacer…) : chaque zone garde sa position.
+- **« Le maximum »** pour le Livret A et le PEA : le montant qui reste sous le plafond.
+
 ## 3.12.0 — Ta carrière, ta boîte (8 novembre 2026)
 - **Ton métier** dès le départ : salarié·e ou à la tête de ta boîte (logiciel, e-commerce, restauration, conseil, bâtiment), chacun avec son apport, sa croissance, ses marges et ses risques.
 - **Onglet Carrière** : ton salaire et ta progression, et la création d'une boîte (une par chapitre de ta vie).
