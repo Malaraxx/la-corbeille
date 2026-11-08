@@ -5,7 +5,7 @@ Le dépôt `Malaraxx/la-corbeille` existe déjà et le jeu est en ligne :
 - version GitHub Pages : https://malaraxx.github.io/la-corbeille/ ;
 - version officielle : https://claude.ai/artifact/GpZGGZupMd8fPAfZKjrozN.
 
-La Corbeille se joue aujourd'hui de 2026 à 2076, dans un monde inventé à chaque partie (version 3).
+La Corbeille se joue aujourd'hui de 2026 à 2076, dans un monde inventé à chaque partie, comme une vie en cinq chapitres avec des personnages récurrents (version 3.7 et suivantes).
 
 ## Reprendre le projet sur un nouvel ordinateur
 

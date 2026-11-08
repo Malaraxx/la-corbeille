@@ -15,7 +15,8 @@ La Corbeille est un simulateur de gestion de patrimoine **au tour par tour**, en
 - Les décisions obligatoires s'ouvrent **en fenêtre au début de l'année, une à la fois**, et bloquent tout le reste tant qu'elles ne sont pas prises. Environ deux années sur trois, **une Une** impose une **décision obligatoire** (krach, présidentielle, bulle, valeur en chute, lancement d'un fonds thématique, produit douteux…). Il y a parfois en plus **un dilemme de vie perso**, lui aussi obligatoire. Les années sans aucune décision passent d'affilée dans l'animation, puis une fenêtre les résume (interrupteur « Passer les années calmes », activé par défaut).
 - Au départ, le joueur **crée son profil** : ville (Lille, Lyon, Paris), fourchette de salaire **ou ses propres chiffres** (« Mes chiffres » : salaires, loyer et taille du logement, dépenses courantes, voiture, autre crédit), épargne de départ, célibataire ou en couple, deux objectifs. Puis il choisit son logement (louer, rester chez ses parents, colocation ou acheter, selon ses moyens, avec l'avis de Sophie). Rien n'est placé à sa place.
 - Le **budget est réel** : loyer ou mensualités, voiture, enfants, imprévus. Ce qui reste est épargné. Les achats « se faire du bien » (sorties, vacances, cadeau…) font monter l'humeur et le couple contre de l'argent. On passe à l'année suivante, l'**animation** fait défiler l'année, puis vient le **bilan**.
-- **Fin de partie** : un titre (« Légende de la Corbeille »…), un score, un épilogue narratif, les meilleurs et pires coups, les succès, le récap de chaque investissement avec son TRI, et le journal des décisions. Un bouton permet de copier son résultat pour défier ses amis.
+- **Une histoire en cinq chapitres** (« Les débuts », « Bâtir », « Le milieu de la vie », « Préparer la suite », « Transmettre »), avec des personnages récurrents (Karim, ton meilleur ami, Kévin, Sophie, tes parents, ton conjoint, tes enfants) et des fils narratifs : chaque choix important revient des années plus tard en citant l'année et le montant.
+- **Fin de partie** : un titre (« Légende de la Corbeille »…), un score, une biographie en cinq paragraphes (un par chapitre), ce que sont devenus les tiens, les meilleurs et pires coups, les succès, le récap de chaque investissement avec son TRI, et le journal des décisions. Un bouton permet de copier son résultat pour défier ses amis.
 
 **Public** : Flo et ses amis, souvent eux aussi de la finance. Le jeu doit être **crédible pour un financier**, avec une fiscalité française réaliste et des ordres de grandeur justes, et **amusant pour un non-financier**.
 
@@ -90,10 +91,11 @@ Le script est découpé en sections balisées par `/* ===== NOM ===== */`. Dans 
 | **Événements** | `EVT[id]` : `{forced?, w(y,f), make(y,f), view(p), act?, fiche?, crash?}`, `progText`/`applyProg`, `pickEvent(y,f)` |
 | **Vie perso** | `LIFE[id]` : `{view, act, can?}` + `retireOpts`. `act` peut renvoyer `{err}` (choix refusé, la question reste posée). Ids : burnout, rupture, weekend, panique, licenciement, diner, promo, vacances, mariage, enfant, sport, ami, rencontre, logement, panne, fire, retraite |
 | **Carnet** | `headline(y)`, `makeNotes(y, head, imp)`, `kidLine`, `imprevu(y)`, `conseils()`, `rappels()`, `ACHATS`/`achatState`/`acheter`, et le départ : `homeOptions`, `recoHome`, `un`, `sophieHome`, `onbHome`, `onbNext` |
-| **Tours** | `pickLife(crash)`, `startTurn(y)` (année, salaire, événement, fiche, conseillers, vie perso, imprévu, notes de la page), `answerEvent`, `answerLife`, `turnReady` |
+| **Histoire** | `CHAPS`/`chapOf`, distribution (`storyInit`, `storyTraits`), versions de texte (`vers`, `V`, `deja`, `NV`/`NVL`), fils (`openTh`, `endTh`, `dueThread`), moments racontés sans fenêtre (`NOTES`, `playNotes`, `chapFill`), moments de vie en fenêtre (`STORY`, ajoutés à `LIFE` avec `story:true`), `chapSnap`/`chapLine`, `biography`, `threadEnds`, `closeStory`, `elecStake`, héritage (`inherit`, `placeGift`), frais de famille (`careCost`, `studCost`, `famCost`), `kidThreads`, `storyMigrate` |
+| **Tours** | `pickLife(crash)` (fils échus d'abord, puis dilemmes pondérés par chapitre `CHW`), `storyYear`, `startTurn(y)` (année, salaire, événement, fiche, conseillers, vie perso, imprévu, notes de la page), `answerEvent`, `answerLife`, `turnReady` |
 | **Simulation** | `whyText` (explication du bilan), `movesGain` (ce que les ordres de janvier ont rapporté face à « ne rien toucher »), `simulateYear(y)` (le cœur : rendements, impôts, loyers, épargne/retraite, élection, ventes forcées, puis repères, humeur, succès), `endTurn`, `nextBilan`, `finalScore` |
 | **Sauvegarde** | `KEY='la-corbeille-v3'`, `save`/`load`/`wipe`, `migrate()` (complète une partie 3.0 ou 3.1 : logement, ville, enfants, page), `legacyGame()` et `dropLegacy()` (clôture des parties de la version 2) |
-| **Interface** | `U` (état d'interface non sauvegardé : `view` onglet, `city` et `dossier` de l'onglet Immobilier, `dur`, `setup` du profil, `fresh` décisions dont le résultat attend « Continuer », `prevMoney` pour l'animation des montants, `toast`, `fx` animations d'entrée au prochain rendu, `quiet` années calmes à résumer, `animList` années de l'animation, `broken` sauvegarde illisible), dessins (`figure(kind, humeur)`, `ICONS`/`icon`, `KICK` type d'événement → icône, `donut`), `moneyBar`/`moneyVals`/`animateCounters`, `navBar`, `decisionModal`/`decisionOrder`/`currentDecision`/`eventDecision`, années calmes (`autoPass`, `quietModal`, `autoBtn`), `profilTab`/`foyerList`/`budgetTable`/`adviceBtn`, `portefeuilleTab`, `immoTab`/`dossierHtml`, `patrimoineTab`, `onbView`, `figure` (petits dessins), `ficheHtml`, `advHtml`, `book`/`bookRow`/`envHead`, `spark`, `invData`/`invTable`/`invBody`, `turnView`, `chart`, `bilanView`, `animHtml`/`runAnim` (une liste d'années : le bilan ou les années calmes, `U.animList`), `endView`/`epilogue`/`coups`/`shareText`, `introView` (création du profil), `brokenView`/`stash` (sauvegarde illisible), `render` (puis `restoreFocus` : le focus revient sur le même bouton ou va dans la fenêtre ouverte ; `markMore` : une zone coupée affiche un dégradé et ▾) |
+| **Interface** | `U` (état d'interface non sauvegardé : `view` onglet, `city` et `dossier` de l'onglet Immobilier, `dur`, `setup` du profil, `fresh` décisions dont le résultat attend « Continuer », `prevMoney` pour l'animation des montants, `toast`, `fx` animations d'entrée au prochain rendu, `quiet` années calmes à résumer, `animList` années de l'animation, `broken` sauvegarde illisible), dessins (`figure(kind, humeur)`, `ICONS`/`icon`, `KICK` type d'événement → icône, `donut`), `moneyBar`/`moneyVals`/`animateCounters`, `navBar`, `decisionModal`/`decisionOrder`/`currentDecision`/`eventDecision`, années calmes (`autoPass`, `quietModal`, `autoBtn`), `profilTab`/`foyerList`/`budgetTable`/`adviceBtn`, `portefeuilleTab`, `immoTab`/`dossierHtml`, `patrimoineTab`, `onbView`, `figure` (petits dessins), `ficheHtml`, `advHtml`, `book`/`bookRow`/`envHead`, `spark`, `invData`/`invTable`/`invBody`, `turnView`, `chart`, `bilanView`, `animHtml`/`runAnim` (une liste d'années : le bilan ou les années calmes, `U.animList`), `endView`/`epilogue`/`coups`/`shareText`, `introView` (création du profil), `warnBox`/`WARN_TXT` (avertissement : jeu inventé, règles simplifiées, pas un conseil en investissement ; sur l'écran de départ et en fin de partie), `rulesModal` (règles du jeu, `U.rules`, ouverte par `data-act="rules"`, fermée par « Fermer » ou Échap, au-dessus de toute autre fenêtre), `brokenView`/`stash` (sauvegarde illisible), `render` (puis `restoreFocus` : le focus revient sur le même bouton ou va dans la fenêtre ouverte ; `markMore` : une zone coupée affiche un dégradé et ▾) |
 | **Événements DOM** | délégation unique : `onClick` lit `data-act` (et `data-key`, `data-env`…), `onInput` pour les champs. `boot()` charge la sauvegarde ou résume l'ancienne |
 
 **Rendu** : `render()` reconstruit tout le HTML via `innerHTML` à chaque action. Les vues sont des fonctions pures de `S` et `U`. Ne garde aucun état dans le DOM, sauf la valeur en cours de saisie des champs (mise à jour en direct dans `onInput`, sans re-rendu).
@@ -122,7 +124,8 @@ revenu, tauxEp, defl (indice des prix), bench{liv,trk} (placements des repères,
 hist[{x,net,liv,trk}], bilans[], event{id,p,answered,result,fiche?,adv?}|null, life{id,v,answered,result,name?}|null, nextY
 usedFut[], usedLife[], uid, log[{y,t,r}], turnShock, lock, well{sum,n}, profile
 lg{lines{clé:{env,id,label,first,lastSell,flows[{t,y,a}]}}, env{pea[],av[]}, props[]}
-me{humeur,relation,partner,first,exes[],marie,enfants,kids[{n,born}],ruptures,burnouts,retireYear,gap,besoin,pension,early,pension62,ruined,chomY,raise,car,newCar}
+me{humeur,relation,partner,first,exes[],marie,enfants,kids[{n,born}],ruptures,burnouts,retireYear,gap,besoin,pension,early,pension62,ruined,chomY,raise,car,newCar,petits}
+story{seed, cast{ami{n,g}, mere{n,born,die,dead}, pere{…}, estate (euros de 2026)}, th{id:{k,open,due,d,note,end,endT,beats}} (fils), hist{clé:[années]} (textes vus), chap (cartes vues), beats[{y,ch,t}] (moments racontés), snap[5] (état au début de chaque chapitre), dest[], met[], pres (présidentielles en fenêtre), given (donné aux enfants, euros de 2026), care{until,amt,n}, stud[{n,until,amt}], traits{prénom:{eco,voy}}, adv[{w,y,a,buy,ok}], kev, kevJ, kevRuined, uid}
 ```
 
 **Tout nouveau champ de `S` exige une migration dans `boot()`.** Exemple : une partie d'avant la 3.5 n'a pas `benchV` ; ses repères sont recalés sur ses placements du moment. Les amis de Flo ont des parties en cours dans leur navigateur : on ne casse jamais une sauvegarde, et on ne change pas `KEY` sans migrer. Seule exception, décidée par Flo le 7 novembre 2026 : le passage à la version 3 (monde inventé) clôt les parties de la version 2 en affichant leur patrimoine, faute de pouvoir les convertir.
@@ -156,7 +159,7 @@ La difficulté (`coefOf`) égalise les scores : potentiel = épargne de départ 
 rp35 : résidence principale achetée au plus tard en 2036 (+20 %) · fire : plus de travail au plus tard en 2056 et jamais ruiné (+40 %) · million : ≥ 2,5 M€ en euros de 2026 en 2076 (+40 %) · famille : finir en couple avec au moins 2 enfants (+30 %) · serein : aucune vente panique, aucun burn-out, jamais une humeur sous 40 en fin d'année (+10 %) · rentier : deux biens locatifs en même temps (+25 %). Chaque objectif a une fonction `st(fin)` qui renvoie 1 (atteint), 0 (en cours) ou −1 (raté).
 
 ### Score
-`score = patrimoine net en k€ de 2026 × (0,4 + 1,2 × bien-être/100) × (1 + Σ bonus des objectifs atteints) × coefficient du profil`
+`score = (patrimoine net en k€ de 2026 + ce que tu as donné à tes enfants de ton vivant, en k€ de 2026) × (0,4 + 1,2 × bien-être/100) × (1 + Σ bonus des objectifs atteints) × coefficient du profil` (`realNet`, décision de Flo du 8 novembre 2026 : sans cela, donner ferait perdre des points). L'objectif « Transmettre 2,5 millions » compte aussi les donations.
 
 Le bien-être moyen est calculé chaque année : 0,6 × humeur + 0,4 × couple (30 si célibataire). Le titre combine le niveau financier et le niveau de vie (bien-être ≥ 62 / ≥ 48), selon une grille 3×3 dans `finalScore`.
 
@@ -253,7 +256,23 @@ Les plafonds du PEA et du Livret A ne baissent jamais. La Une d'une présidentie
   - krach avec humeur < 35 → panique (vente de toutes les actions) ;
   - krach en couple → week-end (70 % des cas), qui bloque le portefeuille pour l'année ;
   - célibataire → rencontre (25 % par an, 45 % après une année de sorties).
-- **Autres dilemmes** : tirés dans environ 35 % des années restantes, au plus 2 fois chacun (5 pour les enfants et les pannes), avec un poids renforcé pour le mariage, les enfants et l'envie d'acheter.
+- **Famille** : chaque année, une chance propre de demande en mariage (30 %, en couple depuis assez longtemps) et d'enfant (35 %, marié·e, moins de 2 enfants, jusqu'à 42 ans), pour que les fils de l'histoire ne la fassent pas disparaître.
+- **Autres dilemmes** : tirés dans environ 25 % des années restantes, au plus 2 fois chacun (5 pour les enfants, 1 pour le prêt à l'ami et la donation), avec un poids par chapitre (`CHW`) : carrière, rencontre et logement au début ; mariage et enfants ensuite ; scooter des ados (`ados`) et crise de couple (`criseCouple`, thérapie à 1 200 €) au milieu ; donation (`donation`, 50 000 ou 100 000 € par enfant de plus de 25 ans) à la fin. Un fil arrivé à échéance passe avant eux. Plafonds par partie : week-end pendant un krach 2, panne 2, voyage 2 (jamais deux fois la même destination, `DEST` selon le caractère du conjoint), rencontre jamais deux fois avec la même personne.
+
+### Histoire (`S.story`)
+- **Chapitres** : 2026, 2036, 2046, 2056, 2066. Le début de chaque chapitre ouvre une carte de titre (`chapModal`, une fois, avant les décisions ; elle arrête l'enchaînement des années calmes) avec une phrase tirée de l'état réel (`chapSnap`, `chapLine`). Chaque chapitre compte au moins deux moments racontés : sinon, ses deux dernières années ajoutent des scènes de la vie des tiens (`chapFill`).
+- **Distribution** (`storyInit`) : un meilleur ami (prénom et genre tirés), deux parents (prénoms, nés vers 1966-1972 ; le premier s'éteint entre 78 et 86 ans, le second entre 84 et 93 ans, au plus tard en 2073), un patrimoine des parents tiré entre 80 000 et 200 000 € de 2026, un caractère pour chaque conjoint (économe ou dépensier, casanier ou voyageur : il colore les textes ; les vacances d'un dépensier coûtent 40 % de plus).
+- **Fils** (`S.story.th`) : un choix ouvre un fil qui revient des années plus tard. Une fenêtre au plus par an (`STORY`), les nouvelles sans choix passent en note (`NOTES`). Chaque fil a une fin : à la dernière année, `closeStory` conclut ceux qui restent ouverts.
+  - Karim : la start-up (forcée au plus tard vers 2034) → rachat ou faillite qui rappelle ton choix (`karimFin`) → nouvelle boîte, investir 10 000 € ou le rejoindre (+15 % de salaire) ou non (`karim2`) → issue (`karim3`, `karimNews`).
+  - Meilleur ami : une seule demande de prêt (10 000 €) → remboursé avec 10 % et du champagne (60 %), ou brouille puis réconciliation possible où il rend la moitié (`amiRetour`, `amiPaix`) ; un refus revient en nouvelle (`amiRefus`).
+  - Kévin : ses conseils sont mémorisés (`S.story.adv`) ; le premier krach après 2030 le ruine (il te demande 2 000 €) ; le premier jeton revient 4 à 7 ans plus tard (fortune ou ruine).
+  - Parents : une chute (8 000 € de travaux, `parents`), le premier décès (note), la maison de retraite du survivant (600 € par mois jusqu'au décès, l'accueillir, ou vendre sa maison : héritage réduit de 35 %), puis l'héritage (`heritage`) : abattement de 100 000 € indexé, 20 % au-delà, placé au choix. L'ancien « oncle sans enfants » ne sort plus.
+  - Enfants : études à 18 ans (loyer étudiant de 450 € par mois pendant 4 ans, ou job étudiant), premier appartement vers 27 ans (donation de 0, 20 000 ou 50 000 €, rappelant les études), mariage et petits-enfants (notes).
+  - Profil sur mesure : la fin de l'autre crédit devient un moment raconté (`creditFin`).
+- **Krachs** : une note sur un collègue licencié, le stage annulé d'un enfant de 18 à 22 ans, Kévin ruiné.
+- **Textes** : jamais deux fois le même texte de fenêtre dans une partie. Les événements récurrents ont 3 versions ou plus (`V`, choisies selon le nombre d'occurrences) ; au-delà, la fenêtre rappelle les années déjà vécues (`deja`, filet appliqué à tous les `EVT` et `LIFE`).
+- **Présidentielle** : par défaut une note dans l'année et une ligne au journal. Elle devient une fenêtre seulement si l'écart entre les deux programmes pèse chez toi au moins 1 000 € (indexés) ou 1 % du patrimoine (`elecStake` : flat tax sur les plus-values latentes, prélèvements sociaux sur les gains du PEA et de l'assurance-vie, impôt sur 5 ans de loyers, une année de retraite après 50 ans, Livret A plein), et 3 fois par partie au plus. La fenêtre affiche ce montant.
+- **Biographie** (`biography`) : un paragraphe par chapitre, à partir de `snap` et des moments racontés (`beats`) ; puis « Ce que sont devenus les tiens » (`threadEnds`).
 - **Logement** (`logement`) : forcé à 30 ans chez les parents, ou quand le logement est trop petit depuis un an (au plus tous les 2 ans) ; tiré aussi quand le couple locataire rêve d'acheter. Choix : louer plus grand (`bestRental`), acheter (`bestBuy`, en vendant l'actuel si besoin), rester.
 - **Panne de voiture** (`panne`) : réparer (1 200 €) ou vendre (+2 000 €, plus de frais de voiture, humeur et couple −3 hors Paris).
 
@@ -310,6 +329,7 @@ diamant (≥ 80 % d'actions et ≥ 100 000 € investis à la fin d'une année d
 3. **Aucune valeur non finie (NaN, Infinity)** et **aucune position négative** dans `S`. Le plafond du PEA est respecté.
 4. **Pas de fausse faillite** : une faillite n'est déclarée que s'il ne reste rien à vendre.
 5. **Déterminisme** : à graine égale, la partie est identique. Le jeu tire tout son hasard de `rnd()`. Les fonctions `view()`, les onglets, les conseils et tout l'affichage doivent être **purs** : jamais de `rnd()` dedans (le test vérifie que `S.rng` ne bouge pas pendant un rendu). Le hasard va dans `genYear`, `make()`, `act()`, `makeNotes`, `imprevu` ou au moment du tirage, dans `startTurn`.
+5 bis. **L'histoire tient ses promesses** : aucun texte de fenêtre identique deux fois dans une partie, au plus 3 présidentielles en fenêtre, chaque fil ouvert reçoit une suite ou une fin, au moins deux moments racontés par chapitre atteint. Tout argent d'un fil passe par `ext()`, `spend()` ou les fonctions d'ordre.
 6. **Le monde reste réaliste** : les statistiques de 150 mondes (600 en test complet) restent dans les cibles de la section 5.
 7. **Sauvegardes compatibles** : un aller-retour JSON en cours de partie redonne le même état. Une partie de la version 2 est résumée et close proprement.
 8. **`index.html` à jour** (`npm run check`).
@@ -318,15 +338,15 @@ diamant (≥ 80 % d'actions et ≥ 100 000 € investis à la fin d'une année d
 
 | Mesure | Cible | Dernière valeur (graines 11 et 4242) |
 |---|---|---|
-| Passif PEA / repère ETF Monde sans frais | 0,85 – 1 | 0,92 |
-| Élève de Sophie (suit ses conseils et ses avis sur les événements) / passif à 60 % d'actions | ≥ ×1,0 | ×1,08 – ×1,12 |
-| Élève de Sophie / acheteur naïf de paniques | ≥ ×1,3 | ×1,13 – ×1,19 (**WARN**, en attente d’une décision de Flo) |
-| Lecteur de fiches / acheteur naïf | ≥ ×1,15 | ×1,17 – ×1,39 |
-| Score du carriériste < score de l'équilibré | vrai | 1 495 < 3 584 |
-| 10e centile du patrimoine d'un joueur passif | > 0 | 913 – 1 103 k€ |
-| Score médian de chaque profil tout fait / héritier | 0,75 – 1,33 | 0,91 – 1,18 |
-| Objectifs visés : rp35 ≥ 80 %, famille ≥ 40 % (infirmier) et ≥ 25 % (héritier), fire 25 – 70 %, rentier ≥ 70 %, 2,5 millions 15 – 60 % | | 100 / 41-46 / 48-50 / 36-49 / 100 / 43-48 % |
-| Sophie ≥ 70 %, Kévin ≤ 60 % | | 80 / 57-59 % |
+| Passif PEA / repère ETF Monde sans frais | 0,85 – 1 | 0,93 |
+| Élève de Sophie (suit ses conseils et ses avis sur les événements) / passif à 60 % d'actions | ≥ ×1,0 | ×1,14 – ×1,19 |
+| Élève de Sophie / acheteur naïf de paniques **au même profil** (80 % d'actions) | ≥ ×1,15 (décision de Flo du 8 novembre 2026 : la cible ×1,3 n'était pas atteinte à profil égal) | ×1,01 – ×1,08 (**WARN**, mesure très bruitée sur 100 parties) |
+| Lecteur de fiches / acheteur naïf | ≥ ×1,15 | ×1,05 – ×1,14 (**WARN** depuis la 3.7 : moins de valeurs en chute, donc moins d'occasions de lire une fiche) |
+| Score du carriériste < score de l'équilibré | vrai | 1 544 < 2 746 |
+| 10e centile du patrimoine d'un joueur passif | > 0 | 876 – 879 k€ |
+| Score médian de chaque profil tout fait / héritier | 0,75 – 1,33 | 0,94 – 1,22 |
+| Objectifs visés : rp35 ≥ 80 %, famille ≥ 40 % (infirmier) et ≥ 25 % (héritier), fire 25 – 70 %, rentier ≥ 70 %, 2,5 millions 15 – 60 % | | 100 / 41-43 / 31-35 / 33-39 / 100 / 46-49 % |
+| Sophie ≥ 70 %, Kévin ≤ 60 % | | 80-81 / 58-59 % |
 
 Si tu modifies un paramètre de jeu, lance `npm run balance` avec deux graines différentes, corrige les WARN et mets à jour ce tableau.
 

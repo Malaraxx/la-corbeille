@@ -1,5 +1,24 @@
 # Journal des versions
 
+## 3.7.0 — Une vie, une histoire (8 novembre 2026)
+- **Cinq chapitres** : « Les débuts », « Bâtir », « Le milieu de la vie », « Préparer la suite », « Transmettre ». Chacun s'ouvre sur une carte qui résume où tu en es, avec ses propres moments de vie.
+- **Des personnages qui reviennent** et se souviennent de tes choix :
+  - Karim te rappelle ce que tu as fait pour sa start-up, puis relance une boîte ou te propose un poste ;
+  - ton meilleur ami (avec un prénom) te rembourse ou se brouille avec toi ;
+  - Kévin se ruine ou fait fortune ;
+  - tes parents vieillissent, ont besoin d'aide, puis te laissent un vrai héritage avec droits de succession ;
+  - tes enfants font des études, achètent leur premier appartement (donation), se marient et te rendent grand-parent ;
+  - ton conjoint a un caractère qui colore ses demandes.
+- **Chaque fil a une fin**, et la fin de partie devient une biographie en cinq paragraphes, suivie de « Ce que sont devenus les tiens ».
+- **Moins de répétitions** :
+  - jamais deux fois le même texte de fenêtre dans une partie ;
+  - la présidentielle ne s'ouvre en fenêtre que si elle touche vraiment ton argent, avec le montant en jeu, 3 fois au plus par partie ;
+  - au plus 2 week-ends pendant un krach, 2 pannes, 2 voyages (jamais la même destination), 2 jetons.
+- **Les krachs se racontent** : un collègue licencié, le stage d'un enfant annulé, Kévin ruiné.
+- **Donner à ses enfants compte dans le score**.
+- **Règles du jeu et avertissement** : un encadré sur l'écran de départ et en fin de partie rappelle que le monde et l'histoire sont inventés, que les règles sont simplifiées et que rien n'est un conseil en investissement. Une fenêtre « Règles du jeu » s'ouvre depuis l'écran de départ, la barre du haut (« Règles », « ? » sur téléphone) et la fin de partie.
+- **Sophie** : l'acheteur naïf qui sert de comparaison a maintenant le même profil que son élève ; la cible passe à ×1,15.
+
 ## 3.6.0 — Tes propres chiffres (8 novembre 2026)
 - **Profil sur mesure** : le bouton « Mes chiffres » permet de saisir ton salaire net, celui de ton conjoint, ton loyer et la taille de ton logement, tes dépenses courantes, ta voiture et un autre crédit (mensualité et années restantes). Les valeurs proposées partent de la fourchette choisie.
 - Le jeu les reprend tels quels : budget du mois, logement de départ (« Rester dans ton T3 actuel », présélectionné), voiture, crédit jusqu'à son terme (compté par la banque dans ton taux d'effort). Ensuite, loyer et dépenses suivent l'inflation, et le salaire progresse comme la fourchette la plus proche.

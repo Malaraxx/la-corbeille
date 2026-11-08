@@ -38,7 +38,7 @@ vm.runInContext(js + `;globalThis.T={get S(){return S},set S(v){S=v},newGame,sta
   buyProp,sellProp,reneg,canReneg,answerEvent,answerLife,evDef,LIFE,EVT,net,tradable,ORDER,ENVS,META,EQUITY,STOCKS,THEMES,PRESETS,GOALS,ACH,ADV,PHASES,GOOD,Y0,YN,
   eligEnvs,peaCap,envTotal,turnReady,finalScore,placeIdle,rebalance,dry,alloc,eqShare,irr,invData,coups,epilogue,shareText,genYear,peekR,hv,ev,conseils,rappels,pct,f1,
   homeOptions,recoHome,onbHome,onbNext,onbView,budgetTable,kidsCost,rpOf,PRESETS,EPARGNES,SALAIRES,coefOf,BIENS,dossierHtml,acheter,achatState,ACHATS,migrate,bestRental,bestBuy,buyHome,moveTo,propQuote,coussin,yearlySave,monthlySpend,CITIES,loanLeft,
-  benchRef,envTotal,custErr,custLeft,custDefaults,homeName,startSave,turnView,bilanView,endView,introView,moneyBar,profilTab,portefeuilleTab,immoTab,patrimoineTab,animHtml,toastsHtml,advHtml,spark,save,load,legacyGame,U};`, ctx);
+  benchRef,biography,threadEnds,chapOf,boot,endView,envTotal,custErr,custLeft,custDefaults,homeName,startSave,turnView,bilanView,endView,introView,moneyBar,profilTab,portefeuilleTab,immoTab,patrimoineTab,animHtml,toastsHtml,advHtml,spark,save,load,legacyGame,U};`, ctx);
 const T = ctx.T;
 
 // ---------- mini framework
@@ -244,7 +244,7 @@ test('Création du profil et choix du logement, pour chaque salaire, épargne, v
 });
 
 test('Immobilier : dossier de crédit pour y vivre ou pour louer, dans chaque ville', () => {
-  T.newGame({ city: 'lyon', sal: 3, cap: 2, couple: true }, []); const S = T.S; S.cash += 3e6; S.start += 3e6;
+  T.newGame({ city: 'lyon', sal: 3, cap: 2, couple: true }, []); const S = T.S; S.cash += 3e6; S.start += 3e6; S.story.chap = 1; // carte du chapitre 1 déjà vue
   for (const t of Object.keys(T.BIENS).filter(k => !T.BIENS[k].hide)) {
     T.U.dossier = { t, use: T.BIENS[t].k === 'bur' ? 'loc' : 'rp' }; T.U.city = T.BIENS[t].v; T.U.view = 'immo'; const h = T.turnView();
     check(h.includes('Réponse de la banque'), `dossier absent pour ${t}`);
@@ -397,7 +397,7 @@ function playNoInvest(arch, owner, onYear) {
     if (S.phase !== 'turn') { T.nextBilan(); continue; }
     // Les flux de janvier déjà passés (imprévu payé au début du tour) n'arrivent au repère qu'au bilan : on part du compte d'avant.
     const b0 = S.bench.trk, c0 = S.cash - S.yearExt - (S.yearProp || 0);
-    if (S.life) { for (const c of S.life.v.choices) if (!S.life.answered) T.answerLife(c.id); }
+    if (S.life) { const ids = S.life.v.choices.map(c => c.id), pref = ['cash', '0', 'non', 'job'].filter(x => ids.includes(x)); for (const c of [...pref, ...ids]) if (!S.life.answered) T.answerLife(c); }
     if (S.event) T.answerEvent('pass');
     if (!S.lock) {
       if (owner && !T.rpOf()) { const b = T.bestBuy(); if (b && b.ok) T.buyHome(b.type, b.n); }
@@ -441,6 +441,46 @@ test('Score : le repère ETF Monde d’un propriétaire suit ses flux de vie et 
   }
   check(years > 100, 'trop peu d’années vérifiées');
   console.log(`    ${years} années · écart max ${maxErr.toFixed(4)} € · ${neg} années avec un repère négatif`);
+});
+
+test('Histoire : une partie d’avant la 3.7 se recharge avec sa famille et ses fils', () => {
+  T.newGame({ city: 'lille', sal: 2, cap: 1, couple: true }, []);
+  for (let i = 0; i < 12; i++) { const S = T.S; if (S.life) for (const c of S.life.v.choices) if (!S.life.answered) T.answerLife(c.id); if (S.event) T.answerEvent('pass'); T.endTurn(); T.nextBilan(); }
+  const old = JSON.parse(JSON.stringify(T.S)); delete old.story; old.flags.pretAmi = { y: old.year + 1, a: 11000 };
+  T.boot({ S: old }); const S = T.S;
+  check(S.story && S.story.chap === T.chapOf(S.year) + 1 && !S.flags.pretAmi, 'histoire non créée à la migration');
+  check(Object.values(S.story.th).every(t => t.due >= S.year), 'fil migré dans le passé');
+  T.turnView();
+  for (let i = 0; i < 6; i++) { if (S.life) for (const c of S.life.v.choices) if (!S.life.answered) T.answerLife(c.id); if (S.event) T.answerEvent('pass'); T.endTurn(); T.nextBilan(); }
+  check(cashIdentity(S) < 1, 'argent créé ou perdu après migration');
+});
+
+test('Histoire : textes jamais répétés, présidentielles rares, fils conclus, deux moments par chapitre', () => {
+  let games = 0, win = 0, elec = 0, beats = 0, threads = 0;
+  for (let g = 0; g < (FULL ? 60 : 16); g++) {
+    T.newGame({ city: pickR(Object.keys(T.CITIES)), sal: Math.floor(R() * 5), cap: Math.floor(R() * 3), couple: R() < .5 }, []);
+    const seen = new Set(); let el = 0;
+    while (T.S.phase !== 'end') {
+      const S = T.S; if (S.phase === 'bilan') { T.nextBilan(); continue; }
+      const see = (v, k) => { const key = v.title + '|' + v.body; check(!seen.has(key), `texte répété en ${S.year} (${k}) : ${v.title}`); seen.add(key); win++; };
+      if (S.event) { const v = T.evDef().view(S.event.p); see(v, S.event.id); if (S.event.id === 'election') el++;
+        if (v.choices && v.choices.length && R() < .6) T.answerEvent('choice', pickR(v.choices).id); if (!S.event.answered) T.answerEvent('pass'); }
+      if (S.life) { see(S.life.v, S.life.id); const ch = S.life.v.choices.map(c => c.id); T.answerLife(pickR(ch)); for (const c of ch) if (!S.life.answered) T.answerLife(c); }
+      if (S.cash > 3000 && R() < .5) T.buyIn('cto', 'monde', Math.floor(S.cash * .5));
+      if (R() < .2) { const k = Object.keys(T.ACHATS); T.acheter(pickR(k)); }
+      T.endTurn();
+    }
+    const st = T.S.story; games++; elec += el;
+    check(el <= 3, `${el} présidentielles en fenêtre dans une partie`);
+    for (const id in st.th) { const t = st.th[id]; threads++; check(t.end && (t.beats > 0 || t.endT), `fil « ${t.k} » ouvert en ${t.open} sans suite ni fin`); }
+    const lastCh = T.chapOf(Math.min(T.S.year, T.YN));
+    for (let c = 0; c <= lastCh; c++) check(st.beats.filter(b => b.ch === c).length >= 2, `chapitre ${c + 1} avec moins de deux moments racontés`);
+    beats += st.beats.length;
+    const bio = T.biography(); check(bio.length === lastCh + 1 && bio.every(b => b.t.length > 40), 'biographie incomplète');
+    T.endView();
+    check(cashIdentity(T.S) < 1 || T.S.me.ruptures, 'argent créé ou perdu par l’histoire');
+  }
+  console.log(`    ${games} parties · ${(win / games).toFixed(1)} fenêtres par partie · ${(elec / games).toFixed(1)} présidentielles en fenêtre · ${(beats / games).toFixed(1)} moments racontés · ${threads} fils conclus`);
 });
 
 test('Profils tout faits et immobilier multi-villes', () => {
@@ -491,13 +531,15 @@ if (BALANCE) {
     return ['invest', f.a, Math.min(amt, Math.floor(S.cash)), 'cto']; };
   const ctoPassive = S => { if (S.cash > 1) T.buyIn('cto', 'monde', S.cash); };
   const naive = run('heritier', { life: choose(BAL), event: dip(false), port: ctoPassive });
+  // Pour juger Sophie à armes égales : l'acheteur naïf a le même profil que son élève (80 % d'actions, placés de la même façon).
+  const naiveSame = run('heritier', { life: choose(BAL), event: dip(false), port: S => { S.profile = .8; T.placeIdle(.8, []); } });
   const fiche = run('heritier', { life: choose(BAL), event: dip(true), port: ctoPassive });
 
   const pr = med(passive.map(x => x.ratio));
   warn(pr >= .85 && pr <= 1, 'Passif PEA / repère ETF Monde sans frais', pr.toFixed(2), '0,85 – 1');
-  const g0 = med(r0.map(x => x.real)) / med(calm.map(x => x.real)), gn = med(r0.map(x => x.real)) / med(naive.map(x => x.real));
+  const g0 = med(r0.map(x => x.real)) / med(calm.map(x => x.real)), gn = med(r0.map(x => x.real)) / med(naiveSame.map(x => x.real));
   warn(g0 >= 1, 'Élève de Sophie / passif à 60 % d’actions', '×' + g0.toFixed(2), '≥ ×1,0');
-  warn(gn >= 1.3, 'Élève de Sophie / acheteur naïf de paniques', '×' + gn.toFixed(2), '≥ ×1,3');
+  warn(gn >= 1.15, 'Élève de Sophie / acheteur naïf (même profil)', '×' + gn.toFixed(2), '≥ ×1,15');
   const fr = med(fiche.map(x => x.real)) / med(naive.map(x => x.real));
   warn(fr >= 1.15, 'Lecteur de fiches / acheteur naïf de paniques', '×' + fr.toFixed(2), '≥ ×1,15');
   warn(med(career.map(x => x.score)) < med(passive.map(x => x.score)), 'Score carriériste < score équilibré', `${med(career.map(x => x.score))} < ${med(passive.map(x => x.score))}`, 'vrai');

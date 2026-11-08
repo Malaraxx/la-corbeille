@@ -536,7 +536,8 @@ table.sheet td{padding:4px 6px}
 @media (max-width:760px){
   .wrap{gap:8px}
   .hud{flex-wrap:wrap;gap:6px 10px;padding:8px 10px;border-radius:8px}
-  .brand{flex-direction:row;align-items:baseline;gap:8px;flex:1;white-space:nowrap;min-width:0}
+  .brand{flex-direction:row;align-items:baseline;gap:8px;flex:1;white-space:nowrap;min-width:0;overflow:hidden}
+  .brand span{overflow:hidden;text-overflow:ellipsis}
   .logo-s{font-size:18px}
   .mchips{order:3;flex-basis:100%;grid-template-columns:repeat(3,minmax(0,1fr));gap:4px}
   .mchip{padding:3px 7px}
@@ -582,6 +583,21 @@ table.sheet td{padding:4px 6px}
 .autot[aria-pressed="true"] i{background:var(--accent)}
 .autot[aria-pressed="true"] i::after{left:14px}
 .broken{max-width:560px;margin:auto}
+.warnbox{border:1px solid var(--warn);border-left-width:4px;border-radius:6px;padding:10px 12px;background:var(--paper);font-size:13px;display:flex;flex-direction:column;gap:4px;align-items:flex-start}
+.warnbox b{color:var(--warn);font-size:12px;letter-spacing:.06em;text-transform:uppercase}
+.warnbox p{margin:0}
+.dmodal.rules h3{font-size:18px;margin-top:6px}
+.dmodal.rules ul{margin:0;padding-left:18px;display:flex;flex-direction:column;gap:4px;font-size:14.5px}
+.hudbtns{display:flex;gap:6px;flex:none;margin-left:auto}
+.dm-head .close{margin-left:auto;align-self:flex-start}
+.show-m{display:none}
+@media (max-width:560px){.hide-m{display:none}.show-m{display:inline}.hudbtns .ghost{padding:4px 9px}}
+.dmodal.chap{border-top-color:var(--accent);text-align:center;align-items:center;padding:28px 28px 22px;gap:10px}
+.dmodal.chap h2{font-size:clamp(30px,6vw,46px);line-height:1.05}
+.chapline{font-size:16px;max-width:46ch;margin:4px 0 8px}
+.bio{margin:0 0 6px}
+.bio b{font-family:var(--f-display);font-size:19px}
+.fates{margin:0;padding-left:18px;display:flex;flex-direction:column;gap:4px}
 .cust{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px 16px;margin-top:10px}
 .cf{display:flex;flex-direction:column;gap:4px;font-size:13.5px}
 .cf>span:first-child{font-weight:600}
@@ -726,7 +742,7 @@ const profLabel=()=>{const pp=prof();return `${CITIES[pp.city].n} · ${S&&S.cust
 const GOALS={
   rp35:{bonus:.2,n:'Propriétaire avant 35 ans',d:`Acheter ta résidence principale au plus tard en ${Y0+10}.`,st:end=>S.flags.rpYear!=null&&S.flags.rpYear<=Y0+10?1:(S.year>Y0+10||end)?-1:0},
   fire:{bonus:.4,n:'Libre à 55 ans',d:`Arrêter de travailler au plus tard en ${Y0+30}, sans jamais manquer d’argent.`,st:end=>S.me.ruined?-1:S.me.retireYear!=null&&S.me.retireYear<=Y0+30?(end?1:0):(S.year>Y0+30||end)?-1:0},
-  million:{bonus:.4,n:'Transmettre 2,5 millions',d:`Finir avec au moins 2 500 000 € en euros de ${Y0}.`,st:end=>end?(net()/S.defl>=2.5e6?1:-1):0},
+  million:{bonus:.4,n:'Transmettre 2,5 millions',d:`Finir avec au moins 2 500 000 € en euros de ${Y0}.`,st:end=>end?(realNet()>=2.5e6?1:-1):0},
   famille:{bonus:.3,n:'Fonder une famille',d:'Finir en couple, avec au moins deux enfants.',st:end=>end?(P()&&S.me.enfants>=2?1:-1):0},
   serein:{bonus:.1,n:'Investisseur serein',d:'Ne jamais vendre dans la panique, ni faire de burn-out, ni finir une année avec une humeur sous 40.',st:end=>(S.flags.panicSold||S.me.burnouts||S.flags.lowMood)?-1:end?1:0},
   rentier:{bonus:.25,n:'Rentier immobilier',d:'Posséder deux biens locatifs en même temps.',st:end=>S.flags.twoRent?1:end?-1:0},
@@ -894,6 +910,7 @@ function newGame(spec,goals,guided){
     S.p.custom=true;S.p.sal=nearSal(S.cust.sal);S.revenu=S.cust.sal*12;S.me.car=S.cust.car>0;S.coef=coefOf({...pp,cust:S.cust});}
   S.home=S.cust?{type:'perso',own:false,since:Y0}:{type:bestRental(),own:false,since:Y0};
   for(const id in PX0)S.ph[id]=[PX0[id]];
+  storyInit();if(S.cust&&S.cust.debtN>0)openTh('creditFin',Y0+S.cust.debtN,{},true);
   startTurn(Y0);
 }
 const liquidOf=e=>{let t=0;for(const k in S.acc[e].hold)t+=S.acc[e].hold[k].v;return t;};
@@ -951,8 +968,8 @@ const housingOut=()=>{const rp=rpOf();if(rp)return S.idx[rp.type].rent*.15+loanA
 // Ce qu'un retraité puise cette année, en anticipant le premier départ et l'arrivée de la pension après une retraite anticipée.
 const besoinYear=()=>{if(!retired(S.year))return 0;let b=S.me.pension?S.me.besoin:S.revenu*S.me.gap;if(S.me.early&&age(S.year)>=S.pol.ageLegal&&!S.me.pension62)b*=.5;return b;};
 const pensionYear=()=>S.me.pension?S.revenu:S.revenu*.6;
-const yearlySave=()=>{const base=retired(S.year)?-besoinYear():epargneYear();return base+refRent()+carRef()-housingOut()-carCost()-kidsCost()-debtCost();};
-const monthlySpend=()=>Math.max(500*S.defl,(retired(S.year)?pensionYear()+besoinYear():foyerRev()-epargneYear())/12-(refRent()+carRef())/12+(housingOut()+carCost()+kidsCost()+debtCost())/12);
+const yearlySave=()=>{const base=retired(S.year)?-besoinYear():epargneYear();return base+refRent()+carRef()-housingOut()-carCost()-kidsCost()-debtCost()-famCost();};
+const monthlySpend=()=>Math.max(500*S.defl,(retired(S.year)?pensionYear()+besoinYear():foyerRev()-epargneYear())/12-(refRent()+carRef())/12+(housingOut()+carCost()+kidsCost()+debtCost()+famCost())/12);
 const coussin=()=>(Math.max(0,S.cash)+S.liv)/monthlySpend();
 function mood(dh,dr){S.me.humeur=clamp(S.me.humeur+(dh||0),0,100);if(P())S.me.relation=clamp(S.me.relation+(dr||0),0,100);}
 function unlock(id){if(!S.ach)S.ach={};if(S.ach[id]||!ACHM[id])return;S.ach[id]=S.clk?S.clk.y:S.year;(S.achNew||(S.achNew=[])).push(id);}
@@ -1448,67 +1465,71 @@ const crashBody={credit:'Des années de crédit facile se paient d’un coup. Le
 // view(p) = texte (fonction pure), act() = conséquences du choix. forced = déclenché directement par le monde.
 const EVT={
   krach:{forced:true,crash:true,make(y,f){shock(f.shock);return {d:f.d,cause:f.cause};},
-    view:p=>({kicker:'Krach',title:crashTitle[p.cause](p.d),body:crashBody[p.cause]+' Personne ne sait où est le fond.',invest:{assets:['monde','tracker','banque','luxe']},pass:'Je ne bouge pas'})},
+    view:p=>({kicker:'Krach',title:V('krach',[crashTitle[p.cause](p.d),`Lundi noir : −${p.d} % à la Bourse`,`${p.d} % de baisse en un mois, la panique gagne`]),
+      body:V('krach',[crashBody[p.cause]+' Personne ne sait où est le fond.',`${crashBody[p.cause]} Ton portefeuille fond à vue d’œil, et ${P()?`${P()} te demande si c’est grave`:'tes amis te demandent si c’est grave'}.`,`Les écrans sont rouges depuis des semaines. ${crashBody[p.cause]} Kévin jure que c’est « le moment d’acheter ».`]),invest:{assets:['monde','tracker','banque','luxe']},pass:V('krach',['Je ne bouge pas','Je laisse passer l’orage','Je ne touche à rien'])})},
   pandemie:{forced:true,crash:true,make(y,f){shock(f.shock);return {d:f.d};},
-    view:p=>({kicker:'Pandémie',title:'Nouveau virus, le pays se confine',body:`La Bourse perd ${p.d} % en trois semaines, AéroNef s’effondre. Seule Pharma Lumière progresse. Personne ne sait combien de temps ça va durer.`,invest:{assets:['monde','tracker','aero','pharma']},pass:'Je ne bouge pas'})},
+    view:p=>({kicker:'Pandémie',title:V('pandemie',['Nouveau virus, le pays se confine','Les hôpitaux saturent, la France ferme','Un virus inconnu met le monde à l’arrêt']),body:V('pandemie',[`La Bourse perd ${p.d} % en trois semaines, AéroNef s’effondre. Seule Pharma Lumière progresse. Personne ne sait combien de temps ça va durer.`,`Écoles fermées, avions cloués au sol : la Bourse cède ${p.d} %. Pharma Lumière, elle, s’envole sur l’espoir d’un vaccin.`,`En trois semaines, ${p.d} % de baisse. AéroNef annonce des milliers de suppressions de postes, Pharma Lumière recrute.`]),invest:{assets:['monde','tracker','aero','pharma']},pass:'Je ne bouge pas'})},
   election:{forced:true,make(){return {};},
     view:()=>{const E=S.fut[S.year].elec,c=x=>`<b>${x.name}</b> (${PARTIS[x.party].n}, ${x.poll} % dans les sondages), ${x.desc}. Programme : ${progText(x.prog)}.`;
       const up=Math.max(progTax(E.A.prog),progTax(E.B.prog))>ctoRate()+.001,lat=ctoLatent();
-      return {kicker:'Présidentielle',title:`${E.A.name} ou ${E.B.name} : la France vote en avril`,body:`${c(E.A)}<br>${c(E.B)}<br>Le programme du vainqueur s’appliquera dès janvier ${S.year+1}.`,
+      return {kicker:'Présidentielle',title:V('election',[`${E.A.name} ou ${E.B.name} : la France vote en avril`,`Duel ${E.A.name} – ${E.B.name} pour l’Élysée`,`Présidentielle ${S.year} : ${E.A.name} face à ${E.B.name}`]),body:`${c(E.A)}<br>${c(E.B)}<br>Chez toi, l’écart entre les deux programmes pèse environ <b>${fmt(elecStake(E))}</b>. Le programme du vainqueur s’appliquera dès janvier ${S.year+1}.`,
         invest:{assets:['tracker','monde','oat']},choices:up&&lat>500?[{id:'purge',label:'Purger mes plus-values au taux actuel',desc:`Tu paies ${pc0(ctoRate())} maintenant sur ${fmt(lat)} de plus-values latentes du compte-titres`}]:[],pass:'J’attends le résultat'};},
     act(c){const t=purgeCto();return {msg:`Plus-values purgées : ${fmt(t)} d’impôt payé.`};}},
   energie:{forced:true,fiche:'aero',make(){shock({petro:30,aero:-25,tracker:-5,monde:-4});return {};},
-    view:()=>({kicker:'Choc énergétique',title:'Un détroit stratégique est bloqué, le baril s’envole',body:`PétroGaule bondit de 30 %, AéroNef chute de 25 % à ${fmtPx(S.px.aero)}. Les économistes craignent un retour de l’inflation et une récession.`,invest:{assets:['aero','petro','or']},pass:'Je ne bouge pas'})},
+    view:()=>({kicker:'Choc énergétique',title:V('energie',['Un détroit stratégique est bloqué, le baril s’envole','Le pétrole flambe, le plein aussi','Coup de force des pays producteurs : le baril double']),body:V('energie',[`PétroGaule bondit de 30 %, AéroNef chute de 25 % à ${fmtPx(S.px.aero)}. Les économistes craignent un retour de l’inflation et une récession.`,`À la pompe, le litre dépasse ${f1(litre(S.w)*1.3)} €. AéroNef perd 25 % et cote ${fmtPx(S.px.aero)}, PétroGaule gagne 30 %.`,`Les compagnies aériennes clouent leurs avions : AéroNef cède 25 % (${fmtPx(S.px.aero)}). PétroGaule, elle, prend 30 %. L’inflation guette.`]),invest:{assets:['aero','petro','or']},pass:'Je ne bouge pas'})},
   guerre:{forced:true,make(){shock({tracker:-8,monde:-6,or:8,petro:15,aero:-12});return {};},
-    view:()=>({kicker:'Géopolitique',title:'Un conflit armé éclate aux portes de l’Europe',body:'Les marchés reculent, l’or et le pétrole grimpent. Les analystes se divisent : simple secousse ou début d’une longue crise ?',invest:{assets:['or','monde','tracker']},pass:'Je ne bouge pas'})},
+    view:()=>({kicker:'Géopolitique',title:V('guerre',['Un conflit armé éclate aux portes de l’Europe','Bruits de bottes à l’Est','Les chars franchissent une frontière européenne']),body:V('guerre',['Les marchés reculent, l’or et le pétrole grimpent. Les analystes se divisent : simple secousse ou début d’une longue crise ?','L’or bat des records, le pétrole grimpe, la Bourse recule. Chacun se demande si le conflit va s’étendre.','Les journaux télévisés ne parlent que de ça. Les investisseurs se ruent sur l’or ; les actions européennes reculent.']),invest:{assets:['or','monde','tracker']},pass:'Je ne bouge pas'})},
   // Au plus deux fois par partie, avec trois versions du texte (p.v) pour ne pas lasser.
-  geant:{w:()=>S.usedFut.filter(x=>x==='geant').length<2?2:0,fiche:p=>p.s,make(y){const s=pick(STOCKS);shock({[s]:-40});setPending(y,s,rnd()<0.55?60:-50);return {s,why:pick(['un scandale comptable','la perte de son plus gros client','une amende record de Bruxelles','un avertissement sur résultats']),v:Math.floor(rnd()*3)};},
+  geant:{w:()=>S.usedFut.filter(x=>x==='geant').length<2?1.5:0,fiche:p=>p.s,make(y){const s=pick(STOCKS);shock({[s]:-40});setPending(y,s,rnd()<0.55?60:-50);return {s,why:pick(['un scandale comptable','la perte de son plus gros client','une amende record de Bruxelles','un avertissement sur résultats']),v:Math.floor(rnd()*3)};},
     view:p=>{const n=META[p.s].n,px=fmtPx(S.px[p.s]),w=p.why[0].toUpperCase()+p.why.slice(1);
       const t=[[`${n} perd 40 % en une semaine`,`En cause : ${p.why}. L’action cote ${px}. Rebond spectaculaire ou début de la fin ? Lis la fiche avant de décider.`],
         [`${n} : −40 % en quelques séances`,`Le marché sanctionne ${p.why}. Les vendeurs se bousculent, l’action cote ${px}. Les uns parlent d’occasion historique, les autres de piège. La fiche de l’analyste t’aidera à trancher.`],
-        [`Panique sur ${n}`,`${w} : en quelques jours, ${n} a perdu 40 % et cote ${px}. Sur les forums, on lit qu’il faut « acheter au son du canon ». Les chiffres de l’entreprise disent-ils la même chose ?`]][p.v||0];
+        [`Panique sur ${n}`,`${w} : en quelques jours, ${n} a perdu 40 % et cote ${px}. Sur les forums, on lit qu’il faut « acheter au son du canon ». Les chiffres de l’entreprise disent-ils la même chose ?`]][vers('geant')];
       return {kicker:'Valeur en chute libre',title:t[0],body:t[1],invest:{assets:[p.s],cta:hv(p.s)>0?'Renforcer':'Acheter'},pass:'Je m’abstiens'};}},
   bulle:{w:()=>S.usedFut.filter(x=>x==='bulle').length>=2?0:GOOD.includes(S.w.phase)?2:1,fiche:p=>p.s,make(y){const s=pick(STOCKS);shock({[s]:60});setPending(y,s,rnd()<0.5?-45:30);return {s,v:Math.floor(rnd()*3)};},
     view:p=>{const n=META[p.s].n,px=fmtPx(S.px[p.s]);
       const t=[[`${n} : +60 % en quelques mois`,'Les forums s’enflamment, les analystes relèvent leurs objectifs chaque semaine. Ton voisin, qui n’a jamais investi, vient d’en acheter. Bulle ou vraie croissance ?'],
         [`${n} s’envole`,`+60 % en quelques mois : les médias ne parlent que d’elle et l’action cote ${px}. Les plus prudents rappellent que les arbres ne montent jamais jusqu’au ciel.`],
-        [`Tout le monde s’arrache ${n}`,`Des records chaque semaine, +60 % en quelques mois, et même ton coiffeur t’en parle. L’action cote ${px}. Croissance solide ou euphorie qui finira mal ?`]][p.v||0];
+        [`Tout le monde s’arrache ${n}`,`Des records chaque semaine, +60 % en quelques mois, et même ton coiffeur t’en parle. L’action cote ${px}. Croissance solide ou euphorie qui finira mal ?`]][vers('bulle')];
       return {kicker:'Euphorie',title:t[0],body:t[1],invest:{assets:[p.s],cta:hv(p.s)>0?'Renforcer':'Acheter'},
       choices:hv(p.s)>0?[{id:'vendre',label:'Tout vendre et encaisser',desc:`Ta position : ${fmt(hv(p.s))}`}]:[],pass:hv(p.s)>0?'Garder sans rien faire':'Je reste à l’écart'};},
     act(c,p){const pd=S.pending[S.year]&&S.pending[S.year][p.s];if(pd!=null&&pd<0)unlock('sommet');const r=sellEverywhere([p.s]);return {msg:`Tu vends ${META[p.s].n} pour ${fmt(r.t)}${r.tax>0.5?` (impôt ${fmt(r.tax)})`:''}.`};}},
-  taux:{w:(y,f)=>f.mac.rate-S.w.rate>=.75?5:0,make(y,f){return {r:f.mac.rate,infl:S.w.infl};},
-    view:p=>({kicker:'Banque centrale',title:`La BCE relève son taux à ${rate(p.r)}`,body:`L’inflation a atteint ${f1(p.infl)} % l’an dernier. Les OAT à 10 ans rapportent ${rate(S.w.r10)}, le crédit immobilier coûte ${rate(S.w.credit)}. Quand les taux montent, les obligations déjà émises perdent de la valeur.`,invest:{assets:['oat']},pass:'Je ne change rien'})},
+  taux:{w:(y,f)=>f.mac.rate-S.w.rate>=.75&&S.usedFut.filter(x=>x==='taux').length<3?4:0,make(y,f){return {r:f.mac.rate,infl:S.w.infl};},
+    view:p=>({kicker:'Banque centrale',title:V('taux',[`La BCE relève son taux à ${rate(p.r)}`,`Tour de vis à Francfort : le taux de la BCE passe à ${rate(p.r)}`,`La BCE frappe fort contre l’inflation : ${rate(p.r)}`]),body:V('taux',[`L’inflation a atteint ${f1(p.infl)} % l’an dernier. Les OAT à 10 ans rapportent ${rate(S.w.r10)}, le crédit immobilier coûte ${rate(S.w.credit)}. Quand les taux montent, les obligations déjà émises perdent de la valeur.`,`Avec ${f1(p.infl)} % d’inflation, la banque centrale serre la vis. Emprunter coûte désormais ${rate(S.w.credit)}, et les OAT à 10 ans rapportent ${rate(S.w.r10)}.`,`Les prix ont pris ${f1(p.infl)} % : la BCE réagit. Ton banquier vante les OAT à ${rate(S.w.r10)} ; les anciennes obligations, elles, perdent de la valeur.`]),invest:{assets:['oat']},pass:'Je ne change rien'})},
   toxique:{w:(y)=>['expansion','surchauffe'].includes(S.w.phase)&&S.w.cg>2.5&&!S.flags.struct&&y<=YN-3?2.5:0,
     make(y){S.flags.struct={y,end:y+2,hit:false};return {};},
     view:()=>({kicker:'Placement maison',title:'Ton banquier te vend un fonds « aussi sûr qu’un livret, mais à 5 % »',
       body:`Le Fonds Rendement Sérénité est adossé à des crédits aux entreprises, découpés et notés AAA. Ton banquier assure qu’il n’a jamais perdu d’argent. Les parts sont bloquées jusqu’à fin ${S.year+2}. L’endettement privé atteint ${Math.round(130+3*S.w.cg)} % du PIB.`,
       invest:{assets:['struct'],cta:'Souscrire'},pass:'Non merci'})},
   banque:{w:(y,f)=>S.w.phase==='crise'&&f.phase!=='crise'?6:0,fiche:'banque',make(y){shock({banque:-35});setPending(y,'banque',rnd()<0.7?70:-45);return {};},
-    view:()=>({kicker:'Après la crise',title:'Banque Rhodanienne au bord du gouffre',body:`L’action a perdu 35 % depuis janvier et cote ${fmtPx(S.px.banque)}. L’État prépare un plan de sauvetage… ou une augmentation de capital massive qui diluerait les actionnaires.`,invest:{assets:['banque','monde']},pass:'Trop risqué pour moi'})},
+    view:()=>({kicker:'Après la crise',title:V('banque',['Banque Rhodanienne au bord du gouffre','Banque Rhodanienne : l’État au chevet','Sueurs froides sur Banque Rhodanienne']),body:V('banque',[`L’action a perdu 35 % depuis janvier et cote ${fmtPx(S.px.banque)}. L’État prépare un plan de sauvetage… ou une augmentation de capital massive qui diluerait les actionnaires.`,`−35 % depuis janvier, l’action cote ${fmtPx(S.px.banque)}. Bercy promet de ne pas la laisser tomber ; les actionnaires, eux, craignent d’être dilués.`,`Les clients font la queue aux guichets. L’action, à ${fmtPx(S.px.banque)}, a perdu 35 %. Sauvetage ou faillite : le gouvernement tranchera cette année.`]),invest:{assets:['banque','monde']},pass:'Trop risqué pour moi'})},
   dette:{w:()=>!S.flags.souvY&&(S.w.spread>1.2||S.w.phase==='crise'||S.w.phase==='recession')?1.5:0,
     make(y){S.flags.souvY=y;setPending(y,'souv',rnd()<0.6?-60:40);shock({banque:-15});return {};},
     view:()=>({kicker:'Crise de la dette',title:'Méridia emprunte à plus de 20 %',body:`Ce petit pays du sud de l’Europe ne peut plus payer. Bruxelles négocie : les créanciers privés pourraient perdre une grosse partie de leur mise, ou l’Europe paiera tout. Ses obligations sont remboursées ou effacées fin ${S.year}. Banque Rhodanienne, très exposée, perd 15 %.`,
       invest:{assets:['souv','banque']},pass:'Je ne prête pas à Méridia'})},
-  startup:{w:(y)=>!S.flags.startup&&y>=Y0+3&&y<=YN-8&&['expansion','reprise'].includes(S.w.phase)?1.5:0,
+  startup:{w:(y)=>!S.flags.startup&&y>=Y0+3&&y<=YN-8?(y>=Y0+8?12:['expansion','reprise'].includes(S.w.phase)?1.5:0):0,
     make(y){const r=rnd(),name=pick(STARTUPS);S.flags.startup={name,y,end:y+4};setPending(y+4,'startup',r<0.1?1100:r<0.4?50:-100);return {name,a:Math.round(5000*S.defl/1000)*1000};},
     view:p=>({kicker:'Ton ami entrepreneur',title:`Karim lance ${p.name} et cherche des investisseurs`,
       body:`Tes parts seront bloquées jusqu’à la revente de la société, prévue fin ${S.flags.startup.end}. Neuf start-up sur dix disparaissent.`,
       choices:[{id:'0',label:'Non merci',desc:'Tu lui souhaites bonne chance'},{id:String(p.a),label:`Mettre ${fmt(p.a)}`,desc:'Un petit ticket par amitié'},{id:String(p.a*4),label:`Mettre ${fmt(p.a*4)}`,desc:'Tu crois vraiment au projet'}]}),
-    act(c,p){if(c==='0')return {msg:`Tu n’investis pas dans ${p.name}.`};const e=buyIn('cto','startup',+c);if(e)return {err:e};return {msg:`Tu investis ${fmt(+c)} dans ${p.name}.`};}},
-  jeton:{w:()=>!S.jeton.alive?1.2:0,make(y){const n=S.usedFut.includes('jeton')?pick(JETONS.filter(x=>x!==S.jeton.name)):JETONS[0];S.jeton={name:n,alive:true,born:y};S.px.jeton=0.1;S.ph.jeton=[0.1];if(S.pxPrev)S.pxPrev.jeton=null;return {n};},
-    view:p=>({kicker:'Jeton numérique',title:`Le ${p.n} s’échange entre passionnés à 0,10 €`,body:'Un développeur anonyme l’a créé. Ses fans promettent de « remplacer les banques ». Il peut aussi bien centupler que disparaître du jour au lendemain, et la plupart de ces jetons finissent à zéro.',invest:{assets:['jeton'],cta:'Acheter'},pass:'C’est une arnaque'})},
+    act(c,p){const F=S.flags.startup,g=((S.pending[F.end]||{}).startup||0)/100;
+      if(c!=='0'){const e=buyIn('cto','startup',+c);if(e)return {err:e};}
+      if(S.story)openTh('karimFin',F.end+1,{name:p.name,y:S.year,a:+c,g});
+      return {msg:c==='0'?`Tu n’investis pas dans ${p.name}.`:`Tu investis ${fmt(+c)} dans ${p.name}.`};}},
+  jeton:{w:()=>!S.jeton.alive&&S.usedFut.filter(x=>x==='jeton').length<2?1.2:0,make(y){const n=S.usedFut.includes('jeton')?pick(JETONS.filter(x=>x!==S.jeton.name)):JETONS[0];S.jeton={name:n,alive:true,born:y};if(S.story&&!S.story.kevJ){S.story.kevJ=1;openTh('kevinNews',y+rint(4,7),{n},true);}S.px.jeton=0.1;S.ph.jeton=[0.1];if(S.pxPrev)S.pxPrev.jeton=null;return {n};},
+    view:p=>({kicker:'Jeton numérique',title:V('jeton',[`Le ${p.n} s’échange entre passionnés à 0,10 €`,`Kévin ne parle plus que du ${p.n}`]),body:V('jeton',['Un développeur anonyme l’a créé. Ses fans promettent de « remplacer les banques ». Il peut aussi bien centupler que disparaître du jour au lendemain, et la plupart de ces jetons finissent à zéro.',`Ton collègue en a acheté pour un mois de salaire et te montre ses gains sur son téléphone. Le ${p.n} cote 0,10 €. La plupart de ces jetons finissent à zéro ; quelques-uns font des fortunes.`]),invest:{assets:['jeton'],cta:'Acheter'},pass:'C’est une arnaque'})},
   theme:{w:(y)=>S.th.some(T=>themeStage(T,y)==='lancement')?8:0,fiche:p=>THEMES[p.i],make(y){return {i:S.th.findIndex(T=>themeStage(T,y)==='lancement')};},
-    view:p=>{const T=S.th[p.i];return {kicker:'Innovation',title:`Le ${T.f} est lancé à 100 €`,body:`Il investit dans les pionniers ${thd(T)}. Les promesses sont immenses, les revenus encore modestes. Certaines révolutions enrichissent leurs premiers actionnaires, d’autres ne décollent jamais.`,invest:{assets:[THEMES[p.i]]},pass:'Je laisse passer'};}},
+    view:p=>{const T=S.th[p.i];return {kicker:'Innovation',title:V('theme',[`Le ${T.f} est lancé à 100 €`,`Nouveau fonds : ${T.f}`,`${T.f} : la révolution entre en Bourse`]),body:`Il investit dans les pionniers ${thd(T)}. Les promesses sont immenses, les revenus encore modestes. Certaines révolutions enrichissent leurs premiers actionnaires, d’autres ne décollent jamais.`,invest:{assets:[THEMES[p.i]]},pass:'Je laisse passer'};}},
   themeBulle:{w:(y)=>S.th.some(T=>themeStage(T,y)==='bulle'&&themeStage(T,y-1)!=='bulle')?5:0,
     make(y){return {i:S.th.findIndex(T=>themeStage(T,y)==='bulle'&&themeStage(T,y-1)!=='bulle')};},
     view:p=>{const T=S.th[p.i],id=THEMES[p.i],g=S.ph[id]&&S.ph[id][0]?S.px[id]/S.ph[id][0]-1:0;return {kicker:'Euphorie',title:`${T.f} : ${pct(g,0)} depuis son lancement`,body:`Les introductions en Bourse se multiplient dans le secteur ${thd(T)}. Les sociétés du secteur valent cinquante fois leurs ventes. Tout le monde en parle au dîner.`,invest:{assets:[id],cta:'Renforcer'},
       choices:hv(id)>0?[{id:'vendre',label:'Tout vendre et encaisser',desc:`Ta position : ${fmt(hv(id))}`}]:[],pass:'Garder sans rien faire'};},
     act(c,p){const T=S.th[p.i],id=THEMES[p.i];if(themeStage(T,S.year+1)==='krach')unlock('sommet');const r=sellEverywhere([id]);return {msg:`Tu vends ton ${T.f} pour ${fmt(r.t)}${r.tax>0.5?` (impôt ${fmt(r.tax)})`:''}.`};}},
   offre:{w:()=>S.props.some(p=>!isRP(p))?1:0,make(){const p=pick(S.props.filter(p=>!isRP(p)));return {uid:p.uid,type:p.type,offer:Math.round(propValue(p)*1.15)};},
-    view:p=>({kicker:'Offre d’achat',title:`Un investisseur veut ton ${BIENS[p.type].n}`,body:`Il propose ${fmt(p.offer)}, 15 % au-dessus du marché, frais d’agence à sa charge.`,
+    view:p=>({kicker:'Offre d’achat',title:V('offre',[`Un investisseur veut ton ${BIENS[p.type].n}`,`Offre spontanée sur ton ${BIENS[p.type].n}`,`Ton ${BIENS[p.type].n} intéresse un fonds`]),body:V('offre',[`Il propose ${fmt(p.offer)}, 15 % au-dessus du marché, frais d’agence à sa charge.`,`Une lettre recommandée : ${fmt(p.offer)}, soit 15 % de plus que le prix du marché. L’acheteur paie les frais.`,`Un fonds immobilier rachète tout le quartier et t’offre ${fmt(p.offer)}, 15 % au-dessus du marché.`]),
       choices:[{id:'oui',label:'Accepter',desc:'Vente immédiate, crédit remboursé'},{id:'non',label:'Refuser',desc:'Tu gardes les loyers'}]}),
     act(c,p){if(c==='non')return {msg:'Tu refuses l’offre.'};const r=sellProp(p.uid,p.offer,undefined,'Offre acceptée');if(!r)return {msg:'Le bien n’est plus à toi.'};return {msg:`Vendu. Il te reste ${fmt(r.net)} après remboursement du crédit et impôt sur la plus-value (${fmt(r.tax)}).`};}},
-  heritage:{w:(y)=>y<=Y0+35?.5:0,make(){const a=Math.round(40000*S.defl/1000)*1000;ext(a);return {a};},
+  heritage:{w:()=>0, // remplacé par l'héritage des parents (fil « heritage ») ; gardé pour les parties en coursmake(){const a=Math.round(40000*S.defl/1000)*1000;ext(a);return {a};},
     view:p=>({kicker:'Famille',title:`Un oncle sans enfants te lègue ${fmt(p.a)}`,body:'La somme est déjà sur ton compte courant. Il faut décider quoi en faire.',
       choices:[{id:'monde',label:'Tout sur l’ETF Monde',desc:'Dans ton PEA s’il reste de la place, sinon en compte-titres'},{id:'eur',label:'Tout sur le fonds euros',desc:'Assurance-vie, capital garanti'},{id:'cash',label:'Garder en liquidités',desc:'Tu décideras dans le carnet d’ordres'}]}),
     act(c,p){if(c==='cash')return {msg:'Tu gardes l’héritage en liquidités.'};const amt=Math.min(p.a,Math.floor(S.cash));
@@ -1516,36 +1537,40 @@ const EVT={
       const room=peaCap()-S.acc.pea.vers,inPea=Math.min(amt,Math.max(0,Math.floor(room)));if(inPea>0)buyIn('pea','monde',inPea);if(amt-inPea>0)buyIn('cto','monde',amt-inPea);
       return {msg:`Héritage placé sur l’ETF Monde${inPea>0?` (${fmt(inPea)} en PEA)`:''}.`};}},
   impaye:{w:()=>S.props.some(p=>!isRP(p)&&BIENS[p.type].k!=='bur')?1:0,make(){const p=pick(S.props.filter(p=>!isRP(p)&&BIENS[p.type].k!=='bur'));return {uid:p.uid,cost:Math.round(3000*S.defl)};},
-    view:p=>({kicker:'Ton locataire',title:'Ton locataire ne paie plus depuis trois mois',body:'Il ne répond plus aux relances. La procédure d’expulsion peut prendre des mois.',
+    view:p=>({kicker:'Ton locataire',title:V('impaye',['Ton locataire ne paie plus depuis trois mois','Loyers impayés','Ton locataire a disparu des radars']),body:V('impaye',['Il ne répond plus aux relances. La procédure d’expulsion peut prendre des mois.','Trois loyers de retard, des promesses au téléphone, puis plus rien. La procédure peut durer.','Boîte aux lettres pleine, téléphone coupé. Sans procédure, les loyers ne reviendront pas.']),
       choices:[{id:'proc',label:'Lancer une procédure',desc:`Avocat et commissaire de justice : ${fmt(p.cost)}, loyers récupérés`},{id:'vendre',label:'Vendre le bien occupé',desc:'Décote de 20 %'},{id:'attendre',label:'Attendre',desc:'Aucun loyer cette année'}]}),
     act(c,p){const pr=S.props.find(x=>x.uid===p.uid);if(!pr)return {msg:'Le bien n’est plus à toi.'};
       if(c==='proc'){mood(-5,0);lgProp(pr,-p.cost);return {msg:`Procédure lancée pour ${fmt(p.cost)}.`+spend(p.cost,false)};}
       if(c==='vendre'){const r=sellProp(p.uid,propValue(pr)*0.8,undefined,'Vente occupée');return {msg:`Bien vendu occupé : ${fmt(r.net)} net.`};}
       pr.noRent=S.year;mood(-8,0);return {msg:'Tu patientes. Pas de loyer cette année.'};}},
   teletravail:{w:()=>S.props.some(p=>BIENS[p.type].k==='bur')?.8:0,make(){shock({bur:-20});return {};},
-    view:()=>({kicker:'Bureaux',title:'Les entreprises rendent leurs bureaux',body:'Avec le travail à distance généralisé, la valeur des bureaux recule de 20 %. Ton locataire demande une baisse de loyer de 25 %.',
+    view:()=>({kicker:'Bureaux',title:V('teletravail',['Les entreprises rendent leurs bureaux','Le télétravail vide les tours','Ton locataire veut payer moins']),body:V('teletravail',['Avec le travail à distance généralisé, la valeur des bureaux recule de 20 %. Ton locataire demande une baisse de loyer de 25 %.','Les plateaux restent vides trois jours sur cinq. Les bureaux perdent 20 % et ton locataire réclame 25 % de remise.','La moitié des salariés travaille de chez soi : les bureaux valent 20 % de moins, et ton locataire menace de partir sans une baisse de 25 %.']),
       choices:[{id:'baisse',label:'Accepter la baisse',desc:'Revenus sûrs mais plus faibles'},{id:'refus',label:'Refuser',desc:'Risque de bureaux vides pendant deux ans'}]}),act:c=>actBureauxRent(c)},
   occasion:{w:()=>S.w.credit<2.5&&S.year<YN-10?1.5:0,make(){return {k:pick(['lille','lyon','paris'])};},
-    view:p=>({kicker:'Crédit',title:`Les taux de crédit tombent à ${rate(S.w.credit)}`,body:`Ton beau-frère répète que « l’immobilier ne baisse jamais ». Un agent te propose un ${BIENS[p.k].n} à ${fmt(S.idx[p.k].price)}, loué ${fmt(S.idx[p.k].rent/12)} par mois.`,choices:offerBien(p.k)}),
+    view:p=>({kicker:'Crédit',title:V('occasion',[`Les taux de crédit tombent à ${rate(S.w.credit)}`,`Crédit à ${rate(S.w.credit)} : les agences sont prises d’assaut`,`Emprunter n’a jamais coûté si peu : ${rate(S.w.credit)}`]),body:V('occasion',[`Ton beau-frère répète que « l’immobilier ne baisse jamais ». Un agent te propose un ${BIENS[p.k].n} à ${fmt(S.idx[p.k].price)}, loué ${fmt(S.idx[p.k].rent/12)} par mois.`,`Un agent t’appelle : ${BIENS[p.k].n}, ${fmt(S.idx[p.k].price)}, déjà loué ${fmt(S.idx[p.k].rent/12)} par mois. « À ce taux-là, c’est le locataire qui paie. »`,`${ami()} vient d’acheter son deuxième appartement et t’envoie une annonce : ${BIENS[p.k].n} à ${fmt(S.idx[p.k].price)}, loué ${fmt(S.idx[p.k].rent/12)} par mois.`]),choices:offerBien(p.k)}),
     act(c,p){if(c==='non')return {msg:'Tu laisses passer l’appartement.'};const e=buyProp(p.k,c);if(e)return {err:e};return {msg:`Tu achètes le ${BIENS[p.k].n} ${c==='cash'?'comptant':'à crédit sur 20 ans'}.`};}},
 };
+// Une fenêtre déjà vue autant de fois qu'elle a de versions rappelle les années précédentes : jamais deux fois le même texte.
+const NV={krach:3,pandemie:3,energie:3,guerre:3,taux:3,banque:3,jeton:2,geant:3,bulle:3,offre:3,impaye:3,teletravail:3,occasion:3,theme:3,election:3};
+for(const id in EVT){const f=EVT[id].view;EVT[id].view=p=>{const v=f(p),x=S.story?deja(id,NV[id]||1):'';return x?{...v,body:v.body+x}:v;};}
 function pickW(list){const tot=list.reduce((a,x)=>a+x.w,0);let r=rnd()*tot;for(const x of list){r-=x.w;if(r<=0)return x.id;}return list[list.length-1].id;}
 // Une année sur trois environ n'a pas d'événement : la Gazette suffit.
 function pickEvent(y,f){
   if(y===Y0)return null;
   if(f.cause==='pandemie')return 'pandemie';
   if(f.phase==='crise')return 'krach';
-  if(f.elec)return 'election';
+  // La présidentielle ne devient une fenêtre que si l'écart entre les programmes pèse sur ton argent (3 fois au plus).
+  if(f.elec){if(!S.story)return 'election';if(S.story.pres<3&&elecStake(f.elec)>=Math.max(1000*S.defl,.01*net())){S.story.pres++;return 'election';}}
   if(f.exo==='energie'||f.exo==='guerre')return f.exo;
   const last=S.usedFut[S.usedFut.length-1];
   const el=Object.keys(EVT).filter(id=>!EVT[id].forced&&id!==last).map(id=>({id,w:EVT[id].w(y,f)})).filter(x=>x.w>0);
-  el.push({id:null,w:5});
+  el.push({id:null,w:8});
   return pickW(el);
 }
 
 /* ===================== VIE PERSO ===================== */
 const LIFE={
-  burnout:{view:()=>({kicker:'Santé',title:retired(S.year)?'Dépression':'Burn-out',body:retired(S.year)?'Tu passes tes journées devant les cours. Ton médecin te prescrit du repos et un suivi.':'Tu dors mal, tu regardes les cours la nuit. Ton médecin est formel : il faut t’arrêter.',
+  burnout:{view:()=>({kicker:'Santé',title:retired(S.year)?V('L:burnout',['Dépression','Le moral à zéro','Plus goût à rien']):V('L:burnout',['Burn-out','Tu craques au bureau','Ton corps dit stop']),body:retired(S.year)?V('L:burnout',['Tu passes tes journées devant les cours. Ton médecin te prescrit du repos et un suivi.','Tu ne sors plus, tu refais tes comptes la nuit. Ton médecin s’inquiète.','Même tes petits plaisirs ne te disent plus rien. Ton médecin propose un vrai suivi.']):V('L:burnout',['Tu dors mal, tu regardes les cours la nuit. Ton médecin est formel : il faut t’arrêter.','Une crise de larmes en pleine réunion. Ton médecin signe un arrêt sans discuter.',`Des migraines, des nuits blanches${P()?`, ${P()} qui s’inquiète`:''}. Ton médecin est catégorique : repos.`]),
     choices:[{id:'arret',label:retired(S.year)?'Te soigner pendant six mois':'Arrêt de six mois',desc:retired(S.year)?'Humeur remise à flot':'Tu perds la moitié de ton épargne de l’année, humeur remise à flot'},{id:'continuer',label:'Continuer coûte que coûte',desc:'Tu n’as plus la tête à gérer ton portefeuille cette année'}]}),
     act(c){S.me.burnouts++;if(c==='arret'){const t=retired(S.year)?'':spend(epargneYear()*0.5,true);S.me.humeur=55;mood(0,5);return {msg:'Six mois d’arrêt. Tu reviens reposé·e.'+t};}S.lock=true;mood(6,-10);return {msg:'Tu tiens bon, mais ton portefeuille est en pilote automatique cette année.'};}},
   rupture:{view:()=>({kicker:'Couple',title:`${P()} te quitte`,body:S.me.marie?'Le divorce est prononcé. Le patrimoine du couple est partagé en deux, et il faut payer les avocats.':'Vous vous séparez. Il faut déménager et tout recommencer seul·e.',
@@ -1555,42 +1580,42 @@ const LIFE={
         msg=`Divorce : ${fmt(paid)} partent dans le partage.`+spend(10000*S.defl,true);S.me.humeur=clamp(S.me.humeur-25,0,100);}
       else{msg=`${who} part. Tu déménages.`+spend(5000*S.defl,true);S.me.humeur=clamp(S.me.humeur-20,0,100);}
       S.me.partner=null;S.me.marie=false;S.me.relation=0;return {msg};}},
-  weekend:{view:()=>({kicker:'Dilemme',title:`Les marchés plongent, ${P()} part en week-end ce soir`,body:'Ce week-end est prévu depuis des mois. Si tu pars, tu ne pourras pas toucher à ton portefeuille ni saisir l’occasion de l’année.',
+  weekend:{view:()=>({kicker:'Dilemme',title:V('L:weekend',[`Les marchés plongent, ${P()} part en week-end ce soir`,`Krach ou week-end : ${P()} t’attend dans la voiture`,`${P()} a réservé ${traitOf().voy==='voyageur'?'un week-end à Lisbonne':'un gîte à la campagne'}, la Bourse s’effondre`]),body:V('L:weekend',['Ce week-end est prévu depuis des mois. Si tu pars, tu ne pourras pas toucher à ton portefeuille ni saisir l’occasion de l’année.',`Les valises sont prêtes. ${P()} te regarde fixer ton téléphone. Partir, c’est laisser ton portefeuille en pilote automatique cette année.`,'Le téléphone vibre à chaque alerte. Si tu pars, tu ne toucheras à rien cette année ; si tu restes, tu pars seul·e avec tes écrans.']),
     choices:[{id:'ecrans',label:'Rester devant les écrans',desc:`Tu gères la crise. ${P()} part sans toi`},{id:'partir',label:'Partir en week-end',desc:'Portefeuille bloqué cette année, couple renforcé'}]}),
     act(c){if(c==='partir'){S.lock=true;mood(10,15);return {msg:'Tu coupes ton téléphone. Ton portefeuille reste tel quel cette année.'};}mood(-6,-14);return {msg:`Tu passes le week-end sur les cours. ${P()} ne t’adresse plus la parole.`};}},
-  panique:{view:()=>({kicker:'Moral',title:'Tu ne dors plus. Tout ton instinct te hurle de vendre.',body:'Ton humeur est au plus bas et les marchés s’effondrent. Chaque nuit, tu refais tes calculs.',
+  panique:{view:()=>({kicker:'Moral',title:V('L:panique',['Tu ne dors plus. Tout ton instinct te hurle de vendre.','Tout vendre, tout de suite ?','La peur prend le dessus']),body:V('L:panique',['Ton humeur est au plus bas et les marchés s’effondrent. Chaque nuit, tu refais tes calculs.','Tu ouvres ton appli toutes les heures. Chaque baisse te noue le ventre.','Ton patrimoine fond à vue d’œil et ton moral avec. Une petite voix te dit que ça peut encore baisser.']),
     choices:[{id:'vendre',label:'Tout vendre pour retrouver le sommeil',desc:'Toutes tes actions et fonds actions sont vendus, humeur en hausse'},{id:'tenir',label:'Tenir bon',desc:'Tu ne vends rien, mais ton moral s’effondre encore'}]}),
     act(c){if(c==='vendre'){const r=sellEverywhere(EQUITY);S.flags.panicSold=true;mood(10,0);return {msg:`Tu vends ${fmt(r.t)} d’actions${r.tax>0.5?` (impôt ${fmt(r.tax)})`:''}. Dans le PEA et l’assurance-vie, l’argent reste en liquidités dans l’enveloppe.`};}mood(-12,0);return {msg:'Tu serres les dents.'};}},
-  licenciement:{view:()=>({kicker:'Emploi',title:'Ton entreprise supprime ton poste',body:`La crise frappe ton secteur. Tu as droit à une indemnité et au chômage, mais tu n’épargneras rien cette année.`,
+  licenciement:{view:()=>({kicker:'Emploi',title:V('L:licenciement',['Ton entreprise supprime ton poste','Plan social : ton nom est sur la liste','Convoqué·e aux ressources humaines']),body:V('L:licenciement',[`La crise frappe ton secteur. Tu as droit à une indemnité et au chômage, mais tu n’épargneras rien cette année.`,'La direction coupe dans les effectifs. Une indemnité, le chômage, et une année sans épargne.','Un entretien de dix minutes, une enveloppe, un badge rendu. Cette année, pas d’épargne.']),
     choices:[{id:'chercher',label:'Retrouver vite un poste équivalent',desc:`Indemnité de ${fmt(S.revenu*.5)}, humeur en baisse`},{id:'formation',label:'Te reconvertir pendant un an',desc:`Indemnité de ${fmt(S.revenu*.25)}, salaire +10 % ensuite, humeur en hausse`}]}),
     act(c){S.me.chomY=S.year;const ind=S.revenu*(c==='chercher'?.5:.25);ext(ind);if(c==='formation'){S.revenu*=1.1;mood(5,0);}else mood(-10,-4);return {msg:`Tu touches ${fmt(ind)} d’indemnité. Pas d’épargne cette année.`};}},
-  diner:{can:()=>P()&&!retired(S.year),view:()=>({kicker:'Dilemme',title:'Dîner d’affaires ou rendez-vous amoureux ?',body:`Ton directeur t’invite au dîner annuel des cadres, le même soir que l’anniversaire de ${P()}. Les promotions se décident à ce dîner.`,
+  diner:{can:()=>P()&&!retired(S.year),view:()=>({kicker:'Dilemme',title:V('L:diner',['Dîner d’affaires ou rendez-vous amoureux ?',`Ton patron ou ${P()} ?`,'Le dîner qui compte, le même soir']),body:V('L:diner',[`Ton directeur t’invite au dîner annuel des cadres, le même soir que l’anniversaire de ${P()}. Les promotions se décident à ce dîner.`,`Séminaire de direction à Deauville, pile le week-end de vos ${S.me.marie?'noces de cristal':'cinq ans'}. ${P()} a déjà réservé le restaurant.`,`Le grand patron dîne avec quelques cadres choisis. Le même soir, ${P()} fête sa promotion et compte sur toi.`]),
     choices:[{id:'diner',label:'Le dîner d’affaires',desc:'Salaire +8 %, couple en baisse'},{id:'rdv',label:`L’anniversaire de ${P()}`,desc:'Couple et humeur en hausse'}]}),
     act(c){if(c==='diner'){S.revenu*=1.08;mood(-4,-15);return {msg:'Tu fais bonne impression : augmentation obtenue.'};}mood(8,14);return {msg:`Une belle soirée avec ${P()}.`};}},
-  promo:{can:()=>S.year<Y0+36&&!retired(S.year),view:()=>({kicker:'Carrière',title:'Promotion à Paris',body:'On te propose un poste de directeur à Paris : salaire +25 %, mais deux heures de train par jour.',
+  promo:{can:()=>S.year<Y0+36&&!retired(S.year),view:()=>({kicker:'Carrière',title:V('L:promo',['Promotion à Paris','Un poste de directeur','On te veut au siège']),body:V('L:promo',['On te propose un poste de directeur à Paris : salaire +25 %, mais deux heures de train par jour.','Le siège te propose de diriger une équipe : salaire +25 %, mais des soirées et des week-ends sacrifiés.','Un chasseur de têtes t’appelle : +25 % de salaire, des responsabilités, et beaucoup moins de temps pour toi.']),
     choices:[{id:'oui',label:'Accepter',desc:'Salaire +25 %, humeur et couple en baisse'},{id:'non',label:'Refuser',desc:'Tu restes où tu es'}]}),
     act(c){if(c==='oui'){S.revenu*=1.25;mood(-12,-12);return {msg:'Bienvenue à Paris. Les trajets sont longs.'};}mood(4,4);return {msg:'Tu restes où tu es.'};}},
-  vacances:{can:()=>!!P(),view:()=>({kicker:'Vacances',title:`${P()} rêve d’un voyage de trois semaines au Japon`,body:`Coût : ${fmt(5000*S.defl)}. Vous n’êtes pas partis depuis longtemps.`,
-    choices:[{id:'oui',label:'Partir',desc:`${fmt(5000*S.defl)}, humeur et couple en hausse`},{id:'non',label:'Investir l’argent à la place',desc:'Couple en baisse'}]}),
-    act(c){if(c==='oui'){mood(18,14);return {msg:'Trois semaines inoubliables.'+spend(5000*S.defl,true)};}mood(-5,-12);return {msg:'Tu gardes l’argent. Ambiance tendue à la maison.'};}},
-  mariage:{can:()=>P()&&!S.me.marie&&S.me.relation>=60&&S.year<Y0+40,view:()=>({kicker:'Couple',title:`${P()} te demande en mariage`,body:`La fête coûterait ${fmt(20000*S.defl)}. Marié·e, vous épargnez davantage ensemble, mais un divorce se termine par un partage du patrimoine.`,
+  vacances:{can:()=>!!P(),view:()=>{const d=S.life&&S.life.dest||'au loin',c=vacCost(),t=traitOf();return {kicker:'Vacances',title:`${P()} rêve de trois semaines ${d}`,body:`${t.voy==='voyageur'?`${P()} a déjà tout planifié, jusqu’aux trains de nuit.`:`${P()} n’aime pas les grands voyages, mais celui-là lui tient à cœur.`} Coût : ${fmt(c)}${t.eco==='depensier'?', hôtels de charme compris':', en restant raisonnable'}. Vous n’êtes pas partis depuis longtemps.`,
+    choices:[{id:'oui',label:'Partir',desc:`${fmt(c)}, humeur et couple en hausse`},{id:'non',label:'Investir l’argent à la place',desc:'Couple en baisse'}]};},
+    act(c){if(c==='oui'){mood(18,14);return {msg:`Trois semaines inoubliables ${S.life.dest||''}.`+spend(vacCost(),true)};}mood(-5,-12);return {msg:'Tu gardes l’argent. Ambiance tendue à la maison.'};}},
+  mariage:{can:()=>P()&&!S.me.marie&&S.me.relation>=60&&S.year<Y0+40,view:()=>({kicker:'Couple',title:V('L:mariage',[`${P()} te demande en mariage`,`Une bague dans le dessert : ${P()} se lance`,`${P()} veut faire les choses officiellement`]),body:`La fête coûterait ${fmt(20000*S.defl)}. Marié·e, vous épargnez davantage ensemble, mais un divorce se termine par un partage du patrimoine.`,
     choices:[{id:'oui',label:'Dire oui',desc:'Épargne du foyer +25 % au lieu de +15 %, couple et humeur en forte hausse'},{id:'non',label:'Pas maintenant',desc:'Couple en forte baisse'}]}),
     act(c){if(c==='oui'){S.me.marie=true;mood(15,20);return {msg:'Vous êtes mariés.'+spend(20000*S.defl,true)};}mood(-5,-28);return {msg:`${P()} est blessé·e.`};}},
-  enfant:{can:()=>S.me.marie&&S.me.enfants<3&&S.year<Y0+35,view:()=>({kicker:'Famille',title:'Agrandir la famille ?',body:`${P()} aimerait un ${S.me.enfants?'autre ':''}enfant. Un enfant coûte environ ${fmt(KIDCOST*S.defl/12)} par mois, allocations déduites, jusqu’à ses 22 ans.`,
+  enfant:{can:()=>S.me.marie&&S.me.enfants<3&&S.year<=Y0+17,view:()=>({kicker:'Famille',title:V('L:enfant',['Agrandir la famille ?',S.me.enfants?`Un petit frère ou une petite sœur pour ${S.me.kids[0].n} ?`:'Et si vous deveniez parents ?',`${P()} parle bébé tous les soirs`]),body:`${P()} aimerait un ${S.me.enfants?'autre ':''}enfant. Un enfant coûte environ ${fmt(KIDCOST*S.defl/12)} par mois, allocations déduites, jusqu’à ses 22 ans.`,
     choices:[{id:'oui',label:'Oui',desc:`${fmt(KIDCOST*S.defl/12)} de dépenses en plus par mois, humeur et couple en hausse`},{id:'non',label:'Non',desc:'Couple en baisse'}]}),
-    act(c){if(c==='oui'){S.me.enfants++;const used=(S.me.kids||[]).map(k=>k.n),n=pick(KIDS.filter(x=>!used.includes(x)));(S.me.kids||(S.me.kids=[])).push({n,born:S.year});mood(15,10);return {msg:`Bientôt un bébé : ce sera ${n}.`};}mood(0,-15);return {msg:'Le sujet reviendra sur la table.'};}},
-  sport:{can:()=>S.me.humeur<50,view:()=>({kicker:'Santé',title:'Tu dors mal et tu ne fais plus de sport',body:`Un coach propose un programme d’un an. Coût : ${fmt(3000*S.defl)}.`,
+    act(c){if(c==='oui'){S.me.enfants++;const used=(S.me.kids||[]).map(k=>k.n),n=pick(KIDS.filter(x=>!used.includes(x)));(S.me.kids||(S.me.kids=[])).push({n,born:S.year});kidThreads({n,born:S.year});mood(15,10);return {msg:`Bientôt un bébé : ce sera ${n}.`};}mood(0,-15);return {msg:'Le sujet reviendra sur la table.'};}},
+  sport:{can:()=>S.me.humeur<50,view:()=>({kicker:'Santé',title:V('L:sport',['Tu dors mal et tu ne fais plus de sport','Ton médecin te prescrit du sport','Essoufflé·e dans l’escalier']),body:V('L:sport',[`Un coach propose un programme d’un an. Coût : ${fmt(3000*S.defl)}.`,`Une salle ouvre près de chez toi, avec un coach : ${fmt(3000*S.defl)} l’année.`,`${ami()} t’embarque dans son club de course. Équipement et coach : ${fmt(3000*S.defl)}.`]),
     choices:[{id:'oui',label:'S’inscrire',desc:'Humeur en forte hausse'},{id:'non',label:'Pas le temps',desc:'Humeur en baisse'}]}),
     act(c){if(c==='oui'){mood(20,5);return {msg:'Tu te remets en forme.'+spend(3000*S.defl,true)};}mood(-10,0);return {msg:'Tu reportes à plus tard.'};}},
-  ami:{view:()=>({kicker:'Amitié',title:'Ton meilleur ami te demande un prêt',body:`Il doit ${fmt(10000*S.defl)} et ne peut plus payer. Il promet de rembourser.`,
+  ami:{view:()=>({kicker:'Amitié',title:`${ami()} te demande un prêt`,body:`Ton ${S.story.cast.ami.g==='f'?'amie':'ami'} de toujours doit ${fmt(10000*S.defl)} et ne peut plus payer. ${amiIl()[0].toUpperCase()+amiIl().slice(1)} promet de rembourser.`,
     choices:[{id:'oui',label:'Lui prêter',desc:'Remboursé… ou pas'},{id:'non',label:'Refuser',desc:'Humeur en baisse'}]}),
-    act(c){const a=10000*S.defl;if(c==='oui'){if(rnd()<0.55)S.flags.pretAmi={y:S.year+2,a:a*1.1};mood(8,0);return {msg:`Tu prêtes ${fmt(a)}.`+spend(a,true)};}mood(-10,0);return {msg:'Tu refuses. Votre amitié en prend un coup.'};}},
-  rencontre:{can:()=>!P(),view:()=>{const n=S.life&&S.life.name;return {kicker:'Rencontre',title:`Tu croises ${n} à un mariage d’amis`,body:'Le courant passe tout de suite. Mais une histoire, ça prend du temps et de l’énergie.',
+    act(c){const a=10000*S.defl;if(c==='oui'){openTh('amiRetour',S.year+rint(2,4),{ok:rnd()<.6,a,y:S.year});mood(8,0);return {msg:`Tu prêtes ${fmt(a)} à ${ami()}.`+spend(a,true)};}openTh('amiRefus',S.year+rint(4,7),{y:S.year},true);mood(-10,0);return {msg:`Tu refuses. Votre amitié en prend un coup.`};}},
+  rencontre:{can:()=>!P(),view:()=>{const n=S.life&&S.life.name;return {kicker:'Rencontre',title:V('L:rencontre',[`Tu croises ${n} à un mariage d’amis`,`${ami()} te présente ${n}`,`${n}, rencontré·e dans un train en retard`,`Un dîner chez des amis, et ${n} en face de toi`]),body:V('L:rencontre',['Le courant passe tout de suite. Mais une histoire, ça prend du temps et de l’énergie.',`${ami()} jure que vous êtes faits l’un pour l’autre. Une histoire, ça prend du temps et de l’énergie.`,'Trois heures de retard, trois heures à parler. Une histoire, ça prend du temps et de l’énergie.','Vous riez aux mêmes blagues. Mais une histoire, ça prend du temps et de l’énergie.']),
     choices:[{id:'oui',label:'Tenter l’aventure',desc:'Humeur en hausse, épargne du foyer +15 %'},{id:'non',label:'Rester concentré·e sur ta carrière',desc:'Humeur en baisse, tu restes seul·e'}]};},
-    act(c){const n=S.life.name;if(c==='oui'){S.me.partner=n;S.me.relation=58;mood(12,0);return {msg:`Tu commences une histoire avec ${n}.`};}mood(-6,0);return {msg:'Tu laisses passer.'};}},
+    act(c){const n=S.life.name;if(c==='oui'){S.me.partner=n;S.me.relation=58;storyTraits(n);mood(12,0);return {msg:`Tu commences une histoire avec ${n}.`};}mood(-6,0);return {msg:'Tu laisses passer.'};}},
   logement:{can:()=>P()&&!rpOf()&&!retired(S.year)&&age(S.year)>=27&&age(S.year)<=55,view:()=>{
     const why=S.flags.logAsk===S.year?S.flags.logWhy:'achat',t=bestRental(),b=bestBuy(),own=!!rpOf();
-    const title=why==='small'?`${homeName()} devient trop petit`:why==='parents'?'Il est temps de prendre ton envol':`${P()} rêve d’être propriétaire`;
+    const title=why==='small'?V('L:logement',[`${homeName()} devient trop petit`,'On se marche dessus',`Il faut pousser les murs`]):why==='parents'?'Il est temps de prendre ton envol':V('L:logement',[`${P()} rêve d’être propriétaire`,`${P()} épluche les annonces`,'Et si vous achetiez ?']);
     const body=why==='small'?`Vous êtes ${need()} à la maison. On se marche dessus et les nerfs lâchent.`:why==='parents'?'Tu as 30 ans. Tes parents aimeraient retrouver leur salon.':`Fini le loyer qui part chaque mois : ${P()} voudrait un chez-vous.`;
     const ch=[];
     if(!own&&t!==S.home.type)ch.push({id:'louer',label:`Louer : ${BIENS[t]?BIENS[t].n:'une colocation'}`,desc:`${fmt((BIENS[t]?S.idx[t].rent:colocCost())/12)} par mois, déménagement ${fmt(moveCost())}`});
@@ -1602,10 +1627,23 @@ const LIFE={
       if(c==='louer'){const t=bestRental(),e=moveTo(t);if(e)return {err:e};mood(5,6);return {msg:`On emménage : ${homeName()}, ${fmt(homeCost()/12)} par mois.`};}
       const b=bestBuy();if(!b||!b.ok)return {err:b?`Il faut ${fmt(b.q.apport)} d’apport et un taux d’effort sous 35 %.`:'Rien à acheter pour l’instant.'};
       const e=buyHome(b.type,b.n);if(e)return {err:e};spend(moveCost(),true);mood(8,10);return {msg:`Nous voilà propriétaires : ${BIENS[b.type].n}.`};}},
-  panne:{can:()=>S.me.car,view:()=>{const c=Math.round(1200*S.defl/10)*10;return {kicker:'Imprévu',title:'La voiture tombe en panne',body:`Le garagiste annonce ${fmt(c)} de réparations. Elle a fait son temps.`,
+  panne:{can:()=>S.me.car,view:()=>{const c=Math.round(1200*S.defl/10)*10;return {kicker:'Imprévu',title:V('L:panne',['La voiture tombe en panne','Plus rien ne démarre','La voiture rend l’âme sur l’autoroute']),body:V('L:panne',[`Le garagiste annonce ${fmt(c)} de réparations. Elle a fait son temps.`,`Embrayage, courroie, freins : ${fmt(c)} selon le garagiste, qui ajoute qu’elle « n’en a plus pour longtemps ».`,`Dépanneuse, puis devis : ${fmt(c)}. ${P()?`${P()} propose de passer au vélo.`:'Le vélo te tend les bras.'}`]),
     choices:[{id:'reparer',label:'On répare',desc:`${fmt(c)}, payés tout de suite`},{id:'vendre',label:'On la vend et je prends le vélo',desc:`+${fmt(Math.round(2000*S.defl/10)*10)}, plus de frais de voiture${cityOf().car?', mais moins pratique':''}`}]};},
     act(c){if(c==='reparer'){const x=Math.round(1200*S.defl/10)*10;return {msg:`Réparée pour ${fmt(x)}.`+spend(x,true)};}
       const a=Math.round(2000*S.defl/10)*10;ext(a);S.me.car=false;if(cityOf().car)mood(-3,-3);return {msg:`Vendue ${fmt(a)}. Vive le vélo.`};}},
+  ados:{can:()=>(S.me.kids||[]).some(k=>kidAge(k)>=15&&kidAge(k)<=17),view:()=>{const k=(S.me.kids||[]).find(k=>kidAge(k)>=15&&kidAge(k)<=17),c=Math.round(1800*S.defl/10)*10;
+    return {kicker:'Tes enfants',title:`${k.n} veut un scooter`,body:`${k.n} a ${kidAge(k)} ans, des copains qui en ont tous un et des arguments bien rodés. Coût : ${fmt(c)}, assurance comprise.`,
+    choices:[{id:'oui',label:'Céder',desc:`${fmt(c)}, ${k.n} est ravi·e`},{id:'non',label:'Le vélo, c’est très bien',desc:'Portes qui claquent'}]};},
+    act(c){const k=(S.me.kids||[]).find(k=>kidAge(k)>=15&&kidAge(k)<=17),x=Math.round(1800*S.defl/10)*10;if(c==='oui'){mood(4,2);return {msg:`Le scooter ${de(k.n)}.`+spend(x,true)};}mood(-3,-2);return {msg:`${k.n} boude pendant un mois.`};}},
+  criseCouple:{can:()=>P()&&S.me.relation<60&&S.year>=Y0+10,view:()=>{const c=Math.round(1200*S.defl/10)*10,t=traitOf();
+    return {kicker:'Couple',title:V('L:criseCouple',[`${P()} et toi, vous ne vous parlez plus`,`Orage à la maison`,`${P()} dort sur le canapé`]),body:`${t.eco==='depensier'?`${P()} te reproche de tout compter.`:`${P()} trouve que tu dépenses sans réfléchir.`} Une amie vous conseille une thérapie de couple : douze séances, ${fmt(c)}.`,
+    choices:[{id:'oui',label:'Essayer la thérapie',desc:`${fmt(c)}, couple en forte hausse`},{id:'non',label:'Ça va passer',desc:'Couple en baisse'}]};},
+    act(c){if(c==='oui'){const x=Math.round(1200*S.defl/10)*10;mood(5,22);return {msg:'Douze séances, et vous vous retrouvez.'+spend(x,true)};}mood(-3,-10);return {msg:'Le silence s’installe.'};}},
+  donation:{can:()=>(S.me.kids||[]).some(k=>kidAge(k)>=25)&&S.year>=Y0+32,view:()=>{const ks=(S.me.kids||[]).filter(k=>kidAge(k)>=25),a=Math.round(50000*S.defl/1000)*1000;
+    return {kicker:'Transmettre',title:'Préparer la transmission',body:`Ton notaire te conseille de donner de ton vivant : ${fmt(100000*S.defl)} par parent et par enfant sont exonérés tous les 15 ans. ${yList(ks.map(k=>k.n))} ${ks.length>1?'en profiteraient':'en profiterait'} maintenant, plutôt qu’à ta succession. Ce que tu donnes compte dans ton score final.`,
+    choices:[{id:'0',label:'Garder pour l’instant',desc:'Tu verras plus tard'},{id:'1',label:`Donner ${fmt(a)} à chacun`,desc:`${fmt(a*ks.length)} au total`},{id:'2',label:`Donner ${fmt(a*2)} à chacun`,desc:`${fmt(a*2*ks.length)} au total`}]};},
+    act(c){const ks=(S.me.kids||[]).filter(k=>kidAge(k)>=25),a=Math.round(50000*S.defl/1000)*1000*(+c)*ks.length;if(!a)return {msg:'Tu gardes ton patrimoine pour l’instant.'};
+      if(a>Math.max(0,S.cash)+S.liv)return {err:`Il te faut ${fmt(a)} sur ton compte courant et ton Livret A : vends d’abord des placements.`};if(S.cash<a)livOut(a-S.cash);ext(-a);S.story.given+=a/S.defl;mood(8,4);return {msg:`Tu donnes ${fmt(a)} à tes enfants.`};}},
   fire:{view:()=>{const f=finLiquid();return {kicker:'Indépendance financière',title:'Tu pourrais arrêter de travailler',body:`Ton épargne financière (${fmt(f)}) couvre 30 ans de dépenses. Sans salaire, il faudra y puiser environ ${fmt(S.revenu*.5)} par an jusqu’à ta retraite légale (${S.pol.ageLegal} ans aujourd’hui), puis deux fois moins une fois ta pension versée.`,
     choices:[{id:'stop',label:`Arrêter maintenant (${age(S.year)} ans)`,desc:'Humeur en forte hausse, plus aucune épargne'},{id:'non',label:'Continuer à travailler',desc:'Tu repasseras la question plus tard'}]};},
     act(c){if(c==='stop'){S.me.retireYear=S.year;S.me.gap=.5;S.me.early=true;mood(15,5);if(age(S.year)<60)unlock('libre');return {msg:`Tu quittes le salariat à ${age(S.year)} ans.`};}return {msg:'Tu continues à travailler.'};}},
@@ -1715,6 +1753,7 @@ function conseils(){
 function rappels(){
   const y=S.year,out=[],f=S.flags;
   if(f.pretAmi)out.push(`Le prêt à mon ami : il a promis de rembourser en ${f.pretAmi.y}.`);
+  if(S.story){const t=Object.values(S.story.th).find(T=>T.k==='amiRetour'&&!T.end);if(t)out.push(`Le prêt à ${ami()} : ${fmt(t.d.a)} depuis ${t.d.y}.`);}
   if(f.startup&&f.startup.end>=y)out.push(`${f.startup.name} : revente prévue fin ${f.startup.end}.`);
   if(f.struct&&f.struct.end>=y&&hv('struct')>0)out.push(`Fonds Rendement Sérénité bloqué jusqu’à fin ${f.struct.end}.`);
   if(S.acc.pea.open!=null&&y<S.acc.pea.open+5)out.push(`Mon PEA aura 5 ans en ${S.acc.pea.open+5} : après, retraits presque sans impôt.`);
@@ -1755,7 +1794,7 @@ function acheter(id){
 }
 // ----- accueil : les 5 étapes du premier janvier -----
 function homeOptions(){
-  const out=[],ep=epargneYear()+refRent()+carRef()-carCost()-kidsCost()-debtCost(),cash=Math.max(0,S.cash)+S.liv;
+  const out=[],ep=epargneYear()+refRent()+carRef()-carCost()-kidsCost()-debtCost()-famCost(),cash=Math.max(0,S.cash)+S.liv;
   const add=o=>{o.reste=(ep-o.cost)/12;if(o.ok&&!o.warn&&o.reste<0)o.warn='Ton budget serait dans le rouge chaque mois.';out.push(o);};
   if(S.cust)add({kind:'rent',type:'perso',n:`Rester dans ${homeName().replace(/^T/,'t')}`,d:'Ton loyer actuel.',cost:persoRent(),ok:true,warn:homeCap()<need()?'Trop petit pour vous.':''});
   if(age(S.year)<30)add({kind:'rent',type:'parents',n:P()?`Chez les parents de ${P()}`:'Rester chez tes parents',d:'Le temps de mettre de côté.',cost:0,ok:true,warn:P()?'Le couple en souffre chaque année.':'Ton humeur en pâtit un peu.'});
@@ -1782,7 +1821,7 @@ function sophieHome(o){
   if(o.kind==='buy')return `« Avec ${fmt(o.q.apport)} d’apport${o.q.z?' et un prêt à taux zéro':''}, acheter te coûte ${fmt(o.cost/12)} par mois, charges comprises. Chaque mensualité t’enrichit. Garde quand même ${fmt(Math.max(0,o.left))} de côté pour les coups durs. »`;
   if(o.type==='parents')return `« Un an ou deux chez les parents, et tu mets ${fmt(o.reste)} de côté chaque mois. De quoi constituer vite un apport. Mais ne t’y éternise pas. »`;
   const b=bestBuy(),cash=Math.max(0,S.cash)+S.liv,save=Math.max(1,o.reste*12);
-  if(b&&b.ok){const left=cash-b.q.apport,sp=monthlySpend(),br=(epargneYear()+refRent()+carRef()-carCost()-kidsCost()-debtCost()-S.idx[b.type].rent*.15-b.q.ann)/12;
+  if(b&&b.ok){const left=cash-b.q.apport,sp=monthlySpend(),br=(epargneYear()+refRent()+carRef()-carCost()-kidsCost()-debtCost()-famCost()-S.idx[b.type].rent*.15-b.q.ann)/12;
     if(left<3*sp)return `« Tu pourrais déjà acheter ${un(b.type)}, mais il ne te resterait que ${fmt(Math.max(0,left))} pour les coups durs. Loue d’abord : avec ${fmt(o.reste)} de côté par mois, ton coussin sera prêt en ${Math.max(1,Math.ceil((3*sp-Math.max(0,left))/Math.max(1,o.reste)))} mois. »`;
     return `« Tu pourrais acheter ${un(b.type)}, mais il ne te resterait que ${fmt(br)} par mois une fois le crédit payé : trop juste. Louer te laisse ${fmt(o.reste)} par mois pour épargner. »`;}
   const gap=b?Math.max(0,b.q.apport-cash):0,yrs=Math.ceil(gap/save);
@@ -1799,15 +1838,239 @@ function onbHome(i){
 }
 function onbNext(){if(!S.onb)return;S.onb=null;S.page.notes=makeNotes(S.year,S.page.head,null);save();}
 
+/* ===================== HISTOIRE ===================== */
+// Chapitres de vie, personnages récurrents et fils narratifs (S.story). Le hasard est tiré au moment des choix
+// (act, startTurn, newGame) ; les textes sont des fonctions pures de S.
+const CHAPS=['Les débuts','Bâtir','Le milieu de la vie','Préparer la suite','Transmettre'];
+const chapOf=y=>clamp(Math.floor((y-Y0)/10),0,4);
+const chapYears=c=>`${Y0+10*c}-${c===4?YN:Y0+10*c+9}`;
+const AMIS={m:['Thomas','Mehdi','Julien','Romain','Karl'],f:['Julie','Amira','Manon','Elsa','Pauline']};
+const MERES=['Françoise','Martine','Catherine','Sylvie','Nadine','Brigitte'];
+const PERES=['Alain','Patrick','Bernard','Michel','Daniel','Jean-Luc'];
+const DEST={voyageur:['au Japon','en Patagonie','en Islande','au Canada','au Vietnam','en Afrique du Sud'],casanier:['dans le Luberon','en Bretagne','en Dordogne','au Pays basque','dans le Vercors']};
+// Versions d'un texte : la n-ième occurrence prend la version suivante, puis rappelle les années déjà vécues.
+const hstr=k=>[...k].reduce((a,c)=>a+c.charCodeAt(0),0);
+const seenY=k=>((S.story&&S.story.hist[k])||[]).filter(y=>y<S.year);
+const vers=(k,n=3)=>((S.story?S.story.seed:0)+hstr(k)+seenY(k).length)%n;
+const yList=a=>a.length<2?String(a[0]):a.slice(0,-1).join(', ')+' et '+a[a.length-1];
+const deja=(k,n=3)=>{const p=seenY(k);return p.length>=n?` Déjà en ${yList(p)}.`:'';};
+const V=(k,arr)=>arr[vers(k,arr.length)];
+const de=n=>/^[AEIOUYÉÈÊH]/i.test(n)?`d’${n}`:`de ${n}`; // élision : « d’Alain », « de Lina »
+const ami=()=>S.story.cast.ami.n,amiIl=()=>S.story.cast.ami.g==='f'?'elle':'il',amiLe=()=>S.story.cast.ami.g==='f'?'la':'le';
+const mere=()=>S.story.cast.mere,pere=()=>S.story.cast.pere;
+const alive=p=>!p.dead;
+const traitOf=()=>(P()&&S.story.traits[P()])||{eco:'econome',voy:'voyageur'};
+function storyTraits(n){if(n&&S.story&&!S.story.traits[n])S.story.traits[n]={eco:rnd()<.5?'econome':'depensier',voy:rnd()<.5?'casanier':'voyageur'};}
+function storyInit(){
+  const st={seed:Math.floor(rnd()*1000),cast:{},th:{},hist:{},chap:0,beats:[],dest:[],pres:0,given:0,care:null,stud:[],traits:{},adv:[],snap:[],uid:1};
+  const g=rnd()<.5?'m':'f';st.cast.ami={n:pick(AMIS[g]),g};
+  const mb=Y0-54-Math.floor(rnd()*4),pb=Y0-56-Math.floor(rnd()*4);
+  st.cast.mere={n:pick(MERES),born:mb,g:'f'};st.cast.pere={n:pick(PERES),born:pb,g:'m'};
+  // Le premier parent s'éteint entre 78 et 86 ans, le second entre 84 et 93 ans (au plus tard en YN-3).
+  const firstM=rnd()<.45,a=firstM?st.cast.mere:st.cast.pere,b=firstM?st.cast.pere:st.cast.mere;
+  a.die=Math.min(YN-8,Math.max(Y0+20,a.born+78+Math.floor(rnd()*9)));b.die=Math.min(YN-3,Math.max(a.die+3,b.born+84+Math.floor(rnd()*10)));
+  st.cast.estate=Math.round((80000+rnd()*120000)/1000)*1000;
+  S.story=st;
+  if(P())storyTraits(P());
+  // fils écrits d'avance : les parents vieillissent
+  openTh('parents',Math.max(Y0+12,a.die-7),{});
+  openTh('deuil',a.die,{who:firstM?'mere':'pere'},true);
+  openTh('ehpad',Math.max(a.die+1,b.die-4),{});
+  openTh('heritage',b.die,{who:firstM?'pere':'mere'});
+}
+// Un fil : kind (identifiant de LIFE ou note), année de retour, données. note = moment raconté sans fenêtre.
+function openTh(k,due,d,note){const id=k+(S.story.uid++);S.story.th[id]={k,open:S.year,due,d:d||{},note:!!note,end:false,beats:0};return id;}
+const rint=(a,b)=>a+Math.floor(rnd()*(b-a+1));
+function endTh(id,t){const T=S.story.th[id];if(T){T.end=true;if(t)T.endT=t;}}
+function logBeat(t){if(S.story&&t)S.story.beats.push({y:S.year,ch:chapOf(S.year),t});}
+function noteBeat(t,bio){(S.page.notes||(S.page.notes=[])).unshift({i:'coeur',t});logBeat(bio||t);}
+// Le fil le plus ancien arrivé à échéance et encore possible (une fenêtre de vie par an au plus).
+function dueThread(note){
+  const y=S.year;return Object.entries(S.story.th).filter(([,T])=>!T.end&&T.due<=y&&!!T.note===note&&(!LIFE[T.k]||!LIFE[T.k].can||LIFE[T.k].can(T))).sort((a,b)=>a[1].due-b[1].due)[0];
+}
+// ----- moments racontés sans fenêtre -----
+const NOTES={
+  deuil(T){const p=S.story.cast[T.d.who],o=p===mere()?pere():mere();p.dead=S.year;mood(-12,0);
+    return {t:`${p.g==='f'?'Ma mère':'Mon père'}, ${p.n}, s’est éteint${p.g==='f'?'e':''} à ${S.year-p.born} ans. ${o.n} tient le coup, entouré${o.g==='f'?'e':''} de nous tous.`,end:`${p.n} nous a quittés en ${S.year}.`};},
+  karimNews(T){const ok=T.d.ok;return {t:ok?`Karim a revendu sa deuxième boîte. Il t’envoie une carte postale de Lisbonne : « Sans rancune, j’aurais aimé t’avoir à bord. »`:`La deuxième boîte de Karim a fermé. Il est redevenu salarié et dit qu’il dort enfin.`,end:ok?'Karim a fini par réussir, sans toi à bord.':'Karim a raccroché les gants de l’entrepreneuriat.'};},
+  amiRefus(T){const a=ami();return {t:`${a} s’en est sorti${S.story.cast.ami.g==='f'?'e':''} sans toi. ${amiIl()[0].toUpperCase()+amiIl().slice(1)} t’en a voulu un temps, puis vous avez repris vos apéros du jeudi.`,end:`${a} et toi : une amitié qui a survécu à un refus en ${T.d.y}.`};},
+  amiPaix(T){const a=ami();if(T.d.tried){const x=Math.round(T.d.a/2/10)*10;ext(x);return {t:`${a} t’appelle : ${amiIl()} a retrouvé du travail et te rend ${fmt(x)}, la moitié du prêt de ${T.d.y}. Vous trinquez à la réconciliation.`,end:`${a} : brouillé${S.story.cast.ami.g==='f'?'e':''} après le prêt de ${T.d.y}, réconcilié${S.story.cast.ami.g==='f'?'e':''} en ${S.year}.`};}
+    return {t:`Tu croises ${a} par hasard. Un sourire gêné, deux mots sur la pluie. Le prêt de ${T.d.y} est toujours entre vous.`,end:`${a} : la brouille de ${T.d.y} ne s’est jamais vraiment refermée.`};},
+  kevinNews(T){const r=S.jeton.name===T.d.n&&S.jeton.alive&&S.px.jeton>=1,again=S.story.kevRuined;if(!r)S.story.kevRuined=1;return {t:r?`Kévin a quitté la boîte. On dit qu’il a fait fortune sur le ${T.d.n} et qu’il vit en bateau.${again?' Après son krach, personne n’y croyait.':''}`:again?`Kévin a remis ça : tout perdu sur le ${T.d.n}. Incorrigible, il jure que la prochaine fois sera la bonne.`:`Kévin a tout perdu sur le ${T.d.n}. Il est revenu au bureau, plus discret.`,end:r?'Kévin a fait fortune sur un jeton.':'Kévin a tout perdu sur un jeton.'};},
+  mariageK(T){const k=(S.me.kids||[]).find(x=>x.n===T.d.n);if(!k)return null;return {t:`${k.n} se marie. Ton discours fait pleurer toute la salle.`,end:`${k.n} s’est marié·e en ${S.year}.`};},
+  petits(T){const k=(S.me.kids||[]).find(x=>x.n===T.d.n);if(!k)return null;S.me.petits=(S.me.petits||0)+1;mood(10,6);const first=S.me.petits===1;return {t:first?`${k.n} t’annonce que tu vas être grand-parent. Tu achètes déjà un doudou.`:`${k.n} attend un enfant à son tour. La famille s’agrandit encore.`,end:first?`Ton premier petit-enfant, par ${k.n}, en ${S.year}.`:`Un petit-enfant de plus, par ${k.n}, en ${S.year}.`};},
+  creditFin(){return {t:'Dernière mensualité de mon autre crédit : j’ouvre une bonne bouteille.',end:'L’autre crédit, enfin soldé.'};},
+};
+function playNotes(){
+  for(let i=0;i<4;i++){const e=dueThread(true);if(!e)break;const [id,T]=e,fn=NOTES[T.k],r=fn?fn(T):null;if(!r){endTh(id,'');continue;}
+    T.beats++;noteBeat(r.t,r.bio||r.t);if(r.next)S.story.th[r.next.id]=r.next;endTh(id,r.end);}
+}
+// Au moins deux moments racontés par chapitre : les deux dernières années du chapitre complètent avec des scènes de la vie des tiens.
+function chapFill(force){
+  const y=S.year,c=chapOf(y),last=c===4?YN:Y0+10*c+9;if(y<last-1&&!force)return;
+  const have=()=>S.story.beats.filter(b=>b.ch===c).length;if(have()>=2)return;
+  const a=ami(),e=S.story.cast.ami.g==='f'?'e':'',m=mere(),p=pere(),both=alive(m)&&alive(p),one=[m,p].find(alive),k=(S.me.kids||[])[0];
+  const pool=[
+    [[`Pot de départ d’un collègue : ${a} est venu${e} me chercher, on a refait le monde jusqu’à minuit.`,`Les soirées avec ${a}, à refaire le monde.`],
+     both?[`Déjeuner du dimanche chez ${m.n} et ${p.n}. ${p.n} me demande encore si « c’est bien payé, la finance ».`,`Les dimanches chez ${m.n} et ${p.n}.`]:null,
+     [`Kévin m’appelle pour un « tuyau en or ». Je raccroche poliment.`,`Les tuyaux de Kévin, poliment ignorés.`]],
+    [[`${a} fête ses 40 ans. On se promet de repartir ensemble comme à vingt ans.`,`Les 40 ans de ${a}.`],
+     [`Karim passe à la maison avec une bouteille et dix idées de boîte. Il n’a pas changé.`,`Karim, toujours plein d’idées.`],
+     both?[`${m.n} et ${p.n} fêtent leurs noces de rubis. Toute la famille est là.`,`Les noces de rubis de ${m.n} et ${p.n}.`]:null],
+    [[`Sophie m’envoie son bilan annuel des marchés, avec un mot : « Garde le cap. »`,`Les mots de Sophie : « Garde le cap. »`],
+     one?[`J’emmène ${one.n} voir la mer. ${one.g==='f'?'Elle':'Il'} me raconte son enfance pendant des heures.`,`Une journée à la mer avec ${one.n}.`]:null,
+     [`Réunion d’anciens de la fac : ${a} n’a pas changé, Kévin raconte ses exploits en Bourse.`,`La réunion des anciens, avec ${a} et Kévin.`]],
+    [[`${a} et moi partons une semaine marcher dans les Alpes, comme promis il y a vingt ans.`,`La randonnée promise avec ${a}.`],
+     k?[`${k.n} passe le dimanche avec nous et me demande conseil pour ses premiers placements.`,`Les premiers placements de ${k.n}, sur tes conseils.`]:null,
+     [`Sophie part à la retraite. Elle m’offre son vieux classeur de fiches d’analyste.`,`Le classeur de fiches de Sophie.`]],
+    [[`${a} et moi fêtons nos 70 ans au restaurant de nos 25 ans. Le patron nous reconnaît.`,`Les 70 ans avec ${a}, au restaurant de nos 25 ans.`],
+     [`Karim, toujours en jean, me raconte sa dernière idée de boîte. À 72 ans.`,`Karim, entrepreneur jusqu’au bout.`],
+     [`Je range le grenier : de vieux relevés de compte de ${Y0}. Que de chemin parcouru.`,`Les vieux relevés de ${Y0}, retrouvés au grenier.`]]][c].filter(Boolean);
+  for(const [t,bio] of pool){if(have()>=2)break;noteBeat(t,bio);}
+}
+// ----- chapitre : instantané et carte de titre -----
+function chapSnap(){
+  const c=chapOf(S.year);if(S.story.snap[c])return;
+  const h=S.home,rp=rpOf(),home=!h?'':h.type==='parents'?'chez tes parents':h.type==='coloc'?'en colocation':h.type==='perso'?`dans ${homeName().replace(/^T/,'t')}`:`dans ${un(h.type)}`;
+  S.story.snap[c]={y:S.year,age:age(S.year),city:CITIES[S.city].n,home,own:!!rp,p:P(),marie:S.me.marie,kids:(S.me.kids||[]).map(k=>k.n),net:net(),eq:eqShare()};
+}
+function chapLine(c,bio){
+  const s=S.story.snap[c];if(!s)return '';
+  const who=s.p||s.kids.length?`avec ${yList([s.p,...s.kids].filter(Boolean))}`:'seul·e';
+  const where=`${s.home}${s.own?' (à toi)':''}`;
+  return `${s.age} ans, à ${s.city}, ${who}, ${where}.${bio&&c>0?'':' '+(s.net>1000?`${fmt(s.net)} de patrimoine${s.eq>.05?`, dont ${pc0(s.eq)} d’actions dans tes placements`:''}.`:'Tout reste à construire.')}`;
+}
+// ----- biographie de fin de partie : un paragraphe par chapitre -----
+function biography(){
+  return CHAPS.map((n,c)=>{const s=S.story.snap[c];if(!s)return '';
+    const b=S.story.beats.filter(x=>x.ch===c).map(x=>x.t).slice(0,5);
+    const endY=Math.min(Y0+10*c+10,YN+1),h=S.hist.find(x=>x.x===endY)||S.hist[S.hist.length-1];
+    return {n,yrs:chapYears(c),t:`${chapLine(c,true)} ${b.join(' ')}${h?` Fin ${endY-1} : ${fmt(h.net)} de patrimoine.`:''}`};}).filter(Boolean);
+}
+function threadEnds(){
+  return [...new Set(Object.values(S.story.th).filter(T=>T.endT).sort((a,b)=>a.open-b.open).map(T=>T.endT))];
+}
+// Fin de partie : chaque fil encore ouvert reçoit sa conclusion.
+const LASTW={karim2:'Karim préparait encore sa prochaine aventure.',karim3:'L’aventure de Karim était encore en cours.',amiRetour:`Le prêt à ton ami attendait encore son remboursement.`,amiPaix:'La brouille avec ton ami ne s’est pas refermée.',amiRefus:'Ton ami ne t’a jamais reparlé du prêt refusé.',kevin:'Kévin attendait toujours que son jeton décolle.',kevinNews:'Kévin attendait toujours que son jeton décolle.',
+  parents:'Tes parents ont vieilli paisiblement.',deuil:'Tes parents étaient encore là.',ehpad:'Tes parents ont fini leurs jours chez eux.',heritage:'La succession de tes parents restait à régler.',etudes:'Les études de tes enfants touchaient à leur fin.',appart:'Tes enfants volaient de leurs propres ailes.',mariageK:'Les mariages des enfants restaient à venir.',petits:'Les petits-enfants restaient à venir.',karimFin:'La start-up de Karim n’avait pas encore été revendue.',creditFin:'L’autre crédit courait encore.',kevinCrash:'Kévin a traversé le krach.'};
+function closeStory(){if(!S.story)return;if(S.page)chapFill(true); // partie finie avant la fin du chapitre (faillite)
+  for(const id in S.story.th){const T=S.story.th[id];if(!T.end){T.end=true;T.endT=T.endT||LASTW[T.k]||'';}}}
+// ----- présidentielle : ce que l'écart entre les programmes représente chez toi -----
+function elecStake(E){
+  const A=E.A.prog,B=E.B.prog,dT=Math.abs(progTax(A)-progTax(B)),dPS=Math.abs((A.ps??S.pol.ps)-(B.ps??S.pol.ps));
+  const gain=e=>Math.max(0,envTotal(e)-S.acc[e].vers);
+  let s=dT*ctoLatent()+dPS*(gain('pea')+gain('av'));
+  const rents=S.props.filter(p=>!isRP(p)).reduce((a,p)=>a+S.idx[p.type].rent*p.rentMult*.6,0);
+  s+=Math.abs((A.irLoyer??S.pol.irLoyer)-(B.irLoyer??S.pol.irLoyer))*rents*5;
+  if(!retired(S.year)&&age(S.year)>=50)s+=Math.abs((A.age??S.pol.ageLegal)-(B.age??S.pol.ageLegal))*S.revenu*.3;
+  if(S.liv>=.8*livretCap())s+=Math.abs((A.livCap||0)-(B.livCap||0))*curLivret()/100*5;
+  return s;
+}
+// ----- moments de vie racontés (fenêtres), ajoutés à LIFE -----
+const fiveK=()=>Math.round(5000*S.defl/1000)*1000;
+const STORY={
+  karimFin:{kicker:'Karim',view:T=>{const d=T.d,ok=d.g>5,mid=d.g>0;
+    const val=[1,1.5,2,3][d.y%4],res=ok?`${d.name} vient d’être rachetée par un géant américain : elle vaut ${String(val).replace('.',',')} milliard${val>=2?'s':''} d’euros.`:mid?`${d.name} a été revendue, sans miracle mais avec un joli bénéfice.`:`${d.name} a déposé le bilan.`;
+    const me=d.a>0?(ok?`Tu y avais mis ${fmt(d.a)} en ${d.y} : ta part vaut une petite fortune.`:mid?`Tu y avais mis ${fmt(d.a)} en ${d.y} : tu récupères un peu plus que ta mise.`:`Tu y avais mis ${fmt(d.a)} en ${d.y} : tout est perdu.`):(ok?`Tu avais refusé d’y mettre un euro en ${d.y}. Karim ne t’en veut pas, mais il te le rappelle en riant.`:`Tu avais refusé d’investir en ${d.y} : tu as bien fait.`);
+    return {title:ok?`${d.name} vaut une fortune`:mid?`${d.name} est revendue`:`${d.name} ferme ses portes`,body:`${res} ${me}`,choices:[{id:'ok',label:ok&&d.a>0?'Fêter ça avec Karim':ok?'Encaisser la blague':'Lui remonter le moral',desc:'Karim compte sur toi pour la suite'}]};},
+    act(c,T){T.d.done=true;const nx=openTh('karim2',S.year+rint(2,4),{prev:T.d});return {msg:'Karim a déjà une autre idée en tête.',bio:T.d.a>0?`Karim et sa start-up ${T.d.name} : ${T.d.g>5?'un pari gagnant':T.d.g>0?'un petit bénéfice':'une mise perdue'}.`:`Karim et ${T.d.name} : tu avais préféré rester à l’écart.`};}},
+  karim2:{kicker:'Karim',can:()=>!retired(S.year),view:T=>{const p=T.d.prev,a=fiveK()*2;
+    return {title:'Karim repart à l’aventure',body:`Après ${p.name}, Karim lance une nouvelle boîte. Cette fois, il te propose d’y investir ${fmt(a)}, ou de le rejoindre comme directeur financier : 15 % de salaire en plus, mais une boîte qui peut fermer.`,
+      choices:[{id:'inv',label:`Investir ${fmt(a)}`,desc:'Revente prévue dans 3 ans'},{id:'job',label:'Le rejoindre',desc:'Salaire +15 %, risque de chômage'},{id:'non',label:'Lui souhaiter bonne chance',desc:'Tu restes où tu es'}]};},
+    act(c,T){const a=fiveK()*2,y=S.year;
+      if(c==='inv'){if(S.cash<a)return {err:`Il te faut ${fmt(a)} sur ton compte courant.`};const e=buyIn('cto','startup',a);if(e)return {err:e};const r=rnd(),n=pick(STARTUPS.filter(x=>x!==T.d.prev.name));
+        S.flags.startup={name:n,y,end:y+3};setPending(y+3,'startup',r<.2?250:r<.5?40:-100);openTh('karim3',y+4,{c,a,y,name:n,ok:r<.5});return {msg:`Tu investis ${fmt(a)} dans ${n}.`,bio:`Tu as suivi Karim dans ${n}.`};}
+      if(c==='job'){S.revenu*=1.15;mood(6,0);openTh('karim3',y+rint(3,4),{c,y,ok:rnd()<.65});return {msg:'Bienvenue chez Karim : salaire +15 %.',bio:`Tu as rejoint Karim comme directeur financier en ${y}.`};}
+      openTh('karimNews',y+rint(3,6),{ok:rnd()<.45},true);return {msg:'Tu lui souhaites bonne chance.',bio:'Tu as laissé Karim repartir sans toi.'};}},
+  karim3:{kicker:'Karim',view:T=>{const d=T.d;
+    if(d.c==='inv'){const ok=d.ok;return {title:ok?`${d.name} a tenu ses promesses`:`${d.name} n’a pas survécu`,body:`Tu avais mis ${fmt(d.a)} dans ${d.name} en ${d.y}. ${ok?'La revente vient de tomber sur ton compte.':'La société a été liquidée.'} Karim te remercie d’y avoir cru.`,choices:[{id:'ok',label:'Tourner la page',desc:'Fin de l’aventure avec Karim'}]};}
+    return {title:d.ok?'La boîte de Karim est rachetée':'La boîte de Karim ferme',body:d.ok?`Tu l’avais rejoint en ${d.y}. Le rachat te vaut une prime de ${fmt(S.revenu*.2)}.`:`Tu l’avais rejoint en ${d.y}. L’entreprise ferme : tu retrouves un poste, avec un salaire 10 % plus bas.`,choices:[{id:'ok',label:'Tourner la page',desc:'Fin de l’aventure avec Karim'}]};},
+    act(c,T){const d=T.d;if(d.c==='job'){if(d.ok){const x=S.revenu*.2;ext(x);mood(8,0);}else{S.revenu*=.9;mood(-8,0);}}
+      return {msg:'Fin de l’aventure avec Karim.',end:d.c==='inv'?`Karim : deux aventures, et tu as suivi la seconde.`:d.ok?'Avec Karim, une aventure qui a payé.':'Avec Karim, une aventure qui a tourné court.'};}},
+  amiRetour:{kicker:'Amitié',view:T=>{const a=ami(),d=T.d;
+    return d.ok?{title:`${a} te rembourse`,body:`Tu lui avais prêté ${fmt(d.a)} en ${d.y}. ${a} t’en rend ${fmt(d.a*1.1)}, avec une bouteille de champagne et un mot : « Merci d’avoir été là. »`,choices:[{id:'ok',label:'Trinquer ensemble',desc:'Amitié scellée'}]}
+      :{title:`${a} ne donne plus de nouvelles`,body:`Tu lui avais prêté ${fmt(d.a)} en ${d.y}. Plus de remboursement, plus de réponse aux messages.`,choices:[{id:'ecrire',label:'Lui écrire une dernière fois',desc:'Peut-être qu’un jour…'},{id:'non',label:'Laisser tomber',desc:'L’argent et l’ami'}]};},
+    act(c,T){const d=T.d,a=ami();if(d.ok){ext(d.a*1.1);mood(8,0);return {msg:`${a} te rembourse ${fmt(d.a*1.1)}.`,bio:`${a} a remboursé le prêt de ${d.y}, avec du champagne.`,end:`${a} : un prêt remboursé, une amitié pour la vie.`};}
+      mood(-8,0);openTh('amiPaix',S.year+rint(3,7),{...d,tried:c==='ecrire'},true);return {msg:c==='ecrire'?'Tu lui écris. Pas de réponse pour l’instant.':'Tu laisses tomber.',bio:`Brouille avec ${a} après le prêt de ${d.y}.`};}},
+  kevinCrash:{kicker:'Kévin',view:T=>{const k=(S.story.adv||[]).filter(x=>x.w==='kevin'),last=k[k.length-1];
+    return {title:'Kévin a tout misé avant le krach',body:`Ton collègue avait emprunté pour acheter des actions à crédit. Le krach l’a ruiné.${last?` En ${last.y}, il te conseillait ${last.buy?'d’acheter':'d’éviter'} ${nm(last.a)} : ${last.ok?'bien vu':'raté'}.`:''} Il te demande ${fmt(Math.round(2000*S.defl/10)*10)} pour finir le mois.`,
+      choices:[{id:'oui',label:'Le dépanner',desc:`${fmt(Math.round(2000*S.defl/10)*10)}, sans grand espoir de retour`},{id:'non',label:'Refuser gentiment',desc:'Tu lui offres un café'}]};},
+    act(c,T){S.story.kevRuined=1;if(c==='oui'){const x=Math.round(2000*S.defl/10)*10;mood(4,0);return {msg:`Tu dépannes Kévin de ${fmt(x)}.`+spend(x,true),bio:`Kévin ruiné par un krach ; tu l’as dépanné.`,end:'Kévin s’est relevé de son krach, lentement.'};}
+      return {msg:'Tu lui offres un café et des conseils.',bio:'Kévin ruiné par un krach.',end:'Kévin s’est relevé de son krach, lentement.'};}},
+  parents:{kicker:'Tes parents',can:()=>alive(mere())&&alive(pere()),view:()=>{const m=mere(),p=pere(),a=Math.round(8000*S.defl/100)*100,f=p.die<m.die?p:m;
+    return {title:`${f.n} a fait une chute`,body:`${f.n} a ${S.year-f.born} ans et se remet mal. Pour rester chez eux, ${m.n} et ${p.n} doivent adapter la maison : monte-escalier, salle de bain. Il leur manque ${fmt(a)}.`,
+      choices:[{id:'oui',label:'Payer les travaux',desc:`${fmt(a)}, tes parents restent chez eux`},{id:'non',label:'Les aider autrement',desc:'Tu passes plus de temps chez eux, humeur en baisse'}]};},
+    act(c){const m=mere(),p=pere();if(c==='oui'){const a=Math.round(8000*S.defl/100)*100;mood(5,0);return {msg:`Tu paies les travaux de ${m.n} et ${p.n}.`+spend(a,true),bio:`Tu as aidé ${m.n} et ${p.n} à rester chez eux.`,end:''};}
+      mood(-6,-3);return {msg:'Tu passes tes week-ends chez eux.',bio:`Les week-ends passés chez ${m.n} et ${p.n}, pour les aider.`,end:''};}},
+  ehpad:{kicker:'Tes parents',can:()=>{const o=[mere(),pere()].filter(alive);return o.length===1;},view:()=>{const o=[mere(),pere()].find(alive),a=Math.round(600*S.defl/10)*10;
+    return {title:`${o.n} ne peut plus vivre seul${o.g==='f'?'e':''}`,body:`${o.n} a ${S.year-o.born} ans. Une maison de retraite coûte 2 800 € par mois ; sa pension en couvre une bonne partie, il manque ${fmt(a)} par mois.`,
+      choices:[{id:'payer',label:'Payer la différence',desc:`${fmt(a)} par mois jusqu’au bout`},{id:'maison',label:`${o.g==='f'?'L’accueillir':'L’accueillir'} chez toi`,desc:'Rien à payer, humeur et couple en baisse'},{id:'vendre',label:'Vendre sa maison pour payer',desc:'L’héritage sera plus petit'}]};},
+    act(c){const o=[mere(),pere()].find(alive);if(c==='payer'){S.story.care={until:o.die,amt:7200,n:o.n};return {msg:`Tu paies la maison de retraite ${de(o.n)}.`,bio:`${o.n} en maison de retraite ; tu as payé la différence.`};}
+      if(c==='maison'){mood(-8,-10);S.story.care={until:o.die,amt:0,n:o.n,home:true};return {msg:`${o.n} s’installe chez toi.`,bio:`${o.n} est venu${o.g==='f'?'e':''} vivre chez toi.`};}
+      S.story.cast.estate=Math.round(S.story.cast.estate*.65/1000)*1000;return {msg:`La maison ${de(o.n)} est vendue pour payer sa maison de retraite.`,bio:`La maison de famille vendue pour la maison de retraite ${de(o.n)}.`};}},
+  heritage:{kicker:'Tes parents',view:T=>{const o=S.story.cast[T.d.who],h=inherit();
+    return {title:`${o.n} nous a quittés`,body:`${o.n} s’est éteint${o.g==='f'?'e':''} à ${o.die-o.born} ans, en ${o.die}. Tes parents te laissent ${fmt(h.gross)}. Après l’abattement de ${fmt(100000*S.defl)}, les droits de succession sont de ${fmt(h.tax)}. Il te reste ${fmt(h.net)}, déjà sur ton compte.`,
+      choices:[{id:'monde',label:'Tout sur l’ETF Monde',desc:'Dans ton PEA s’il reste de la place, sinon en compte-titres'},{id:'eur',label:'Tout sur le fonds euros',desc:'Assurance-vie, capital garanti'},{id:'cash',label:'Garder en liquidités',desc:'Tu décideras plus tard'}]};},
+    act(c,T){const o=S.story.cast[T.d.who];o.dead=o.die;const h=inherit();ext(h.net);S.story.care=null;mood(-10,0);
+      const r=placeGift(c,h.net);if(r.err)return r;return {msg:`Succession réglée : ${fmt(h.net)} reçus. ${r.msg}`,bio:`${o.n} nous a quittés en ${o.die}. L’héritage de tes parents : ${fmt(h.net)} après droits.`,end:`Tes parents, ${mere().n} et ${pere().n}, t’ont laissé ${fmt(h.net)}.`};}},
+  etudes:{kicker:'Tes enfants',can:T=>!!kidOf(T),view:T=>{const k=kidOf(T),a=Math.round(450*S.defl/10)*10;
+    return {title:`${k.n} part faire ses études`,body:`${k.n} a 18 ans et a été admis·e dans une école à ${pick0(['Bordeaux','Rennes','Grenoble','Montpellier'],k.n)}. Le loyer du studio étudiant : ${fmt(a)} par mois pendant quatre ans.`,
+      choices:[{id:'payer',label:'Payer son loyer',desc:`${fmt(a)} par mois pendant 4 ans`},{id:'job',label:`${k.n} prend un job étudiant`,desc:'Rien à payer, études plus difficiles'}]};},
+    act(c,T){const k=kidOf(T);if(c==='payer'){S.story.stud.push({n:k.n,until:S.year+3,amt:5400});mood(4,4);}else mood(-2,-2);
+      openTh('appart',k.born+rint(26,29),{n:k.n,paid:c==='payer',y:S.year});return {msg:c==='payer'?`Tu paies le loyer ${de(k.n)}.`:`${k.n} travaille pour payer ses études.`,bio:c==='payer'?`Les études ${de(k.n)}, financées par tes soins.`:`${k.n} a payé ses études en travaillant.`};}},
+  appart:{kicker:'Tes enfants',can:T=>!!kidOf(T),view:T=>{const k=kidOf(T),d=T.d,a1=Math.round(20000*S.defl/1000)*1000,a2=a1*2.5;
+    return {title:`${k.n} veut acheter son premier appartement`,body:`${k.n} a ${kidAge(k)} ans. ${d.paid?`Tu lui avais payé ses études en ${d.y}`:`${k.n} avait payé ses études en travaillant, dès ${d.y}`}. Il lui manque un apport. Une donation est exonérée jusqu’à 100 000 € par parent et par enfant, tous les 15 ans.`,
+      choices:[{id:'0',label:'Pas de donation',desc:`${k.n} attendra quelques années de plus`},{id:String(a1),label:`Donner ${fmt(a1)}`,desc:'Un coup de pouce'},{id:String(a2),label:`Donner ${fmt(a2)}`,desc:'Tout l’apport, ou presque'}]};},
+    act(c,T){const k=kidOf(T),a=+c;if(a>0){if(a>Math.max(0,S.cash)+S.liv)return {err:`Il te faut ${fmt(a)} sur ton compte courant et ton Livret A.`};if(S.cash<a)livOut(a-S.cash);ext(-a);S.story.given+=a/S.defl;mood(10,6);}else mood(-3,0);
+      if(rnd()<.7)openTh('mariageK',S.year+rint(2,5),{n:k.n},true);
+      if(rnd()<.75)openTh('petits',S.year+rint(4,9),{n:k.n},true);
+      return {msg:a>0?`Tu donnes ${fmt(a)} à ${k.n}.`:`${k.n} se débrouillera.`,bio:a>0?`Une donation de ${fmt(a)} à ${k.n} pour son premier appartement.`:`${k.n} a acheté son appartement sans ton aide.`,end:''};}},
+};
+const pick0=(a,s)=>a[hstr(s)%a.length];
+const kidOf=T=>(S.me.kids||[]).find(k=>k.n===T.d.n);
+// Succession : le second parent laisse tout ; abattement de 100 000 € (indexé), 20 % au-delà.
+function inherit(){const gross=Math.round(S.story.cast.estate*S.defl/1000)*1000,ab=100000*S.defl,tax=Math.round(Math.max(0,gross-ab)*.2);return {gross,tax,net:gross-tax};}
+function placeGift(c,a){
+  if(c==='cash')return {msg:'Tu gardes l’argent en liquidités.'};const amt=Math.min(a,Math.floor(S.cash));if(amt<=0)return {msg:''};
+  if(c==='eur'){const e=buyIn('av','euros',amt);if(e)return {err:e};return {msg:'Placé sur le fonds euros.'};}
+  const room=peaCap()-S.acc.pea.vers,inPea=Math.min(amt,Math.max(0,Math.floor(room)));if(inPea>0)buyIn('pea','monde',inPea);if(amt-inPea>0)buyIn('cto','monde',amt-inPea);
+  return {msg:`Placé sur l’ETF Monde${inPea>0?` (${fmt(inPea)} en PEA)`:''}.`};
+}
+// Frais de famille en cours : maison de retraite d'un parent, loyers étudiants des enfants (euros de 2026, indexés).
+const careCost=()=>{const c=S.story&&S.story.care;return c&&c.amt&&S.year<c.until?c.amt*S.defl:0;};
+const studCost=()=>S.story?S.story.stud.filter(x=>S.year<=x.until).reduce((a,x)=>a+x.amt*S.defl,0):0;
+const famCost=()=>careCost()+studCost();
+for(const k in STORY){const D=STORY[k];LIFE[k]={story:true,can:D.can,view:()=>{const T=S.story.th[S.life.tid],v=D.view(T);return {kicker:D.kicker,...v};},act:c=>{const T=S.story.th[S.life.tid];return D.act(c,T);}};}
+const NVL={burnout:3,weekend:3,panique:3,licenciement:3,diner:3,promo:3,mariage:3,enfant:3,sport:3,rencontre:4,panne:3,logement:3,criseCouple:3};
+for(const id in LIFE){if(LIFE[id].story)continue;const f=LIFE[id].view;LIFE[id].view=()=>{const v=f(),x=S.story?deja('L:'+id,NVL[id]||1):'';return x?{...v,body:v.body+x}:v;};}
+// Fils ouverts à la naissance d'un enfant : ses études à 18 ans.
+function kidThreads(k){if(S.story&&k.born+18<=YN-1)openTh('etudes',k.born+18,{n:k.n});}
+// Migration : une partie d'avant la 3.7 reçoit son histoire, sans rejouer le passé.
+function storyMigrate(){
+  storyInit();const st=S.story,y=S.year;
+  st.chap=chapOf(y)+1;for(let c=0;c<=chapOf(y);c++)st.snap[c]=st.snap[c]||null;chapSnap();
+  for(const id in st.th){const T=st.th[id];if(T.due<y){T.due=y+1+(T.k==='heritage'?3:0);}}
+  for(const p of [st.cast.mere,st.cast.pere])if(p.die<=y)p.die=y+2+Math.floor(rnd()*5);
+  const a=st.cast.mere.die<st.cast.pere.die?st.cast.mere:st.cast.pere,b=a===st.cast.mere?st.cast.pere:st.cast.mere;if(b.die<=a.die+2)b.die=Math.min(YN-1,a.die+3);
+  for(const k of S.me.kids||[])if(k.born+18>=y)kidThreads(k);
+  if(S.flags.startup&&S.flags.startup.end>=y)openTh('karimFin',S.flags.startup.end+1,{name:S.flags.startup.name,y:S.flags.startup.y,a:0,g:0});
+  if(S.life&&LIFE[S.life.id]&&LIFE[S.life.id].story&&!st.th[S.life.tid])S.life=null;
+  if(S.flags.pretAmi){openTh('amiRetour',S.flags.pretAmi.y,{ok:true,a:S.flags.pretAmi.a/1.1,y:S.flags.pretAmi.y-2});S.flags.pretAmi=null;}
+}
+
 /* ===================== TOURS ===================== */
 const finLiquid=()=>Math.max(0,S.cash)+S.liv+envTotal('cto')+envTotal('pea')+envTotal('av');
+// Poids des dilemmes selon le chapitre (débuts, bâtir, milieu de la vie, préparer la suite, transmettre).
+const CHW={diner:[1.2,1,.6,.3,0],promo:[1.5,1,.4,0,0],vacances:[1,1,1,1,1],mariage:[2,1.5,.4,0,0],enfant:[2,1.5,0,0,0],sport:[.4,.8,1.5,1,.6],ami:[2.5,1.2,.3,0,0],logement:[1.5,1.5,.5,0,0],panne:[1,1,1,.5,.3],ados:[0,.5,2.5,1,0],criseCouple:[0,.6,2,1,.3],donation:[0,0,0,1.5,3]};
+let lifeTid=null;
 function pickLife(crash){
   const f=S.fut[S.year],y=S.year;
   if(S.me.humeur<=18)return 'burnout';
   if(P()&&S.me.relation<=10)return 'rupture';
   if(y>=Y0+37&&S.me.retireYear==null)return 'retraite';
   if(S.me.retireYear==null&&y>=Y0+18&&y<Y0+37&&(!S.flags.fireAsked||y-S.flags.fireAsked>=5)&&finLiquid()>=30*foyerRev()*.5){S.flags.fireAsked=y;return 'fire';}
-  if(crash){if(S.me.humeur<35)return 'panique';if(P()&&rnd()<.7)return 'weekend';}
+  const count=id=>S.usedLife.filter(x=>x===id).length;
+  if(crash){if(S.me.humeur<35)return 'panique';if(P()&&count('weekend')<2&&rnd()<.7)return 'weekend';}
   if(['crise','recession'].includes(f.phase)&&!retired(y)&&y-(S.me.chomY||0)>5&&rnd()<(f.phase==='crise'?.15:.07))return 'licenciement';
   if(y===Y0)return null;
   // logement : chez les parents à 30 ans, ou trop petit depuis un an (au plus tous les deux ans)
@@ -1815,10 +2078,16 @@ function pickLife(crash){
     if(S.home.type==='parents'&&age(y)>=30){S.flags.logAsk=y;S.flags.logWhy='parents';return 'logement';}
     if(homeCap()<need()&&(S.flags.small||0)>=1&&(!S.flags.logDone||y-S.flags.logDone>=2)){S.flags.logAsk=y;S.flags.logWhy='small';S.flags.logDone=y;return 'logement';}
   }
-  if(!P()&&rnd()<(S.flags.rencBoost===y-1?.45:.25))return 'rencontre';
-  if(rnd()>0.35)return null;
-  const recent=S.usedLife.slice(-2),count=id=>S.usedLife.filter(x=>x===id).length;
-  const el=Object.keys(LIFE).filter(id=>!['burnout','rupture','weekend','panique','retraite','rencontre','fire','licenciement'].includes(id)&&!recent.includes(id)&&count(id)<(id==='enfant'||id==='panne'?5:2)&&(!LIFE[id].can||LIFE[id].can())).map(id=>({id,w:id==='enfant'&&S.me.enfants<2?3:id==='mariage'?3:id==='logement'?1.5:id==='panne'?1.2:1}));
+  // Un fil arrivé à échéance passe avant les dilemmes tirés au hasard.
+  if(S.story){const e=dueThread(false);if(e){lifeTid=e[0];return e[1].k;}}
+  if(!P()&&rnd()<(S.flags.rencBoost===y-1?.4:.18))return 'rencontre';
+  // La famille a sa propre chance chaque année, pour que l'histoire ne la fasse pas disparaître.
+  if(LIFE.mariage.can()&&count('mariage')<2&&rnd()<.3)return 'mariage';
+  if(LIFE.enfant.can()&&S.me.enfants<2&&count('enfant')<5&&rnd()<.35)return 'enfant';
+  if(rnd()>0.25)return null;
+  const recent=S.usedLife.slice(-2),ch=chapOf(y),cap=id=>({enfant:5,ami:1,donation:1,ados:2}[id]||2);
+  const el=Object.keys(LIFE).filter(id=>!LIFE[id].story&&!['burnout','rupture','weekend','panique','retraite','rencontre','fire','licenciement'].includes(id)&&!recent.includes(id)&&count(id)<cap(id)&&(!LIFE[id].can||LIFE[id].can()))
+    .map(id=>({id,w:(id==='enfant'&&S.me.enfants<2?3:id==='mariage'?3:id==='logement'?1.5:id==='panne'?1.2:1)*(CHW[id]?CHW[id][ch]:1)})).filter(x=>x.w>0);
   return el.length?pickW(el):null;
 }
 const evDef=()=>S.event?EVT[S.event.id]:null;
@@ -1842,13 +2111,29 @@ function startTurn(y){
       S.event.adv={a:ia,good,list:ws.map(w=>{const D=ADV[w],buy=rnd()<(good?D.a:D.b);return {w,buy,q:pick(buy?D.buy:D.no)};})};}}
     if(id==='toxique'){const ws=['gerard',pick(['kevin','odette','sophie'])];S.event.adv={a:'struct',good:false,list:ws.map(w=>{const buy=w==='gerard'?true:rnd()<ADV[w].b;return {w,buy,q:pick(buy?ADV[w].buy:ADV[w].no)};})};}
   }
-  const lid=pickLife(!!(d&&d.crash));
+  if(id&&S.story)S.story.hist[id]=(S.story.hist[id]||[]).concat(y);
+  lifeTid=null;const lid=pickLife(!!(d&&d.crash));
   S.life=lid?{id:lid,answered:false,result:null}:null;
-  if(lid==='rencontre')S.life.name=pick(PNAMES.filter(n=>!S.me.exes.includes(n)&&n!==P()).concat(['Charlie']));
+  if(lid&&lifeTid)S.life.tid=lifeTid;
+  if(lid==='vacances'&&S.story){const L=DEST[traitOf().voy].filter(x=>!S.story.dest.includes(x));S.life.dest=pick(L.length?L:DEST.voyageur);S.story.dest.push(S.life.dest);}
+  if(lid&&S.story)S.story.hist['L:'+lid]=(S.story.hist['L:'+lid]||[]).concat(y);
+  if(lid==='rencontre'){const met=S.story?S.story.met||(S.story.met=[]):[];S.life.name=pick(PNAMES.filter(n=>!S.me.exes.includes(n)&&n!==P()&&!met.includes(n)).concat(['Charlie','Morgan','Eden'].filter(n=>!met.includes(n))));met.push(S.life.name);}
   if(lid){S.life.v=LIFE[lid].view();S.usedLife.push(lid);}
   const head=headline(y),imp=imprevu(y);
   S.page={head,imp,spent:0,notes:[]};S.page.notes=makeNotes(y,head,imp);
+  if(S.story)storyYear(y,f,d);
   save();
+}
+// L'histoire de l'année : instantané du chapitre, moments racontés, conséquences d'un krach, présidentielle sans fenêtre.
+function storyYear(y,f,d){
+  chapSnap();playNotes();
+  if(d&&d.crash){const n=(S.story.hist.krach||[]).length+(S.story.hist.pandemie||[]).length,k=(S.me.kids||[]).find(k=>kidAge(k)>=18&&kidAge(k)<=22);
+    if(!S.story.kev&&y>=Y0+4){S.story.kev=1;openTh('kevinCrash',y+1,{});}
+    S.page.notes.splice(1,0,{i:'argent',t:[`Au bureau, on parle à voix basse : ${pick0(['Romain','Céline','Bastien','Laure'],String(y))}, de l’étage du dessous, a été licencié·e.`,'Plan social chez notre premier client : la cantine est silencieuse.','Les collègues comparent leurs pertes à la machine à café. Personne ne rit.'][n%3]});
+    if(k)S.page.notes.splice(2,0,{i:'famille',t:`Le stage ${de(k.n)} est annulé : son entreprise gèle tout.`});}
+  if(f.elec&&(!S.event||S.event.id!=='election'))S.page.notes.splice(1,0,{i:'eco',t:`Présidentielle en avril : ${f.elec.A.name} (${PARTIS[f.elec.A.party].n}) contre ${f.elec.B.name} (${PARTIS[f.elec.B.party].n}). Pour ton argent, l’écart entre les deux programmes reste modeste.`});
+  chapFill();
+  S.page.notes=S.page.notes.slice(0,7);
 }
 function logIt(title,res){S.log.push({y:S.year,t:title,r:res});}
 function answerEvent(kind,a,b,env){
@@ -1863,8 +2148,29 @@ function answerEvent(kind,a,b,env){
 }
 function answerLife(c){
   const L=LIFE[S.life.id],v=S.life.v;const r=L.act(c);if(r.err)return r.err;
-  S.life.answered=true;S.life.result=r.msg;logIt(v.title,r.msg);save();return null;
+  S.life.answered=true;S.life.result=r.msg;logIt(v.title,r.msg);
+  if(S.story){if(S.life.tid&&S.story.th[S.life.tid]){S.story.th[S.life.tid].beats++;endTh(S.life.tid,r.end||'');}const b=r.bio||(BIO[S.life.id]&&BIO[S.life.id](c));if(b)logBeat(b);}
+  save();return null;
 }
+const vacCost=()=>Math.round(5000*S.defl*(S.story&&traitOf().eco==='depensier'?1.4:1)/10)*10;
+// Ce que la biographie retient des grands choix de vie.
+const BIO={
+  mariage:c=>c==='oui'?`Mariage avec ${P()} en ${S.year}.`:null,
+  enfant:c=>c==='oui'?`Naissance de ${S.me.kids[S.me.kids.length-1].n} en ${S.year}.`:null,
+  rencontre:c=>c==='oui'?`Rencontre avec ${P()}.`:null,
+  rupture:()=>`Séparation d’avec ${S.me.exes[S.me.exes.length-1]} en ${S.year}.`,
+  promo:c=>c==='oui'?`Une promotion à Paris, et des trajets interminables.`:null,
+  licenciement:()=>`Licenciement en ${S.year}, en pleine crise.`,
+  burnout:()=>S.me.burnouts===1?`Un burn-out en ${S.year}.`:null,
+  fire:c=>c==='stop'?`Libre à ${age(S.year)} ans : fini le salariat.`:null,
+  retraite:()=>`Départ à la retraite prévu en ${S.me.retireYear}.`,
+  logement:c=>c==='acheter'?`Propriétaires en ${S.year}.`:c==='louer'?`Un déménagement en ${S.year}, pour plus d’espace.`:null,
+  ami:c=>c==='oui'?`Un prêt à ${ami()} en ${S.year}.`:`Un prêt refusé à ${ami()}.`,
+  vacances:c=>c==='oui'?`Trois semaines ${S.life.dest||'au loin'} avec ${P()}.`:null,
+  weekend:c=>c==='partir'?`Un week-end avec ${P()} en plein krach, téléphone coupé.`:null,
+  donation:c=>c!=='0'?`Une donation à tes enfants en ${S.year}.`:null,
+  criseCouple:c=>c==='oui'?`Une thérapie de couple qui a sauvé votre histoire.`:null,
+};
 const turnReady=()=>!S.onb&&(!S.event||S.event.answered)&&(!S.life||S.life.answered);
 
 /* ===================== SIMULATION ===================== */
@@ -1947,7 +2253,7 @@ function simulateYear(y){
   if(st&&y===st.end)convertSpecial('struct',b,'Le Fonds Rendement Sérénité arrive à échéance');
   if(y===S.flags.souvY)convertSpecial('souv',b,r.souv<0?'Méridia restructure sa dette, ton remboursement':'L’Europe sauve Méridia, ton remboursement');
   if(S.flags.startup&&y===S.flags.startup.end){const g=r.startup,n=S.flags.startup.name;if(g>5&&hv('startup')>0)unlock('angel');convertSpecial('startup',b,g>5?`${n} est rachetée par un géant américain`:g>0?`${n} est revendue`:`${n} fait faillite`);}
-  const ref=refRent(),cref=carRef(),hc=homeCost(),cc=carCost(),kc=kidsCost(),dc=debtCost(),ep0=epargneYear();let rpFlow=0; // tout le budget est calculé avec les prix du début d'année // budget calculé avec les loyers de l'année
+  const ref=refRent(),cref=carRef(),hc=homeCost(),cc=carCost(),kc=kidsCost(),dc=debtCost(),fc=famCost(),ep0=epargneYear();let rpFlow=0; // tout le budget est calculé avec les prix du début d'année // budget calculé avec les loyers de l'année
   for(const p of S.props){
     const B=BIENS[p.type],ix=S.idx[p.type];let months=12;
     if(isRP(p)){
@@ -1982,8 +2288,8 @@ function simulateYear(y){
     ext(ep+ref+cref);b.flows.epargne=ep+ref+cref;
     if(humeurMult()<1&&ep>0)b.notes.push('Moral en berne : dépenses compulsives, ton épargne de l’année baisse de 30 %.');
   }
-  ext(-hc);b.flows.logement=-hc;if(cc){ext(-cc);b.flows.voiture=-cc;}if(kc){ext(-kc);b.flows.enfants=-kc;}if(dc){ext(-dc);b.flows.autres=-dc;if(y===Y0+S.cust.debtN-1)b.notes.push('Dernière mensualité de mon autre crédit : ça fait du bien.');}
-  b.save=b.flows.epargne+b.flows.retraite+b.flows.logement+b.flows.voiture+b.flows.enfants+(b.flows.autres||0)+rpFlow;
+  ext(-hc);b.flows.logement=-hc;if(cc){ext(-cc);b.flows.voiture=-cc;}if(kc){ext(-kc);b.flows.enfants=-kc;}if(fc){ext(-fc);b.flows.famille=-fc;}if(dc){ext(-dc);b.flows.autres=-dc;}
+  b.save=b.flows.epargne+b.flows.retraite+b.flows.logement+b.flows.voiture+b.flows.enfants+(b.flows.autres||0)+(b.flows.famille||0)+rpFlow;
   // Affichage : un propriétaire ne paie pas de loyer. La valeur locative (débitée côté vie, recréditée côté bien pour le TRI) s'annule, on ne la montre pas.
   if(b.flows.rp>0){b.flows.logement+=b.flows.rp;b.flows.rp=0;}
   if(S.page){b.flows.plaisir=-(S.page.spent||0);b.flows.imprevu=-(S.page.imp?S.page.imp.c:0);}
@@ -2002,7 +2308,7 @@ function simulateYear(y){
   b.notes.unshift(`Économie ${y} : ${PHASES[f.phase].n}, croissance ${f1(mac.g)} %, inflation ${f1(mac.infl)} %, Bourse de Paris ${pct((1+(f.shock?f.shock.tracker/100:0))*(1+r.tracker)-1,0)}, ETF Monde ${pct((1+(f.shock?f.shock.monde/100:0))*(1+r.monde)-1,0)}.`);
   if(f.elec){const E=f.elec[f.elec.win],L=f.elec[f.elec.win==='A'?'B':'A'];
     b.notes.push(`${E.name} (${PARTIS[E.party].n}) bat ${L.name} et devient ${E.g==='f'?'présidente':'président'}. Dès janvier ${y+1} : ${progText(E.prog)}.`);
-    applyProg(E.prog);S.pol.pres={name:E.name,party:E.party,desc:E.desc,since:y};}
+    applyProg(E.prog);S.pol.pres={name:E.name,party:E.party,desc:E.desc,since:y};logIt(`Présidentielle ${y}`,`${E.name} (${PARTIS[E.party].n}) est élu${E.g==='f'?'e':''}.`);}
   b.why=whyText(y,f,mac,r,b);
   S.wPrev=S.w;S.w={...mac};
   b.netEnd=net();b.infl=mac.infl;b.livret=mac.livret;b.cashEnd=S.cash;b.phase=f.phase;
@@ -2032,17 +2338,19 @@ function endTurn(){
   if(!turnReady())return;
   S.bilans=[];S.pxPrev={...S.px};
   const A=S.event&&S.event.adv;
-  if(A){if(!S.advRec)S.advRec={};for(const x of A.list){const R=S.advRec[x.w]||(S.advRec[x.w]={n:0,ok:0});R.n++;if(x.buy===A.good)R.ok++;}}
+  if(A){if(!S.advRec)S.advRec={};for(const x of A.list){const R=S.advRec[x.w]||(S.advRec[x.w]={n:0,ok:0});R.n++;if(x.buy===A.good)R.ok++;if(S.story)S.story.adv.push({w:x.w,y:S.year,a:A.a,buy:x.buy,ok:x.buy===A.good});}}
   S.bilans.push(simulateYear(S.year));
   if(A)S.bilans[0].notes.splice(1,0,`Sur ${nm(A.a)}, ${A.list.map(x=>`${ADV[x.w].n} conseillait ${x.buy?'d’acheter':'d’éviter'} : ${x.buy===A.good?'bien vu':'raté'}`).join(' ; ')}.`);
   S.phase='bilan';save();
 }
 function nextBilan(){
-  if(S.flags.faillite||S.nextY>YN){if(S.me.marie&&P()&&P()===S.me.first&&!S.me.ruptures)unlock('fidele');S.phase='end';save();return;}
+  if(S.flags.faillite||S.nextY>YN){if(S.me.marie&&P()&&P()===S.me.first&&!S.me.ruptures)unlock('fidele');closeStory();S.phase='end';save();return;}
   startTurn(S.nextY);
 }
+// Patrimoine en euros de 2026, plus ce que tu as donné à tes enfants de ton vivant.
+const realNet=()=>net()/S.defl+(S.story?S.story.given:0);
 function finalScore(){
-  const real=net()/S.defl,be=S.well.n?S.well.sum/S.well.n:50,mult=.4+1.2*be/100;
+  const real=realNet(),be=S.well.n?S.well.sum/S.well.n:50,mult=.4+1.2*be/100;
   // L'immobilier est identique des deux côtés : l'écart se mesure par rapport aux placements du repère, pas au patrimoine total.
   // On se compare au meilleur des deux placements simples (ETF Monde ou Livret A). Sans aucun placement, aucun mérite de placement.
   const br=benchRef(),liv=br.liv>br.trk,ref=liv?br.liv:br.trk,nn=net(),sc=Math.max(Math.abs(liv?S.bench.liv:S.bench.trk),S.start||0,1),dv=(nn-ref)/sc;
@@ -2068,7 +2376,7 @@ function legacyGame(){
 function dropLegacy(){try{localStorage.removeItem(OLDKEY);}catch(e){}}
 
 /* ===================== INTERFACE ===================== */
-const U={setup:{city:'lille',sal:2,cap:1,couple:false,goals:['rp35','serein'],custom:false,cust:null},view:'profil',city:null,dossier:null,dosMsg:null,anim:null,animTok:0,copied:null,plan:null,allocMsg:null,tab:'pea',open:null,msg:{},amt:{},wd:{},evAmt:'',evAsset:null,evEnv:null,evErr:'',confirmReset:false,confirmSell:null,confirmClose:false,deskErr:'',envMsg:{},legacy:null,dur:null,lifeErr:'',achErr:'',homeMsg:null,onbErr:'',fresh:{},quiet:null,animList:null,broken:false,prevMoney:null,shownAch:[],toast:null,fx:true};
+const U={setup:{city:'lille',sal:2,cap:1,couple:false,goals:['rp35','serein'],custom:false,cust:null},view:'profil',city:null,dossier:null,dosMsg:null,anim:null,animTok:0,copied:null,plan:null,allocMsg:null,tab:'pea',open:null,msg:{},amt:{},wd:{},evAmt:'',evAsset:null,evEnv:null,evErr:'',confirmReset:false,confirmSell:null,confirmClose:false,deskErr:'',envMsg:{},legacy:null,dur:null,lifeErr:'',achErr:'',homeMsg:null,onbErr:'',fresh:{},quiet:null,animList:null,broken:false,rules:false,prevMoney:null,shownAch:[],toast:null,fx:true};
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const TICKS=[Y0,Y0+10,Y0+20,Y0+30,Y0+40,YN];
 
@@ -2105,7 +2413,7 @@ const ICONS={
 const KICK={'Krach':'krach','Valeur en chute libre':'krach','Pandémie':'sante','Choc énergétique':'monde','Géopolitique':'monde','Crise de la dette':'monde','Présidentielle':'urne','Euphorie':'hausse',
   'Banque centrale':'banque','Placement maison':'banque','Après la crise':'banque','Ton ami entrepreneur':'fusee','Innovation':'fusee','Jeton numérique':'piece','Offre d’achat':'maison','Ton locataire':'maison',
   'Bureaux':'immeuble','Crédit':'maison','Logement':'maison','Imprévu':'outil','Famille':'bebe','Couple':'coeur','Dilemme':'coeur','Amitié':'coeur','Rencontre':'coeur','Vacances':'soleil',
-  'Santé':'sante','Moral':'sante','Emploi':'travail','Carrière':'travail','Indépendance financière':'soleil','Retraite':'soleil'};
+  'Santé':'sante','Moral':'sante','Emploi':'travail','Carrière':'travail','Indépendance financière':'soleil','Retraite':'soleil','Karim':'fusee','Kévin':'piece','Tes parents':'maison','Tes enfants':'bebe','Transmettre':'coeur'};
 const icon=(k,s=48)=>`<svg class="ico" width="${s}" height="${s}" viewBox="0 0 48 48" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">${ICONS[k]||ICONS.journal}</svg>`;
 function donut(a,size=120){
   const tot=Object.values(a).reduce((x,y)=>x+y,0)||1,r=44,C=2*Math.PI*r;let off=0;
@@ -2123,7 +2431,7 @@ function moneyBar(blk=''){
     return `<div class="mchip ${k==='net'?'net':''} ${to<0?'neg':''}"><span>${l}</span><b class="num" data-count="${to}" data-from="${from}">${fmt(from)}</b>${Math.abs(d)>=1?`<em class="delta ${d>0?'up':'down'}">${d>0?'+':'−'}${fmt(Math.abs(d))}</em>`:''}</div>`;};
   const reset=`<button class="ghost sm ${U.confirmReset?'danger':''}" data-act="reset">${U.confirmReset?'Tout effacer ?':'Nouvelle partie'}</button>`;
   return `<header class="hud"${blk}><div class="brand"><b class="logo-s">La <i>Corbeille</i></b><span>${date} · ${ag} ans</span></div>
-    <div class="mchips">${chip('cash','Compte courant')}${chip('liv','Livret A')}${chip('fin','Placements')}${chip('immo','Immobilier net')}${chip('net','Patrimoine net')}</div>${reset}</header>`;
+    <div class="mchips">${chip('cash','Compte courant')}${chip('liv','Livret A')}${chip('fin','Placements')}${chip('immo','Immobilier net')}${chip('net','Patrimoine net')}</div><div class="hudbtns"><button class="ghost sm" data-act="rules" aria-label="Règles du jeu" title="Règles du jeu"><span class="hide-m">Règles</span><span class="show-m" aria-hidden="true">?</span></button>${reset}</div></header>`;
 }
 function animateCounters(){
   const go=canAnim();
@@ -2138,6 +2446,14 @@ function navBar(blk=''){
 }
 // ----- fenêtre des décisions obligatoires : une à la fois, rien d'autre n'est accessible tant qu'elles ne sont pas prises -----
 const GATE=['weekend','burnout','panique','retraite','fire','licenciement','logement'];
+// Carte de titre d'un chapitre : affichée une fois, au début du chapitre, avant les décisions.
+const chapDue=()=>S.story&&S.phase==='turn'&&!S.onb&&S.story.chap<chapOf(S.year)+1;
+function chapModal(){
+  const c=chapOf(S.year);
+  return `<div class="overlay" role="dialog" aria-modal="true" aria-labelledby="ch-t"><div class="dmodal chap">
+    <span class="lbl">Chapitre ${c+1} sur 5 · ${chapYears(c)}</span><h2 id="ch-t">${CHAPS[c]}</h2><p class="chapline">${chapLine(c)}</p>
+    <div class="btns end"><button class="primary" data-act="chap-ok">Commencer ce chapitre →</button></div></div></div>`;
+}
 function decisionOrder(){
   const lifeFirst=S.life&&GATE.includes(S.life.id),o=[];
   if(lifeFirst&&S.life)o.push('life');if(S.event)o.push('event');if(!lifeFirst&&S.life)o.push('life');
@@ -2164,7 +2480,7 @@ function decisionModal(){
 const autoBtn=()=>`<button class="ghost sm autot" data-act="auto" aria-pressed="${S.autoPass!==false}"><i aria-hidden="true"></i>Passer les années calmes</button>`;
 function autoPass(){
   const q=[];
-  while(S.autoPass!==false&&S.phase==='turn'&&!S.onb&&!S.event&&!S.life){endTurn();q.push(S.bilans[0]);nextBilan();}
+  while(S.autoPass!==false&&S.phase==='turn'&&!S.onb&&!S.event&&!S.life&&!chapDue()){endTurn();q.push(S.bilans[0]);nextBilan();}
   return q;
 }
 function quietModal(){
@@ -2200,6 +2516,7 @@ function budgetTable(){
     ${car?r('Voiture',-car,''):''}
     ${kc?r(nk>1?`Enfants (${nk})`:'Enfant',-kc,'300 €/mois chacun'):''}
     ${debtCost()?r('Autre crédit',-debtCost(),`jusqu’en ${Y0+S.cust.debtN-1}`):''}
+    ${careCost()?r('Maison de retraite',-careCost(),S.story.care.n):''}${studCost()?r('Études',-studCost(),S.story.stud.filter(x=>S.year<=x.until).map(x=>x.n).join(', ')):''}
     <tr class="tot"><td>${sv>=0?'Mis de côté':'Puisé dans ton épargne'}</td><td class="n ${sv<0?'down':'up'}">${sv<0?'−':''}${fmt(Math.abs(sv)/12)}</td></tr></tbody></table>
     <div class="cushion"><span>Épargne de sécurité</span>${bar(Math.min(100,cs/6*100),cs<3?'low':'')}<b class="${cs<3?'warn':''}">${f1(Math.min(cs,99))} mois</b></div>`;
 }
@@ -2316,7 +2633,7 @@ function onbView(){
 }
 function turnView(){
   if(S.onb)return `${moneyBar(' inert')}<main class="stage" inert></main>${onbView()}`;
-  const v=U.view||'profil',modal=U.quiet?quietModal():decisionModal(),dos=U.dossier&&BIENS[U.dossier.t]&&v==='immo'?`<div class="overlay" role="dialog" aria-modal="true" aria-label="Dossier de crédit"><div class="dmodal wide">${dossierHtml()}</div></div>`:'';
+  const v=U.view||'profil',modal=U.quiet?quietModal():chapDue()?chapModal():decisionModal(),dos=U.dossier&&BIENS[U.dossier.t]&&v==='immo'?`<div class="overlay" role="dialog" aria-modal="true" aria-label="Dossier de crédit"><div class="dmodal wide">${dossierHtml()}</div></div>`:'';
   const body=v==='portefeuille'?portefeuilleTab():v==='immo'?immoTab():v==='patrimoine'?patrimoineTab():profilTab();
   const t=U.toast?`<div class="toast2" role="status">${U.toast}</div>`:'',blk=modal||dos?' inert':'';
   return `${moneyBar(blk)}${navBar(blk)}<main class="stage"${blk}>${body}</main>${toastsHtml()}${t}${modal||dos}`;
@@ -2491,7 +2808,7 @@ function bilanView(){
   const lines=b.lines.map(l=>`<tr><td>${lineName(l)}</td><td class="n">${fmt(l.ev)}</td><td class="n ${cls(l.r)}">${pct(l.r)}</td></tr>`).join('');
   const props=S.props.map(p=>{const f=b.props.find(x=>x.uid===p.uid);const g=f?propValue(p)/f.vs-1:0;return `<tr><td>${pnameP(p)}</td><td class="n">${fmt(propValue(p))}</td><td class="n ${cls(g)}">${f?pct(g):'—'}</td></tr>`;}).join('');
   const F=b.flows;
-  const flows=[['Revenus moins dépenses courantes',F.epargne],['Prélèvements pour vivre (hors logement)',F.retraite],['Loyer',F.logement||0],['Voiture',F.voiture||0],['Enfants',F.enfants||0],['Autre crédit',F.autres||0],['Loyers encaissés',F.loyers],['Loyer économisé (résidence principale)',F.rp],['Charges et taxe foncière',-F.charges],['Mensualités de crédit',-F.credit],['Frais des placements',-(F.frais||0)],['Impôts et prélèvements',-F.impots],['Plaisirs et imprévus, payés en janvier',(F.plaisir||0)+(F.imprevu||0)]].filter(x=>Math.abs(x[1])>0.5)
+  const flows=[['Revenus moins dépenses courantes',F.epargne],['Prélèvements pour vivre (hors logement)',F.retraite],['Loyer',F.logement||0],['Voiture',F.voiture||0],['Enfants',F.enfants||0],['Autre crédit',F.autres||0],['Famille (maison de retraite, études)',F.famille||0],['Loyers encaissés',F.loyers],['Loyer économisé (résidence principale)',F.rp],['Charges et taxe foncière',-F.charges],['Mensualités de crédit',-F.credit],['Frais des placements',-(F.frais||0)],['Impôts et prélèvements',-F.impots],['Plaisirs et imprévus, payés en janvier',(F.plaisir||0)+(F.imprevu||0)]].filter(x=>Math.abs(x[1])>0.5)
     .map(x=>`<tr><td>${x[0]}</td><td class="n ${x[1]<0?'down':''}">${x[1]<0?'−':'+'}${fmt(Math.abs(x[1]))}</td></tr>`).join('');
   const [,,m1]=st5(b.me.humeur);
   return `${moneyBar()}<main class="stage"><section class="bilan2" aria-live="polite">
@@ -2542,7 +2859,7 @@ function endView(){
   const lifeTxt=['Ta vie perso a été sacrifiée.','Une vie perso correcte, avec des hauts et des bas.','Et une vie perso épanouie.'][fs.lt];
   return `${moneyBar()}<main class="stage"><section class="bilan">
     <div class="une-mast"><span>Le Courrier de la Corbeille · Édition spéciale</span><span>31 décembre ${YN}</span></div>
-    <p class="kicker">Fin de partie · ${profLabel()} · 75 ans</p><p class="rank">${fs.title}</p><p class="lede">${epilogue()}</p><p class="lede">${S.flags.faillite?'Tes dettes ont dépassé ce que tu pouvais vendre.':moneyTxt+' '+lifeTxt}</p>
+    <p class="kicker">Fin de partie · ${profLabel()} · 75 ans</p><p class="rank">${fs.title}</p>${S.story?biography().map(b=>`<p class="lede bio"><b>${b.n}</b> <span class="mut small">${b.yrs}</span><br>${b.t}</p>`).join(''):`<p class="lede">${epilogue()}</p>`}<p class="lede">${S.flags.faillite?'Tes dettes ont dépassé ce que tu pouvais vendre.':moneyTxt+' '+lifeTxt}</p>
     <div class="bigline"><div><span class="lbl">Score</span><div class="v">${NF.format(fs.score)}</div></div>
       <div><span class="lbl">Patrimoine en € de ${Y0}</span><div class="v">${fmt(fs.real)}</div></div>
       <div><span class="lbl">Bien-être moyen</span><div class="v">${Math.round(fs.be)} / 100</div></div>
@@ -2559,8 +2876,11 @@ function endView(){
     <div class="sec-h"><h2>Succès</h2><span class="mut">${Object.keys(S.ach||{}).length} / ${ACH.length}</span></div>
     <div class="achs">${ACH.map(a=>{const y=(S.ach||{})[a.id];return `<div class="ach ${y?'on':'off'}"><b>${a.n}</b><span>${a.d}</span>${y?`<span class="small mut">Débloqué en ${y}</span>`:''}</div>`;}).join('')}</div>
     <div class="sec-h"><h2>Tes investissements</h2></div>${invBody()}
+    ${S.story&&threadEnds().length?`<div class="sec-h"><h2>Ce que sont devenus les tiens</h2></div><ul class="fates">${threadEnds().map(t=>`<li>${t}</li>`).join('')}</ul>`:''}
+    ${S.story&&S.story.given>0.5?`<p class="small mut">Donné à tes enfants de ton vivant : ${fmt(S.story.given)} en euros de ${Y0}, compté dans ton score.</p>`:''}
     <div class="sec-h"><h2>Ton journal de décisions</h2></div>
     <div class="journal">${S.log.map(l=>`<div><b>${l.y}</b><span><strong>${l.t}</strong><br><span class="mut">${l.r}</span></span></div>`).join('')}</div>
+    ${warnBox()}
     <div class="btns"><button class="primary" data-act="replay">Rejouer</button></div></section></main>`;
 }
 // Profil sur mesure : valeurs de départ tirées de la fourchette choisie (elles redonnent la même épargne), puis contrôle de la saisie.
@@ -2590,6 +2910,22 @@ function custFields(st){
       <input type="number" inputmode="numeric" min="0" max="30" step="1" data-cu="debtN" value="${esc(c.debtN??'')}" aria-label="Années restantes" class="yrs"><em>ans</em></span></label>
   </div>`;
 }
+// ----- règles du jeu et avertissement : le jeu n'est pas la vraie vie -----
+const WARN_TXT='Ceci est un jeu. Le monde, les entreprises, les partis, les candidats et les personnages sont inventés, et ton histoire n’est pas la vraie vie. La fiscalité, les marchés et l’immobilier sont simplifiés. Rien ici n’est un conseil en investissement : dans la réalité, les rendements passés ne garantissent rien et chaque situation est différente.';
+const warnBox=()=>`<div class="warnbox" role="note"><b>Avertissement</b><p>${WARN_TXT}</p><button class="link" data-act="rules">Lire les règles du jeu →</button></div>`;
+function rulesModal(){
+  const li=a=>`<ul>${a.map(x=>`<li>${x}</li>`).join('')}</ul>`;
+  return `<div class="overlay" id="rules" role="dialog" aria-modal="true" aria-labelledby="rules-t"><div class="dmodal wide rules">
+    <div class="dm-head"><div class="dm-ico">${icon('journal',44)}</div><div><span class="lbl">La Corbeille</span><h2 id="rules-t">Règles du jeu</h2></div><button class="ghost sm close" data-act="rules-close">Fermer</button></div>
+    <div class="dm-body">
+      <div class="warnbox"><b>Ce jeu n’est pas la vraie vie</b><p>${WARN_TXT}</p></div>
+      <h3>Le principe</h3>${li([`Tu as 25 ans le 1er janvier ${Y0}. Un tour = une année, jusqu’à tes 75 ans en ${YN}.`,'Le monde est inventé à chaque partie : cycles, krachs, élections, innovations. Connaître l’histoire réelle ne donne aucun avantage.','Ta vie se déroule en cinq chapitres, avec des personnages qui reviennent et se souviennent de tes choix.'])}
+      <h3>Chaque année</h3>${li(['Les décisions obligatoires s’ouvrent en fenêtre : rien d’autre n’est possible tant qu’elles ne sont pas prises.','Ton salaire tombe, ton budget est payé (logement, voiture, enfants, imprévus) et ce qui reste est épargné sur ton compte courant.','Rien n’est placé à ta place : c’est toi qui investis, dans l’onglet Portefeuille ou Immobilier.','Les années sans décision peuvent défiler toutes seules (interrupteur au bilan).'])}
+      <h3>L’argent</h3>${li(['Livret A : sans risque, sans impôt, plafonné.','Compte-titres : tout est possible, plus-values taxées à la flat tax (30 % au départ).','PEA : actions européennes et ETF, presque sans impôt après 5 ans. Assurance-vie : avantage fiscal après 8 ans.','Immobilier : 20 % d’apport plus les frais de notaire, crédit refusé au-delà de 35 % de taux d’effort.','Les élections peuvent changer la fiscalité dès l’année suivante.'])}
+      <h3>La vie</h3>${li(['Ton humeur et ton couple vont de 0 à 100. Trop bas : burn-out, rupture, ventes paniquées.','Se faire du bien coûte de l’argent mais remonte le moral ; les décisions de vie ont des conséquences des années plus tard.'])}
+      <h3>Le score</h3>${li([`Patrimoine net en euros de ${Y0} (plus ce que tu as donné à tes enfants) × bien-être moyen × objectifs atteints × difficulté de ton profil.`,'Ton titre compare ton patrimoine à « la même vie, placements sur l’ETF Monde ou le Livret A », et ta qualité de vie.'])}
+    </div></div></div>`;
+}
 function introView(){
   const st=U.setup,cu=st.custom&&st.cust,pp={city:st.city,sal:st.sal,cap:st.cap,couple:st.couple,cust:cu||null},s=SALAIRES[st.sal],er=cu?custErr(st):'',c=coefOf(er?{...pp,cust:null}:pp);
   const first=st.couple?CITIES[st.city].t2:Object.keys(BIENS).find(k=>BIENS[k].k==='rp'&&BIENS[k].v===st.city&&BIENS[k].cap===1);
@@ -2617,6 +2953,7 @@ function introView(){
         <p class="small mut">${st.goals.map(g=>`<b>${GOALS[g].n}</b> : ${GOALS[g].d}`).join('<br>')||'Aucun objectif choisi.'}</p></fieldset>
       <button class="primary big" data-act="start" ${er?'disabled':''}>Commencer →</button>
       <p class="small mut">Un tour = une année. Rien n’est placé à ta place : c’est toi qui choisis où investir.</p>
+      ${warnBox()}
     </aside></section></main>`;
 }
 function animHtml(){
@@ -2648,7 +2985,7 @@ function stash(){try{const t=localStorage.getItem(KEY);if(t)localStorage.setItem
 // Garde le focus clavier au même endroit après un rendu (même bouton, même champ), et toujours dans la fenêtre ouverte.
 const sig=el=>el&&el.dataset?Object.keys(el.dataset).sort().map(k=>k+'='+el.dataset[k]).join('&')+'|'+(el.id||''):'';
 function restoreFocus(was){
-  const box=document.querySelector('.anim')||document.querySelector('.overlay');
+  const box=document.getElementById('rules')||document.querySelector('.anim')||document.querySelector('.overlay');
   let el=null;
   if(was)el=[...document.querySelectorAll('button,input,select,textarea')].find(x=>sig(x)===was&&!x.closest('[inert]'));
   // Fenêtre qui s'ouvre : le focus va sur la fenêtre elle-même (pas sur un champ, pour ne pas ouvrir le clavier du téléphone).
@@ -2669,7 +3006,7 @@ function render(){
   }catch(e){if(!S)throw e;console.error(e);stash();U.broken=true;U.anim=null;body=brokenView();}
   if(U.broken)S=null;
   app.className='wrap'+(U.fx?' fx':'');
-  app.innerHTML=header()+body+(U.anim&&S?animHtml():'');
+  app.innerHTML=header()+body+(U.anim&&S?animHtml():'')+(U.rules?rulesModal():'');
   restoreFocus(was);markMore();
   U.fx=false;
   if(!S)U.prevMoney=null;
@@ -2744,6 +3081,9 @@ function onClick(ev_){
       const q=autoPass();U.quiet=q.length&&S.phase==='turn'?q:null;
       if(q.length&&canAnim()){U.animList=q;U.anim={i:0};render();runAnim();return;}break;}
     case 'quiet-ok':U.quiet=null;U.fx=true;break;
+    case 'rules':U.rules=true;break;
+    case 'rules-close':U.rules=false;break;
+    case 'chap-ok':if(S.story){S.story.chap=chapOf(S.year)+1;save();}U.fx=true;break;
     case 'auto':S.autoPass=S.autoPass===false;save();break;
     case 'broken-new':U.broken=false;S=null;wipe();U.fx=true;break;
   }
@@ -2779,6 +3119,7 @@ function boot(data){
   try{S=migrate((data&&data.S&&data.S.v===3)?data.S:load());}catch(e){S=null;U.broken=true;stash();}
   // Partie d'avant la 3.5 : le repère ne suivait pas l'immobilier. On le recale sur tes placements actuels, la comparaison repart d'aujourd'hui.
   if(S&&S.autoPass==null)S.autoPass=true;
+  if(S&&!S.story){storyMigrate();}
   if(S&&!S.benchV){const f=net()-propNet();S.bench={liv:f,trk:f};S.yearProp=0;S.benchV=2;}
   if(S&&!S.moves)S.moves=[];
   if(!S)U.legacy=legacyGame();
@@ -2787,9 +3128,10 @@ function boot(data){
     document.addEventListener('input',onInput);
     document.addEventListener('change',onInput);
     document.addEventListener('keydown',e=>{
+      if(e.key==='Escape'&&U.rules){U.rules=false;render();return;}
       if(e.key==='Escape'&&U.dossier){U.dossier=null;render();return;}
       // Tab reste dans la fenêtre ouverte
-      const box=e.key==='Tab'&&(document.querySelector('.anim')||document.querySelector('.overlay'));if(!box)return;
+      const box=e.key==='Tab'&&(document.getElementById('rules')||document.querySelector('.anim')||document.querySelector('.overlay'));if(!box)return;
       const f=[...box.querySelectorAll('button:not(:disabled),input,select,textarea,summary')];if(!f.length)return;
       const i=f.indexOf(document.activeElement);
       if(e.shiftKey&&i<=0){e.preventDefault();f[f.length-1].focus();}else if(!e.shiftKey&&(i<0||i===f.length-1)){e.preventDefault();f[0].focus();}});

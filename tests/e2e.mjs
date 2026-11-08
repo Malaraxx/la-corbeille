@@ -22,6 +22,7 @@ async function decide(pg) {
   const o = { timeout: 3000 };
   for (let k = 0; k < 8; k++) {
     if (await pg.$('[data-act=quiet-ok]')) { await pg.click('[data-act=quiet-ok]', o); continue; }
+    if (await pg.$('[data-act=chap-ok]')) { await pg.click('[data-act=chap-ok]', o); continue; }
     if (await pg.$('[data-act=dec-ok]')) { await pg.click('[data-act=dec-ok]', o); continue; }
     if (await pg.$('[data-act=life]')) { // une réponse peut être refusée (apport insuffisant) : on essaie les suivantes
       const n = (await pg.$$('[data-act=life]')).length;
@@ -66,12 +67,20 @@ for (const [name, viewport, colorScheme] of [['desktop', { width: 1280, height: 
   await pg.click('[data-act=set][data-k=couple][data-v=true]');
   await pg.screenshot({ path: join(out, `${name}-0-depart.png`), fullPage: false });
   await noScroll(pg, name, 'création du profil');
+  if (!(await pg.$('.warnbox'))) errors.push(`${name} : avertissement absent de l’écran de départ`);
+  await pg.click('.warnbox [data-act=rules]'); await pg.waitForTimeout(300);
+  await pg.screenshot({ path: join(out, `${name}-0b-regles.png`), fullPage: false });
+  await pg.keyboard.press('Escape');
+  if (await pg.$('#rules')) errors.push(`${name} : Échap ne ferme pas les règles`);
   await pg.click('[data-act=start]');
   // choix du logement
   await pg.waitForTimeout(500);
   await pg.screenshot({ path: join(out, `${name}-1a-logement.png`), fullPage: false });
   await pg.click('.opt.reco');
   await pg.click('[data-act=onb-next]');
+  await pg.waitForTimeout(500);
+  if (!(await pg.$('[data-act=chap-ok]'))) errors.push(`${name} : pas de carte de chapitre au départ`);
+  await pg.screenshot({ path: join(out, `${name}-1e-chapitre.png`), fullPage: false });
   await decide(pg);
   // les quatre onglets
   await pg.waitForTimeout(500);
