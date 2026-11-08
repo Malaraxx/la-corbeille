@@ -11,7 +11,7 @@ Le propriétaire du projet est Flo (GitHub : `Malaraxx`), un professionnel du ri
 La Corbeille est un simulateur de gestion de patrimoine **au tour par tour**, en français, du 1er janvier 2026 (le joueur a 25 ans) au 31 décembre 2076 (75 ans).
 
 - **Aucune histoire réelle.** Chaque partie génère **son propre monde** : cycles économiques, krachs, bulles, élections, vagues d'innovation. Tout obéit à des règles économiques réelles (les crises naissent des excès, la banque centrale réagit à l'inflation, une Bourse chère rapporte moins ensuite), mais rien n'est écrit d'avance. Connaître l'histoire ne donne aucun avantage.
-- **Un tour = une année.** Tout tient sur **un seul écran, sans défilement de la page** : une barre d'argent toujours visible (compte courant, Livret A, placements, immobilier, patrimoine), la navigation avec le bouton de fin d'année, puis **quatre onglets** en cartes : **Profil** (l'année, les décisions obligatoires, les conseils de Sophie, le foyer, le budget du mois), **Portefeuille** (liquidités et où investir), **Immobilier** (logement, catalogue par ville, dossier de crédit), **Patrimoine** (le résumé).
+- **Un tour = une année.** Tout tient sur **un seul écran, sans défilement de la page** : une barre d'argent toujours visible (compte courant, Livret A, placements, immobilier, patrimoine), la navigation avec le bouton de fin d'année, puis **cinq onglets** en cartes : **Profil** (l'année, les décisions obligatoires, les conseils de Sophie, le foyer, le budget du mois), **Portefeuille** (liquidités et où investir), **Immobilier** (logement, catalogue par ville, dossier de crédit), **Carrière** ou **Ma boîte** (salaire, création d'entreprise, tableau de bord de ta boîte), **Patrimoine** (le résumé).
 - Les décisions obligatoires s'ouvrent **en fenêtre au début de l'année, une à la fois**, et bloquent tout le reste tant qu'elles ne sont pas prises. Environ deux années sur trois, **une Une** impose une **décision obligatoire** (krach, présidentielle, bulle, valeur en chute, lancement d'un fonds thématique, produit douteux…). Il y a parfois en plus **un dilemme de vie perso**, lui aussi obligatoire. Les années sans aucune décision passent d'affilée dans l'animation, puis une fenêtre les résume (interrupteur « Passer les années calmes », activé par défaut).
 - Au départ, le joueur **crée son profil** : ville (Lille, Lyon, Paris, Bordeaux, Marseille), fourchette de salaire **ou ses propres chiffres** (« Mes chiffres » : salaires, loyer et taille du logement, dépenses courantes, voiture, autre crédit), épargne de départ, célibataire ou en couple, deux objectifs. Puis il choisit son logement (louer, rester chez ses parents, colocation ou acheter, selon ses moyens, avec l'avis de Sophie). Rien n'est placé à sa place.
 - Le **budget est réel** : loyer ou mensualités, voiture, enfants, imprévus. Ce qui reste est épargné. Les achats « se faire du bien » (sorties, vacances, cadeau…) font monter l'humeur et le couple contre de l'argent. On passe à l'année suivante, l'**animation** fait défiler l'année, puis vient le **bilan**.
@@ -92,6 +92,7 @@ Le script est découpé en sections balisées par `/* ===== NOM ===== */`. Dans 
 | **Vie perso** | `LIFE[id]` : `{view, act, can?}` + `retireOpts`. `act` peut renvoyer `{err}` (choix refusé, la question reste posée). Ids : burnout, rupture, weekend, panique, licenciement, diner, promo, vacances, mariage, enfant, sport, ami, rencontre, logement, panne, fire, retraite |
 | **Carnet** | `headline(y)`, `makeNotes(y, head, imp)`, `kidLine`, `imprevu(y)`, `conseils()`, `rappels()`, `ACHATS`/`achatState`/`acheter`, et le départ : `homeOptions`, `recoHome`, `un`, `sophieHome`, `onbHome`, `onbNext` |
 | **Histoire** | `CHAPS`/`chapOf`, distribution (`storyInit`, `storyTraits`), versions de texte (`vers`, `V`, `deja`, `NV`/`NVL`), fils (`openTh`, `endTh`, `dueThread`), moments racontés sans fenêtre (`NOTES`, `playNotes`, `chapFill`), moments de vie en fenêtre (`STORY`, ajoutés à `LIFE` avec `story:true`), `chapSnap`/`chapLine`, `biography`, `threadEnds`, `closeStory`, `elecStake`, héritage (`inherit`, `placeGift`), frais de famille (`careCost`, `studCost`, `famCost`), `kidThreads`, `storyMigrate` |
+| **Carrière et entreprise** | `DOMS` (domaines), `HITS`, `STARTUPN`, `bizOn`/`bizBoss`/`bizWork`/`bizStake`, `baseSal` (salaire de référence), `raiseSal`, `PAYS`/`payOf`/`bizPay`, `bizCreate`, `bizJoin`, `bizOffer`, `bizEnd`, `bizSell`, `bizRetire`, `bizLeave`, `bizHire`, `canRaise`/`raiseAmt`/`bizRaise`, `divAmt`/`bizDiv`, `bizYear` (l'année de la boîte, appelée dans `simulateYear`) ; interface `boiteTab`, `careerView`, `bizChart` |
 | **Tours** | `pickLife(crash)` (fils échus d'abord, puis dilemmes pondérés par chapitre `CHW`), `storyYear`, `startTurn(y)` (année, salaire, événement, fiche, conseillers, vie perso, imprévu, notes de la page), `answerEvent`, `answerLife`, `turnReady` |
 | **Simulation** | `whyText` (explication du bilan), `movesGain` (ce que les ordres de janvier ont rapporté face à « ne rien toucher »), `simulateYear(y)` (le cœur : rendements, impôts, loyers, épargne/retraite, élection, ventes forcées, puis repères, humeur, succès), `endTurn`, `nextBilan`, `finalScore` |
 | **Sauvegarde** | `KEY='la-corbeille-v3'`, `save`/`load`/`wipe`, `migrate()` (complète une partie 3.0 ou 3.1 : logement, ville, enfants, page), `legacyGame()` et `dropLegacy()` (clôture des parties de la version 2) |
@@ -121,6 +122,7 @@ idx{bien:{price,rent}}
 city ('lille'|'lyon'|'paris'), home{type (clé de BIENS, 'parents', 'coloc' ou 'perso'), own, since}, cust{sal,salP,partner,rent,rooms,dep,car,debt,debtN}|absent (profil sur mesure, p.custom = true), onb (étape de l'accueil ou null), onbAns[], onbHome, buyHist{achat:[années]}
 lossCarry, flags{rpYear,twoRent,struct,souvY,startup,lastPand,fireAsked,pretAmi,panicSold,lowMood,faillite…}, pending{année:{actif:%}}, jeton{name,alive,born}, avAb
 revenu, tauxEp, defl (indice des prix), bench{liv,trk} (placements des repères, sans l'immobilier), benchV:2, yearExt, yearProp, yearRuin, extTot, moves[{e,id,a,tax}] (ordres de janvier), autoPass, half (0/1 : juillet joué), h1{y,r,sv,cash,net0}|null, julyOn
+biz{uid,dom,name,born,role:'own'|'emp'|'act',share,ca,staff,tre,debt,debt0,inv,pay,payV,hist[{y,ca,g,ops,pay,tax,res,tre,staff,val}],raises,lastRaise,alive,red,val,divY,hired,prime,burn}|absent, salRef (salaire de référence tant que la boîte te paie), bizCh[] (chapitres où une boîte a été créée), bizPast[{name,dom,born,end,txt,role}]
 hist[{x,net,liv,trk}], bilans[], event{id,p,answered,result,fiche?,adv?}|null, life{id,v,answered,result,name?}|null, nextY
 usedFut[], usedLife[], uid, log[{y,t,r}], turnShock, lock, well{sum,n}, profile
 lg{lines{clé:{env,id,label,first,lastSell,flows[{t,y,a}]}}, env{pea[],av[]}, props[]}
@@ -286,6 +288,26 @@ Coupés par défaut, bouton haut-parleur dans la barre du haut. Synthétisés (W
 - `simulateYear` applique ensuite le reste : (1+r)/(1+r₁) − 1 par actif, le gain de l'année se mesure depuis la valeur de janvier, l'épargne déjà versée est retirée du versement de décembre. Une année jouée avec ou sans juillet finit au centime près au même endroit si l'on ne touche à rien (test « Point de juillet »).
 - `julyModal()` : budget du semestre (moitié de chaque poste annuel), placements depuis janvier (4 plus grosses lignes), « Voir mon portefeuille » ou « Continuer ». L'annulation d'ordre est effacée au passage en juillet. `startTurn` remet `S.half = 0` et `S.h1 = null`. Champs nouveaux sans migration : absents, ils valent « pas encore juillet » et « point activé ».
 
+### Carrière et entreprise (`S.biz`, onglet Carrière / Ma boîte)
+- **Au départ** : « Ton métier » : salarié·e, ou ta boîte dans l'un des cinq domaines (créée en janvier 2026, avant le choix du logement). **En cours de partie** : onglet Carrière, une création par chapitre, pas après 60 ans ni à la retraite.
+- **Domaines** (`DOMS`, euros de 2026) :
+
+| Domaine | Apport | CA de départ | Croissance | Coûts variables | Coûts fixes | CA par personne | Salarié | Coup dur | Valorisation |
+|---|---|---|---|---|---|---|---|---|---|
+| Logiciel | 10 000 € | 40 000 € | +45 % | 10 % | 12 000 € | 120 000 € | 70 000 € | 10 %/an (−35 %) | 3,5 × CA |
+| E-commerce | 15 000 € | 150 000 € | +27 % | 65 % | 15 000 € | 300 000 € | 45 000 € | 10 % (−30 %) | 1 × CA |
+| Restauration | 60 000 € | 250 000 € (2 salariés) | +5 % | 28 % | 40 000 € | 110 000 € | 38 000 € | 6 % (−18 %) | 0,8 × CA |
+| Conseil | 5 000 € | 90 000 € | +12 % | 10 % | 8 000 € | 160 000 € | 75 000 € | 5 % (−25 %) | 1 × CA |
+| Artisanat et BTP | 20 000 € | 200 000 € (1 salarié) | +7 % | 36 % | 15 000 € | 130 000 € | 45 000 € | 5 % (−18 %) | 0,6 × CA |
+
+- **Apport** : au moins un tiers de l'apport du domaine vient de toi (compte puis Livret A), la banque prête le reste, remboursé par la boîte en 5 ans au taux du crédit + 2 points. L'apport passe par le registre (`lgFlow('biz','boiteN')`), comme les dividendes et la vente : la part du joueur (`share × val`) compte dans `net()` et dans « Placements ».
+- **L'année** (`bizYear`, au 31 décembre, hasard de vie `rnd()`) : croissance = base × max(0,12 ; 1 − âge/14) + cycle (expansion +3 pts, surchauffe +5, récession −8, crise −20, reprise +3, × sensibilité : logiciel 0,8, e-commerce 1,2, restaurant et BTP 1,1, conseil 0,9) + bruit + 6 pts l'année d'une embauche, moins un coup dur éventuel (risque ×2 en crise, ×1,4 en récession, ×0,6 après 5 ans) ; inflation en plus. Au-delà de la capacité (CA par personne × effectif toi compris), la croissance ne compte qu'à 15 %. Le CA ne perd jamais plus de 70 % en un an. Coûts : variables + fixes (+10 % par salarié) + salariés + ton salaire × 1,45 + intérêts. Impôt sur les sociétés 25 %. Valorisation = multiple × CA (la moitié si perte et croissance ≤ 20 %) + trésorerie − dette.
+- **Dépôt de bilan** : trésorerie négative deux ans de suite, ou trou de plus d'un quart du CA. La part ne vaut plus rien ; le fondateur retrouve un poste à 90 % de son salaire de référence (humeur −15).
+- **Décisions** (onglet Ma boîte) : ton salaire (`PAYS` : rien, le minimum 1 400 €/mois indexé, ton ancien salaire, +30 % ; `S.revenu` = ce que verse la boîte, le conjoint et la retraite se calculent sur `S.salRef` via `baseSal()`), embaucher (il faut six mois de salaire en trésorerie) ou licencier (trois mois de salaire), lever des fonds (logiciel et e-commerce : 25 % de la valorisation contre 20 % du capital, 15 % de croissance minimum, tous les 3 ans au plus, pas en crise), dividende (`divAmt` : bénéfice de l'an dernier ou un quart des réserves, au plus la moitié de la trésorerie, flat tax), vendre (90 % de la valorisation, plus-value à la flat tax) ou fermer (part de la trésorerie nette). Vendre ou fermer ramène au salaire de référence.
+- **Sécurités** : si ton compte passe dans le rouge, ta boîte te verse d'abord une prime prise sur sa trésorerie (× 1,45), puis tes parts sont cédées en urgence (−30 %) avant l'immobilier (`raiseCash`). À la retraite (ou à l'indépendance financière), la boîte est cédée (`bizRetire`). Le dirigeant n'est jamais licencié et ne reçoit ni promotion ni dîner d'affaires ; l'indépendance financière se mesure sur le salaire de référence.
+- **Start-up** (`startupJob`, dilemme de 27 à 50 ans, une fois par partie, sans boîte) : salaire −20 %, 0,25 % du capital par an jusqu'à 1 % ; boîte de logiciel de 1,5 M€ de CA, 12 salariés, 2 M€ de trésorerie, 35 % du CA en dépenses de croissance pendant 8 ans. « Revenir à un poste classique » garde les actions (rôle `act`) ; elles se revendent avec 30 % de décote, l'argent arrive par `ext()`.
+- **Succès** : « Patron », revendre la boîte qu'on a créée plus d'un million d'euros de 2026.
+
 ### Confort
 - **Annuler le dernier ordre** : l'état d'avant chaque ordre du tour (achat, vente, retrait, placement, rééquilibrage, achat ou vente immobilière, déménagement, renégociation, achat plaisir) est gardé dans `U.undoS` ; le bouton « ↶ Annuler … » de la navigation le restaure. Effacé à la fin de l'année.
 - **Premiers pas** (`TUTO`, `tutoCard`) : pendant les deux premières années, une liste qui se coche toute seule remplace la carte des objectifs (budget, onglet Portefeuille, Livret A ou enveloppe ouverte, onglet Immobilier, année suivante). « Masquer » pose `S.tutoDone`.
@@ -351,8 +373,8 @@ Le verdict « bien vu / raté » est donné au bilan, et l'historique de chacun 
 ### Fiches analyste
 Chaque indicateur est « sain » avec une probabilité de 0,5 + 0,4 × `fwdScore`, bornée entre 0,08 et 0,92. Les indicateurs : dette nette/EBITDA, couverture des intérêts, PER, croissance (ou CET1 et créances douteuses pour la banque ; clients qui renouvellent, croissance des ventes, trésorerie et valorisation/ventes pour un fonds thématique), plus un consensus des analystes **volontairement non informatif**. Un joueur qui lit les fiches doit faire au moins 1,15 fois mieux qu'un acheteur naïf de paniques.
 
-### Succès (`ACH`, 15)
-diamant (≥ 80 % d'actions et ≥ 100 000 € investis à la fin d'une année de krach) · panique (investir ≥ 10 % du patrimoine pendant un krach) · sommet (vendre une bulle juste avant qu'elle éclate) · couteau (acheter une chute qui continue, mise ≥ 5 000 €) · flair (3 achats à contre-courant réussis) · visionnaire (tripler une mise ≥ 2 000 € sur un fonds thématique) · lune (jeton ×10) · rekt (perdre ≥ 10 000 € sur un jeton) · angel (start-up rachetée) · proprio (résidence principale achetée avant 30 ans) · empire (3 biens) · million (1 M€ de 2026 avant 50 ans) · libre (plus de travail avant 60 ans) · fidele (marié·e à son premier amour, sans rupture) · patient (PEA de 20 ans valant plus d'un million d'euros de 2026). Aucun succès ne doit être obtenu par plus de 60 % des joueurs aléatoires.
+### Succès (`ACH`, 16)
+diamant (≥ 80 % d'actions et ≥ 100 000 € investis à la fin d'une année de krach) · panique (investir ≥ 10 % du patrimoine pendant un krach) · sommet (vendre une bulle juste avant qu'elle éclate) · couteau (acheter une chute qui continue, mise ≥ 5 000 €) · flair (3 achats à contre-courant réussis) · visionnaire (tripler une mise ≥ 2 000 € sur un fonds thématique) · lune (jeton ×10) · rekt (perdre ≥ 10 000 € sur un jeton) · angel (start-up rachetée) · proprio (résidence principale achetée avant 30 ans) · empire (3 biens) · million (1 M€ de 2026 avant 50 ans) · libre (plus de travail avant 60 ans) · fidele (marié·e à son premier amour, sans rupture) · patient (PEA de 20 ans valant plus d'un million d'euros de 2026) · patron (revendre sa boîte plus d'un million d'euros de 2026). Aucun succès ne doit être obtenu par plus de 60 % des joueurs aléatoires.
 
 ---
 
@@ -372,17 +394,20 @@ diamant (≥ 80 % d'actions et ≥ 100 000 € investis à la fin d'une année d
 
 ## 7. Équilibrage : cibles actuelles (`npm run balance`)
 
-| Mesure | Cible | Dernière valeur (graines 11 et 4242) |
+| Mesure | Cible | Dernière valeur (graines 11 et 4242, version 3.12) |
 |---|---|---|
-| Passif PEA / repère ETF Monde sans frais | 0,85 – 1 | 0,92 – 0,93 |
-| Élève de Sophie (suit ses conseils et ses avis sur les événements) / passif à 60 % d'actions | ≥ ×1,0 | ×0,95 – ×1,21 (**WARN** sur une graine : mesure bruitée) |
-| Élève de Sophie / acheteur naïf de paniques **au même profil** (80 % d'actions) | ≥ ×1,15 (décision de Flo du 8 novembre 2026) | ×0,94 – ×1,10 (**WARN**, mesure bruitée sur 100 parties) |
-| Lecteur de fiches / acheteur naïf | ≥ ×1,15 | ×1,09 – ×1,38 (**WARN** sur une graine) |
-| Score du carriériste < score de l'équilibré | vrai | 1 644 < 3 038 |
-| 10e centile du patrimoine d'un joueur passif | > 0 | 784 – 1 105 k€ |
-| Score médian de chaque profil tout fait / héritier | 0,75 – 1,33 | 0,92 – 1,15 |
-| Objectifs visés : rp35 ≥ 80 %, famille ≥ 40 % (infirmier) et ≥ 25 % (héritier), fire 25 – 70 %, rentier ≥ 70 %, 2,5 millions 15 – 60 % | | 100 / 38-43 / 38-44 / 43-50 / 100 / 39-43 % |
-| Sophie ≥ 70 %, Kévin ≤ 60 % | | 79-81 / 58-59 % |
+| Passif PEA / repère ETF Monde sans frais | 0,85 – 1 | 0,93 – 0,93 |
+| Élève de Sophie (suit ses conseils et ses avis sur les événements) / passif à 60 % d'actions | ≥ ×1,0 | ×1,10 – ×1,25 |
+| Élève de Sophie / acheteur naïf de paniques **au même profil** (80 % d'actions) | ≥ ×1,15 (décision de Flo du 8 novembre 2026) | ×1,09 – ×1,17 (**WARN** sur une graine : mesure bruitée sur 100 parties) |
+| Lecteur de fiches / acheteur naïf | ≥ ×1,15 | ×1,22 – ×1,26 |
+| Entrepreneur (boîte créée au départ, un domaine sur cinq) / salarié passif, médiane | 0,75 – 1,33 | ×0,91 – ×1,09 |
+| Entrepreneur / salarié passif, 90e centile | ≥ ×1,3 | ×1,49 – ×1,70 |
+| Entrepreneurs dont la boîte a fait faillite | 15 – 50 % | 45 – 48 % |
+| Score du carriériste < score de l'équilibré | vrai | vrai sur les deux graines |
+| 10e centile du patrimoine d'un joueur passif | > 0 | 901 – 946 k€ |
+| Score médian de chaque profil tout fait / héritier | 0,75 – 1,33 | 0,89 – 1,26 |
+| Objectifs visés : rp35 ≥ 80 %, famille ≥ 40 % (infirmier) et ≥ 25 % (héritier) | | 100 / 41-45 / 35-40 % |
+| Sophie ≥ 70 %, Kévin ≤ 60 % | | 79-81 % / ≤ 59 % |
 
 Si tu modifies un paramètre de jeu, lance `npm run balance` avec deux graines différentes, corrige les WARN et mets à jour ce tableau.
 
@@ -443,7 +468,7 @@ Si tu modifies un paramètre de jeu, lance `npm run balance` avec deux graines d
 
 ## 10. Feuille de route (par priorité)
 
-Fait en 3.7-3.9 : histoire en chapitres et fils narratifs, années calmes enchaînées, classement entre amis (version officielle), monde du jour et graine partageable, premiers pas et glossaire, annulation du dernier ordre, graphique annoté, SCPI, LMNP, obligations d'entreprise, IFI, Bordeaux et Marseille, DPE, sons.
+Fait en 3.7-3.12 : carrière et entreprise, point de juillet, style journal ; histoire en chapitres et fils narratifs, années calmes enchaînées, classement entre amis (version officielle), monde du jour et graine partageable, premiers pas et glossaire, annulation du dernier ordre, graphique annoté, SCPI, LMNP, obligations d'entreprise, IFI, Bordeaux et Marseille, DPE, sons.
 
 1. **Classement ouvert à tous** : aujourd'hui, sur un compte personnel, les amis qui arrivent par le lien public ne peuvent qu'envoyer leur résultat au propriétaire. Passer par une organisation (plan Team) ou inviter chaque ami en Contributeur leur permettrait d'inscrire leur score eux-mêmes.
 2. **Contenu** : donation-partage et succession détaillée en fin de partie, fiscalité propre au jeton numérique, crise immobilière locale dans une ville.

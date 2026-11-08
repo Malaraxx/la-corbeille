@@ -38,6 +38,7 @@ vm.runInContext(js + `;globalThis.T={get S(){return S},set S(v){S=v},newGame,sta
   buyProp,sellProp,reneg,canReneg,answerEvent,answerLife,evDef,LIFE,EVT,net,tradable,ORDER,ENVS,META,EQUITY,STOCKS,THEMES,PRESETS,GOALS,ACH,ADV,PHASES,GOOD,Y0,YN,
   eligEnvs,peaCap,envTotal,turnReady,finalScore,placeIdle,rebalance,dry,alloc,eqShare,irr,invData,coups,epilogue,shareText,genYear,peekR,hv,ev,conseils,rappels,pct,f1,
   homeOptions,recoHome,onbHome,onbNext,onbView,budgetTable,kidsCost,rpOf,PRESETS,EPARGNES,SALAIRES,coefOf,BIENS,dossierHtml,acheter,achatState,ACHATS,migrate,bestRental,bestBuy,buyHome,moveTo,propQuote,coussin,yearlySave,monthlySpend,CITIES,loanLeft,
+  halfYear,bizCreate,bizSell,bizRaise,bizDiv,bizHire,bizPay,bizLeave,bizStake,bizOffer,canRaise,DOMS,
   halfYear,buyHomeKeep,ifiTax,benchRef,biography,threadEnds,chapOf,boot,endView,envTotal,custErr,custLeft,custDefaults,homeName,startSave,turnView,bilanView,endView,introView,moneyBar,profilTab,portefeuilleTab,immoTab,patrimoineTab,animHtml,toastsHtml,advHtml,spark,save,load,legacyGame,U};`, ctx);
 const T = ctx.T;
 
@@ -84,6 +85,14 @@ const randomPolicy = {
     for (const p of S.props) if (T.canReneg(p) && R() < .5) T.reneg(p.uid);
     if (R() < .03 && S.props.length) T.sellProp(S.props[0].uid);
     if (R() < .3) T.placeIdle(R(), []);
+    if (!S.biz && R() < .03) T.bizCreate(pickR(Object.keys(T.DOMS)));
+    if (S.biz && S.biz.alive && S.biz.role === 'own') {
+      if (R() < .3) T.bizPay(pickR(['zero', 'smic', 'avant', 'haut']));
+      if (R() < .2) T.bizHire(R() < .6 ? 1 : -1);
+      if (R() < .2) T.bizRaise();
+      if (R() < .2) T.bizDiv();
+      if (R() < .03) T.bizSell(R() < .5 ? 'vente' : 'fermeture');
+    } else if (S.biz && S.biz.alive && R() < .05) T.bizSell('vente');
   },
 };
 
@@ -105,7 +114,7 @@ function play(arch, goals, pol, hooks = {}) {
       }
       if (!S.lock && pol.port) pol.port(S);
       if (hooks.afterPort && !S.lock) hooks.afterPort(S);
-      if (hooks.render) { for (const v of ['profil', 'portefeuille', 'immo', 'patrimoine']) { T.U.view = v; T.turnView(); } T.U.view = 'profil'; }
+      if (hooks.render) { for (const v of ['profil', 'portefeuille', 'immo', 'boite', 'patrimoine']) { T.U.view = v; T.turnView(); } T.U.view = 'profil'; }
       check(T.turnReady(), 'tour non clôturable');
       T.endTurn();
     } else {
@@ -120,7 +129,7 @@ function play(arch, goals, pol, hooks = {}) {
 
 function cashIdentity(S) {
   let sum = 0;
-  for (const k in S.lg.lines) { const L = S.lg.lines[k]; if (L.env === 'liv' || L.env === 'cto') for (const f of L.flows) sum += f.a; }
+  for (const k in S.lg.lines) { const L = S.lg.lines[k]; if (L.env === 'liv' || L.env === 'cto' || L.env === 'biz') for (const f of L.flows) sum += f.a; }
   for (const e of ['pea', 'av']) for (const f of S.lg.env[e]) sum += f.a;
   for (const p of S.lg.props) for (const f of p.flows) sum += f.a;
   for (const p of S.props) for (const f of (p.flows || [])) sum += f.a;
@@ -546,6 +555,47 @@ test('Point de juillet : le semestre ne change ni le monde ni l’argent de l’
   }
 });
 
+test('Carrière : créer sa boîte, la piloter, la vendre, sans créer ni perdre d’argent', () => {
+  let fails = 0, sold = 0, n = 0;
+  for (let g = 0; g < 24; g++) {
+    const dom = Object.keys(T.DOMS)[g % 5];
+    T.newGame({ city: 'lille', sal: 2, cap: g % 3 === 0 ? 0 : 1, couple: g % 2 === 1, seed: 500 + g }, []); let S = T.S;
+    const n0 = T.net(), c0 = S.cash, sal0 = S.revenu, er = T.bizCreate(dom);
+    if (er) { check(g % 3 === 0 && /apport/.test(er), `création refusée à tort (${dom}) : ${er}`); continue; }
+    n++; S = T.S;
+    check(Math.abs(T.net() - n0) < 1 && S.cash < c0 + .5 && S.salRef === sal0 && S.revenu === S.biz.payV, `création mal comptée (${dom})`);
+    check(T.bizCreate('conseil'), 'deux boîtes en même temps');
+    T.U.view = 'boite'; T.turnView(); T.U.bizConf = 'sell'; T.turnView(); T.U.bizConf = null;
+    for (let i = 0; i < 14 && S.phase !== 'end'; i++) {
+      if (S.life) for (const c of S.life.v.choices) if (!S.life.answered) T.answerLife(c.id);
+      if (S.event) T.answerEvent('pass');
+      const B = S.biz;
+      if (B && B.alive && B.role === 'own') {
+        check(S.revenu === B.payV, 'salaire du dirigeant différent de ce que verse la boîte');
+        if (B.hist.length) { if (B.red && B.staff) T.bizHire(-1); T.bizPay(B.red ? 'zero' : B.tre > 60000 ? 'avant' : 'smic'); if (B.tre > 150000) T.bizDiv(); if (!T.canRaise() && B.tre < 50000) T.bizRaise(); }
+      }
+      T.turnView(); T.endTurn(); T.bilanView(); T.nextBilan(); S = T.S;
+      scanNumbers(S); check(T.bizStake() >= 0 && (!S.biz || S.biz.share > 0), 'part de boîte négative');
+      check(cashIdentity(S) < 1 || S.me.ruptures, `argent créé ou perdu avec la boîte (${dom}, ${S.year})`);
+    }
+    const past = S.bizPast || [];
+    if (past.some(x => x.txt === 'en faillite')) { fails++; check(S.salRef == null && S.revenu > 0, 'pas de retour à l’emploi après la faillite'); }
+    else if (S.biz && S.biz.alive && S.biz.role === 'own') {
+      const ref = S.salRef, r = T.bizSell('vente'); sold++;
+      check(!r.err && !S.biz && Math.abs(S.revenu - Math.round(ref)) < 1 && cashIdentity(S) < 1 + (S.me.ruptures ? 1e12 : 0), 'vente mal comptée');
+    }
+    const S2 = JSON.parse(JSON.stringify(T.S)); check(JSON.stringify(S2) === JSON.stringify(T.S), 'sauvegarde de la boîte');
+    T.invData(); T.endView;
+  }
+  // rejoindre une start-up
+  T.newGame({ city: 'lyon', sal: 3, cap: 1, couple: false, seed: 77 }, []); const S = T.S, r0 = S.revenu;
+  S.life = { id: 'startupJob', sname: 'Orbital', answered: false }; S.life.v = T.LIFE.startupJob.view();
+  T.answerLife('oui');
+  check(S.biz && S.biz.role === 'emp' && Math.abs(S.revenu - .8 * r0) < 1 && S.salRef === r0, 'embauche en start-up mal appliquée');
+  T.endTurn(); T.nextBilan(); check(T.S.biz.share > 0 || !T.S.biz, 'actions non acquises');
+  console.log(`    ${n} créations · ${fails} faillites en 14 ans · ${sold} ventes`);
+});
+
 test('Profils tout faits et immobilier multi-villes', () => {
   for (const a of Object.keys(T.PRESETS)) { const v = T.EPARGNES[T.PRESETS[a].cap].v; T.newGame(a, ['famille']); check(T.S.cash === v && T.S.start === v, `capital de départ faux pour ${a}`); T.turnView(); }
   T.newGame('heritier', []); T.S.cash = 3e6; T.S.start = 3e6;
@@ -559,7 +609,7 @@ if (BALANCE) {
   console.log('\nRapport d’équilibrage (avertissements seulement)\n');
   const warn = (ok, label, val, target) => console.log(`${ok ? '  OK  ' : ' WARN '} ${label.padEnd(52)} ${String(val).padStart(10)}   cible ${target}`);
   const choose = map => (id, ch) => { const w = map[id]; return w && ch.includes(w) ? w : (id === 'retraite' ? ch[Math.min(1, ch.length - 1)] : ch[0]); };
-  const BAL = { diner: 'rdv', promo: 'oui', vacances: 'oui', mariage: 'oui', enfant: 'non', sport: 'oui', ami: 'non', weekend: 'partir', burnout: 'arret', rupture: 'ok', panique: 'tenir', rencontre: 'oui', logement: 'louer', panne: 'reparer', fire: 'non', licenciement: 'chercher' };
+  const BAL = { diner: 'rdv', promo: 'oui', vacances: 'oui', mariage: 'oui', enfant: 'non', sport: 'oui', ami: 'non', weekend: 'partir', burnout: 'arret', rupture: 'ok', panique: 'tenir', rencontre: 'oui', logement: 'louer', panne: 'reparer', fire: 'non', licenciement: 'chercher', startupJob: 'non' };
   const MONEY = { ...BAL, diner: 'diner', vacances: 'non', mariage: 'non', sport: 'non', weekend: 'ecrans', rencontre: 'non' };
   const peaMonde = S => { const room = T.peaCap() - S.acc.pea.vers, a = Math.min(S.cash + S.acc.pea.cash, Math.max(0, room) + S.acc.pea.cash); if (a > 1) T.buyIn('pea', 'monde', a); if (S.cash > 1) T.buyIn('cto', 'monde', S.cash); };
   const run = (arch, pol, n = 100) => { const r = []; for (let i = 0; i < n; i++) { const S = play(arch, [], pol); r.push({ real: T.finalScore().real, score: T.finalScore().score, ratio: T.benchRef().trk > 1000 ? T.net() / T.benchRef().trk : 1 }); } return r; };
@@ -606,6 +656,26 @@ if (BALANCE) {
   const fr = med(fiche.map(x => x.real)) / med(naive.map(x => x.real));
   warn(fr >= 1.15, 'Lecteur de fiches / acheteur naïf de paniques', '×' + fr.toFixed(2), '≥ ×1,15');
   warn(med(career.map(x => x.score)) < med(passive.map(x => x.score)), 'Score carriériste < score équilibré', `${med(career.map(x => x.score))} < ${med(passive.map(x => x.score))}`, 'vrai');
+  // Entrepreneur : crée sa boîte dès le départ (un domaine sur cinq), la pilote simplement, place le reste comme le passif.
+  let bizI = 0, bizFail = 0;
+  const founder = S => {
+    if (S.year === T.Y0 && !S.biz && !S.bizPast) T.bizCreate(Object.keys(T.DOMS)[bizI++ % 5]);
+    const B = S.biz;
+    if (B && B.alive && B.role === 'own' && B.hist.length) {
+      const D = T.DOMS[B.dom], h = B.hist[B.hist.length - 1], sc = D.sc * S.defl, cap = D.cpp * (B.staff + 1) * S.defl, avant = S.salRef * 1.45;
+      if (B.red) for (let i = Math.ceil(B.staff / 2); i > 0; i--) T.bizHire(-1);
+      if (!B.red && h.ca >= .85 * cap && B.tre >= sc) T.bizHire(1);
+      if (!T.canRaise() && B.tre < 2 * sc) T.bizRaise();
+      T.bizPay(B.red ? 'zero' : B.tre > 1.5 * avant && h.res > 0 ? 'avant' : B.tre > .5 * avant ? 'smic' : 'zero');
+      if (h.res > 0 && B.tre > 3 * sc) T.bizDiv();
+    }
+    peaMonde(S);
+  };
+  const ent = []; for (let i = 0; i < 100; i++) { play('heritier', [], { life: choose(BAL), port: founder }); ent.push(T.finalScore().real); if ((T.S.bizPast || []).some(x => x.txt === 'en faillite')) bizFail++; }
+  const er = med(ent) / med(passive.map(x => x.real)), e90 = ent.sort((a, b) => a - b)[90] / passive.map(x => x.real).sort((a, b) => a - b)[90];
+  warn(er >= .75 && er <= 1.33, 'Entrepreneur / salarié passif (médiane)', '×' + er.toFixed(2), '0,75 – 1,33');
+  warn(e90 >= 1.3, 'Entrepreneur / salarié passif (90e centile)', '×' + e90.toFixed(2), '≥ ×1,3');
+  warn(bizFail >= 15 && bizFail <= 50, 'Entrepreneurs dont la boîte a fait faillite', bizFail + ' %', '15 – 50 %');
   const p10 = passive.map(x => x.real).sort((a, b) => a - b)[Math.floor(passive.length * .1)];
   warn(p10 > 0, `Patrimoine au 10e centile, joueur passif (€ de ${T.Y0})`, Math.round(p10 / 1000) + ' k€', '> 0');
 

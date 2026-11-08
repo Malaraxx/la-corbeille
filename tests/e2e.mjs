@@ -91,9 +91,14 @@ for (const [name, viewport, colorScheme] of [['desktop', { width: 1280, height: 
   await pg.waitForTimeout(500);
   await noScroll(pg, name, 'profil');
   await pg.screenshot({ path: join(out, `${name}-1-profil.png`), fullPage: false });
-  for (const v of ['portefeuille', 'immo', 'patrimoine']) {
+  for (const v of ['portefeuille', 'immo', 'boite', 'patrimoine']) {
     await pg.click(`[data-act=view][data-view=${v}]`); await pg.waitForTimeout(500); await noScroll(pg, name, v);
     await pg.screenshot({ path: join(out, `${name}-1-${v}.png`), fullPage: false });
+    if (v === 'boite') {
+      await pg.click('[data-act=biz-create][data-d=conseil]'); await pg.click('[data-act=biz-create][data-d=conseil]'); await pg.waitForTimeout(400);
+      if (!(await pg.$('[data-act=biz-pay]'))) errors.push(`${name} : la création de boîte n’ouvre pas le tableau de bord`);
+      await noScroll(pg, name, 'ma boîte'); await pg.screenshot({ path: join(out, `${name}-1-maboite.png`), fullPage: false });
+    }
     if (v === 'immo') { await pg.click('[data-act=dossier] >> nth=1'); await pg.waitForTimeout(400); await pg.screenshot({ path: join(out, `${name}-1-dossier.png`), fullPage: false }); await pg.click('[data-act=dos-close]'); }
   }
   await pg.click('[data-act=view][data-view=profil]');

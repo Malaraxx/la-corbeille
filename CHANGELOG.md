@@ -1,5 +1,12 @@
 # Journal des versions
 
+## 3.12.0 — Ta carrière, ta boîte (8 novembre 2026)
+- **Ton métier** dès le départ : salarié·e ou à la tête de ta boîte (logiciel, e-commerce, restauration, conseil, bâtiment), chacun avec son apport, sa croissance, ses marges et ses risques.
+- **Onglet Carrière** : ton salaire et ta progression, et la création d'une boîte (une par chapitre de ta vie).
+- **Onglet Ma boîte** : chiffre d'affaires, charges, ton salaire, impôt, résultat, trésorerie, effectif, valorisation, ta part, et un graphique année par année. Tu fixes ton salaire, tu embauches ou réduis l'équipe, tu lèves des fonds, tu te verses des dividendes, tu vends ou tu fermes. Deux ans à découvert : dépôt de bilan.
+- **Rejoindre une start-up** : un nouveau dilemme, salaire −20 % contre 1 % du capital.
+- **Nouveau succès** : « Patron ».
+
 ## 3.11.0 — Le point de juillet (8 novembre 2026)
 - **Point de juillet** : au milieu de chaque année, « Passer à juillet » ouvre les comptes du semestre (revenus, dépenses, ce qui a été mis de côté, placements depuis janvier). La moitié de l'épargne de l'année arrive dès juillet et tu peux passer de nouveaux ordres aux cours de juillet. Le monde et le total de l'année ne changent pas. Case « Faire le point chaque juillet » pour le couper.
 
