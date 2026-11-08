@@ -572,6 +572,19 @@ table.sheet td{padding:4px 6px}
 .autot[aria-pressed="true"] i{background:var(--accent)}
 .autot[aria-pressed="true"] i::after{left:14px}
 .broken{max-width:560px;margin:auto}
+abbr.gl{text-decoration:none;border-bottom:1px dotted currentColor;cursor:help;position:relative}
+abbr.gl:hover::after,abbr.gl:focus::after{content:attr(data-def);position:absolute;left:0;top:calc(100% + 6px);z-index:30;width:min(280px,70vw);background:var(--ink);color:var(--paper);font:400 12.5px/1.4 var(--f-body);letter-spacing:0;text-transform:none;padding:8px 10px;border-radius:6px;box-shadow:0 8px 20px rgba(0,0,0,.25);white-space:normal;text-align:left}
+dl.gloss{margin:0;display:grid;grid-template-columns:minmax(0,180px) minmax(0,1fr);gap:4px 14px;font-size:13.5px}
+dl.gloss dt{font-weight:600}dl.gloss dd{margin:0}
+@media (max-width:560px){dl.gloss{grid-template-columns:minmax(0,1fr)}dl.gloss dd{margin-bottom:6px}}
+.tuto{border-color:var(--accent)}
+.steps{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:6px;font-size:13.5px}
+.steps li{display:grid;grid-template-columns:20px minmax(0,1fr);gap:8px;align-items:start}
+.steps .ck{width:18px;height:18px;border:1.5px solid var(--rule);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;color:var(--accent-ink)}
+.steps li.ok .ck{background:var(--up);border-color:var(--up)}
+.steps li.ok>span:last-child{color:var(--muted);text-decoration:line-through}
+.legend i.k{border-top:8px solid color-mix(in srgb,var(--down) 25%,transparent);width:12px}
+.legend i.v{border:0;width:8px;height:8px;background:var(--muted);transform:rotate(45deg);margin-right:8px}
 .warnbox{border:1px solid var(--warn);border-left-width:4px;border-radius:6px;padding:10px 12px;background:var(--paper);font-size:13px;display:flex;flex-direction:column;gap:4px;align-items:flex-start}
 .warnbox b{color:var(--warn);font-size:12px;letter-spacing:.06em;text-transform:uppercase}
 .warnbox p{margin:0}
@@ -834,6 +847,11 @@ const pc0=x=>Math.round(x*100)+' %';
 const f1=x=>{const v=x.toFixed(1);return (+v===0?'0.0':v).replace('.',',').replace('-','−');};
 const cls=x=>x>0.00049?'up':x<-0.00049?'down':'mut';
 const clamp=(x,a,b)=>Math.max(a,Math.min(b,x));
+// Le monde (cycles, krachs, élections, innovations) tire son hasard dans S.wr ; la vie et les événements dans S.rng.
+function withWorld(fn){if(S.wr==null)return fn();const r=S.rng;S.rng=S.wr;try{return fn();}finally{S.wr=S.rng;S.rng=r;}}
+// Graine du jour : la même pour tout le monde à une date donnée (six chiffres).
+const daySeed=d=>{const k=`${d.getFullYear()}-${d.getMonth()+1}-${d.getDate()}`;let h=2166136261;for(const c of k){h^=c.charCodeAt(0);h=Math.imul(h,16777619);}return Math.abs(h)%1000000;};
+const seedTxt=n=>String(n).padStart(6,'0');
 function rnd(){S.rng=(S.rng+0x6D2B79F5)|0;let t=S.rng;t=Math.imul(t^(t>>>15),t|1);t^=t+Math.imul(t^(t>>>7),t|61);return((t^(t>>>14))>>>0)/4294967296;}
 function gauss(){let u=0;while(u===0)u=rnd();const v=rnd();return Math.sqrt(-2*Math.log(u))*Math.cos(2*Math.PI*v);}
 const pick=a=>a[Math.floor(rnd()*a.length)];
@@ -879,7 +897,8 @@ const themeOpen=i=>{const st=themeStage(S.th[i],S.year);return !!st&&st!=='rumeu
 function newPres(party,avoid){const g=rnd()<.5?'f':'m',nom=pick(NOMS.filter(n=>n!==avoid));return {name:pick(PRENOMS[g])+' '+nom,nom,g,party,desc:pick(PORTRAITS[party])[g==='f'?1:0]};}
 function newGame(spec,goals,guided){
   const key=typeof spec==='string'&&PRESETS[spec]?spec:'perso',pp={...PRESETS.heritier,...(typeof spec==='string'?PRESETS[spec]||{}:spec||{})},sl=SALAIRES[pp.sal],cash=EPARGNES[pp.cap].v;
-  const seed=(Date.now()^Math.floor(Math.random()*1e9))|0;
+  // Le monde a sa propre graine (S.wseed) et son propre flux de hasard (S.wr) : même graine, même monde, quels que soient tes choix.
+  const ws=spec&&spec.seed!=null?+spec.seed:Math.floor(Math.random()*1e6),seed=(ws*2654435761+97)|0;
   S={v:3,rng:seed,phase:'turn',year:Y0,month:'Janvier',cash,liv:0,arch:key,p:{city:pp.city,sal:pp.sal,cap:pp.cap,couple:!!pp.couple},coef:coefOf(pp),goals:(goals||[]).filter(g=>GOALS[g]).slice(0,2),start:cash,ach:{},achNew:[],advRec:{},flair:0,city:pp.city,home:{type:'t2rp',own:false,since:Y0},onb:guided?1:null,buyHist:{},page:null,
     acc:{cto:{hold:{},cash:0},pea:{hold:{},cash:0,vers:0,open:null},av:{hold:{},cash:0,vers:0,open:null}},
     px:{...PX0},lastR:{},props:[],fut:{},
@@ -891,9 +910,10 @@ function newGame(spec,goals,guided){
     usedFut:[],usedLife:[],uid:1,log:[],turnShock:{},lock:false,well:{sum:0,n:0},ph:{},pxPrev:null,profile:null,lg:{lines:{},env:{pea:[],av:[]},props:[]},clk:{t:Y0,y:Y0},
     me:{humeur:65,relation:pp.couple?60:0,partner:null,first:null,exes:[],marie:false,enfants:0,ruptures:0,burnouts:0,retireYear:null,gap:0,besoin:0,pension:false,car:CITIES[pp.city].car,kids:[]}};
   if(pp.couple){const n=pick(PARTNERS);S.me.partner=n;S.me.first=n;}
-  S.drift={mkt:gauss()*.01};for(const s of STOCKS)S.drift[s]=gauss()*.03;for(const k in BIENS)S.drift['b_'+k]=gauss()*.006;
+  S.wseed=ws;S.wr=(ws*40503+12345)|0;
+  withWorld(()=>{S.drift={mkt:gauss()*.01};for(const s of STOCKS)S.drift[s]=gauss()*.03;for(const k in BIENS)S.drift['b_'+k]=gauss()*.006;});
   S.pol={ir:.128,ps:.172,peaCap:150000,livCap:22950,ageLegal:64,deficit:5,irLoyer:.30,spreadAdj:0,pres:{...newPres('centre'),since:Y0-4}};
-  S.th=makeThemes();
+  S.th=withWorld(makeThemes);
   if(spec&&spec.cust){const c=spec.cust;S.cust={sal:+c.sal,salP:pp.couple?+c.salP||0:0,partner:S.me.partner,rent:+c.rent||0,rooms:clamp(+c.rooms||1,1,5),dep:+c.dep||0,car:+c.car||0,debt:+c.debt||0,debtN:+c.debtN>0&&+c.debt>0?Math.round(+c.debtN):0};
     S.p.custom=true;S.p.sal=nearSal(S.cust.sal);S.revenu=S.cust.sal*12;S.me.car=S.cust.car>0;S.coef=coefOf({...pp,cust:S.cust});}
   S.home=S.cust?{type:'perso',own:false,since:Y0}:{type:bestRental(),own:false,since:Y0};
@@ -1725,7 +1745,7 @@ function conseils(){
   {const L=Object.values(S.lg.lines).find(L=>STOCKS.includes(L.id)&&L.first<y&&ev(L.env,L.id)>Math.max(1000,.03*T));
     if(L)add(`Tu gardes ${nm(L.id)} en direct (${fmt(ev(L.env,L.id))}). Une action seule est bien plus risquée qu’un fonds : rebasculer sur l’ETF Monde garde ton gain et répartit le risque.`,{act:'tip-tab',tab:L.env,label:'Voir cette ligne',k:'sell',e:L.env,id:L.id});}
   if(homeCap()<need())add(`À ${need()} dans ${homeName().toLowerCase()}, on se marche dessus : l’humeur et le couple en pâtissent chaque année.`,{act:'view',view:'immo',label:'Voir les logements'});
-  if(!crash&&risk>=.1&&eqs>.65&&T>10000){const why=[w.r10<w.rate?'courbe des taux inversée':'',w.cg>4?'crédit trop gonflé':'',w.pe>22?'Bourse chère':'',w.phase==='surchauffe'?'économie en surchauffe':''].filter(Boolean).join(', ');
+  if(!crash&&risk>=.1&&eqs>.65&&T>10000){const why=[w.r10<w.rate?gl('Courbe des taux inversée','courbe des taux inversée'):'',w.cg>4?'crédit trop gonflé':'',w.pe>22?'Bourse chère':'',w.phase==='surchauffe'?'économie en surchauffe':''].filter(Boolean).join(', ');
     add(`Plusieurs voyants sont à l’orange (${why}) : une forte baisse devient plus probable. Avec ${pc0(eqs)} d’actions, une chute de 35 % te coûterait environ ${fmt(.35*a.eq)}. Si ça t’empêche de dormir, allège.`,{act:'view',view:'portefeuille',label:'Voir mon portefeuille'});}
   if(w.pe<11&&eqs<.7&&T>5000)add(`La Bourse est bradée (${f1(w.pe)} fois les bénéfices, contre 15 en moyenne). Acheter bon marché paie souvent sur dix ans.`,{act:'view',view:'portefeuille',label:'Voir où investir'});
   const rn=S.props.find(canReneg);
@@ -2084,7 +2104,7 @@ const evDef=()=>S.event?EVT[S.event.id]:null;
 function startTurn(y){
   S.year=y;S.clk={t:y,y};S.phase='turn';S.turnShock={};S.lock=false;S.month='Janvier';S.moves=[];
   S.nextY=Math.min(y+1,YN+1);
-  if(!S.fut[y])S.fut[y]=genYear(y);
+  if(!S.fut[y])S.fut[y]=withWorld(()=>genYear(y));
   const f=S.fut[y];
   S.shockEur=0;
   // Augmentation négociée en janvier : 80 % de l'inflation de l'an dernier + carrière + climat de l'emploi (gel en récession et en crise).
@@ -2159,7 +2179,7 @@ const BIO={
   vacances:c=>c==='oui'?`Trois semaines ${S.life.dest||'au loin'} avec ${P()}.`:null,
   weekend:c=>c==='partir'?`Un week-end avec ${P()} en plein krach, téléphone coupé.`:null,
   donation:c=>c!=='0'?`Une donation à tes enfants en ${S.year}.`:null,
-  criseCouple:c=>c==='oui'?`Une thérapie de couple qui a sauvé votre histoire.`:null,
+  criseCouple:c=>c==='oui'?`Une thérapie de couple avec ${P()} en ${S.year}.`:null,
 };
 const turnReady=()=>!S.onb&&(!S.event||S.event.answered)&&(!S.life||S.life.answered);
 
@@ -2366,7 +2386,7 @@ function legacyGame(){
 function dropLegacy(){try{localStorage.removeItem(OLDKEY);}catch(e){}}
 
 /* ===================== INTERFACE ===================== */
-const U={setup:{city:'lille',sal:2,cap:1,couple:false,goals:['rp35','serein'],custom:false,cust:null},view:'profil',city:null,dossier:null,dosMsg:null,anim:null,animTok:0,copied:null,plan:null,allocMsg:null,tab:'pea',open:null,msg:{},amt:{},wd:{},evAmt:'',evAsset:null,evEnv:null,evErr:'',confirmReset:false,confirmSell:null,confirmClose:false,deskErr:'',envMsg:{},legacy:null,dur:null,lifeErr:'',achErr:'',homeMsg:null,onbErr:'',fresh:{},quiet:null,animList:null,broken:false,rules:false,prevMoney:null,shownAch:[],toast:null,fx:true};
+const U={setup:{city:'lille',sal:2,cap:1,couple:false,goals:['rp35','serein'],custom:false,cust:null,world:'hasard',seed:null},view:'profil',city:null,dossier:null,dosMsg:null,anim:null,animTok:0,copied:null,plan:null,allocMsg:null,tab:'pea',open:null,msg:{},amt:{},wd:{},evAmt:'',evAsset:null,evEnv:null,evErr:'',confirmReset:false,confirmSell:null,confirmClose:false,deskErr:'',envMsg:{},legacy:null,dur:null,lifeErr:'',achErr:'',homeMsg:null,onbErr:'',fresh:{},quiet:null,animList:null,broken:false,rules:false,prevMoney:null,shownAch:[],toast:null,fx:true};
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const TICKS=[Y0,Y0+10,Y0+20,Y0+30,Y0+40,YN];
 
@@ -2432,7 +2452,7 @@ const VIEWS=[['profil','Profil'],['portefeuille','Portefeuille'],['immo','Immobi
 function navBar(blk=''){
   const v=U.view||'profil',ready=turnReady(),last=S.year>=YN;
   return `<nav class="navbar"${blk}><div class="vtabs" role="tablist" aria-label="Sections">${VIEWS.map(([k,l])=>`<button role="tab" aria-selected="${v===k}" data-act="view" data-view="${k}">${l}</button>`).join('')}</div>
-    <div class="nextbox">${ready&&isIdle()&&!S.lock?`<span class="hint">${fmt(idleAmt())} dorment</span>`:''}<button class="primary next" data-act="end" ${ready?'':'disabled'}>${last?'Voir la fin':`Passer à ${S.year+1}`} →</button></div></nav>`;
+    <div class="nextbox">${U.undo?`<button class="ghost sm" data-act="undo" title="Annuler ${U.undo}">↶ Annuler ${U.undo}</button>`:''}${ready&&isIdle()&&!S.lock?`<span class="hint">${fmt(idleAmt())} dorment</span>`:''}<button class="primary next" data-act="end" ${ready?'':'disabled'}>${last?'Voir la fin':`Passer à ${S.year+1}`} →</button></div></nav>`;
 }
 // ----- fenêtre des décisions obligatoires : une à la fois, rien d'autre n'est accessible tant qu'elles ne sont pas prises -----
 const GATE=['weekend','burnout','panique','retraite','fire','licenciement','logement'];
@@ -2482,6 +2502,15 @@ function quietModal(){
     <div class="dm-body"><p>Ton patrimoine passe de ${fmt(a.netStart)} à <b>${fmt(z.netEnd)}</b> (<span class="${cls(d)}">${pct(d)}</span>).</p><ul class="quietl">${rows}</ul></div>
     <div class="decision"><div class="btns end">${autoBtn()}<button class="primary" data-act="quiet-ok">Voir ${S.year} →</button></div></div></div></div>`;
 }
+// ----- premiers pas : une liste qui se coche toute seule pendant les deux premières années -----
+const TUTO=[['budget','Regarde ton budget du mois, ici à gauche : ce qui reste chaque mois est épargné.',()=>true],
+  ['porte','Ouvre l’onglet Portefeuille : c’est là que tu places ton argent.',()=>(U.seen||{}).portefeuille],
+  ['place','Mets ton coussin de sécurité sur le Livret A, puis investis le reste (PEA, assurance-vie).',()=>S.liv>0||S.acc.pea.open!=null||S.acc.av.open!=null],
+  ['immo','Jette un œil à l’onglet Immobilier : chaque bien a son dossier de crédit.',()=>(U.seen||{}).immo],
+  ['next','Quand tu es prêt·e, clique sur « Passer à l’année suivante ».',()=>S.year>Y0]];
+const tutoOn=()=>S.year<=Y0+1&&!S.tutoDone&&TUTO.some(([,,ok])=>!ok());
+const tutoCard=()=>`<section class="card a-goals tuto"><div class="ch"><h3>Premiers pas</h3><button class="link" data-act="tuto-off">Masquer</button></div>
+  <ol class="steps">${TUTO.map(([k,t,ok])=>`<li class="${ok()?'ok':''}"><span class="ck" aria-hidden="true">${ok()?'✓':''}</span><span>${t}</span></li>`).join('')}</ol></section>`;
 // ----- onglet Profil -----
 const NOTEI={eco:'journal',argent:'piece',famille:'bebe',coeur:'coeur',maison:'maison'};
 const st5=v=>v>=70?['Épanoui·e','ok',1]:v>=45?['Ça va','',0]:v>=30?['Fatigué·e','warn',0]:['Épuisé·e','bad',-1];
@@ -2524,7 +2553,7 @@ function profilTab(){
     return `<button class="tile" data-act="achat" data-a="${id}" ${s.ok&&!s.done?'':'disabled'} title="${A.d()}"><b>${A.n}</b><span class="num">${fmt(s.c)}</span><small>${s.done?'Déjà fait cette année':!s.ok?'Budget insuffisant':eff+(s.recent?' (réduit)':'')}</small></button>`;}).join('');
   const goals=(S.goals||[]).map(g=>{const st=GOALS[g].st(false);return `<li class="${st>0?'ok':st<0?'ko':''}"><b>${st>0?'✓ ':st<0?'✗ ':''}${GOALS[g].n}</b><small>${st>0?'Atteint':st<0?'Raté':GOALS[g].d}</small></li>`;}).join('');
   const notes=(pg.notes||[]).filter(n=>!/^Au journal/.test(n.t));
-  return `<div class="g-profil ${goals?'':'nogoals'}">
+  return `<div class="g-profil ${goals||tutoOn()?'':'nogoals'}">
     <section class="card a-foyer"><div class="ch"><h3>Ton foyer</h3><span class="home">${homeIcon()}<small>${homeName()}${rpOf()?' · à toi':''}</small></span></div>${foyerList()}</section>
     <section class="card a-year"><div class="ch"><h2>${y}</h2><span class="kick">${head.t}</span></div>
       <ul class="news">${notes.map(n=>`<li><span class="ni">${icon(NOTEI[n.i]||'journal',20)}</span><span>${n.t}</span></li>`).join('')}${done.map(t=>`<li class="did"><span class="ni">${icon('outil',20)}</span><span>${t}</span></li>`).join('')}</ul></section>
@@ -2532,7 +2561,7 @@ function profilTab(){
       <ul class="advice">${conseils().map(x=>`<li><p>${x.t}</p>${adviceBtn(x.btn)}</li>`).join('')}</ul>${rappels().length?`<p class="small mut remind">${rappels().join(' · ')}</p>`:''}</section>
     <section class="card a-budget"><div class="ch"><h3>Ton budget du mois</h3></div>${budgetTable()}</section>
     <section class="card a-fun"><div class="ch"><h3>Se faire du bien</h3><span class="mut small">payé tout de suite</span></div><div class="tiles">${tiles}</div>${U.achErr?`<p class="err">${U.achErr}</p>`:''}</section>
-    ${goals?`<section class="card a-goals"><div class="ch"><h3>Tes objectifs</h3></div><ul class="goals2">${goals}</ul></section>`:''}
+    ${tutoOn()?tutoCard():goals?`<section class="card a-goals"><div class="ch"><h3>Tes objectifs</h3></div><ul class="goals2">${goals}</ul></section>`:''}
   </div>`;
 }
 // ----- onglet Portefeuille -----
@@ -2582,13 +2611,13 @@ function dossierHtml(){
     ${bur?'':`<div class="seg" role="group" aria-label="Usage"><button data-act="dos-use" data-u="rp" aria-pressed="${use==='rp'}">Pour y vivre</button><button data-act="dos-use" data-u="loc" aria-pressed="${use==='loc'}">Pour le louer</button></div>`}
     <div class="dgrid"><table><tbody>
       ${r('Prix',fmt(q.price))}${r('Frais de notaire (7,5 %)',fmt(q.frais))}${r(`Apport demandé (${pc0(q.ap)} + frais)`,fmt(q.apport),'strong')}
-      ${r('Montant emprunté',fmt(q.L))}${q.z?r('dont prêt à taux zéro',fmt(q.z)):''}
+      ${r('Montant emprunté',fmt(q.L))}${q.z?r(`dont ${gl('PTZ','prêt à taux zéro')}`,fmt(q.z)):''}
       <tr><td>Durée</td><td class="n"><select id="dur" aria-label="Durée du crédit">${DURS.map(d=>`<option value="${d}" ${d===n?'selected':''}>${d} ans</option>`).join('')}</select></td></tr>
       ${r('Taux',rate(q.r*100))}${r('Mensualité',fmt(q.ann/12),'strong')}${r(use==='rp'?'Charges et taxe foncière':'Charges, taxe foncière, gestion',fmt(ch/12)+'/mois')}
       ${use==='loc'?r(`Loyer attendu (${pc0(vac)} de vacance)`,fmt(rentIn/12)+'/mois')+r('Impôt sur les loyers',fmt(tax/12)+'/mois'):''}
     </tbody></table>
     <div class="verdict ${why?'no':'yes'}"><span class="lbl">Réponse de la banque</span><b>${why?'Refusé':'Accordé'}</b><p>${why||`Taux d’effort de ${f1(q.eff*100)} %, sous la limite de 35 %.`}</p>
-      <div class="kv"><span>Taux d’effort</span><span class="${q.eff>.35?'down':''}">${f1(q.eff*100)} %</span><span>Mis de côté chaque mois après l’achat</span><span class="${after<0?'down':''}">${after<0?'−':''}${fmt(Math.abs(after)/12)}</span>${use==='rp'?`<span>Louer le même bien</span><span>${fmt(ix.rent/12)}/mois</span>`:''}</div>
+      <div class="kv"><span>${gl('Taux d’effort')}</span><span class="${q.eff>.35?'down':''}">${f1(q.eff*100)} %</span><span>Mis de côté chaque mois après l’achat</span><span class="${after<0?'down':''}">${after<0?'−':''}${fmt(Math.abs(after)/12)}</span>${use==='rp'?`<span>Louer le même bien</span><span>${fmt(ix.rent/12)}/mois</span>`:''}</div>
       <div class="btns"><button class="primary" data-act="dos-buy" data-m="credit" ${why?'disabled':''}>Acheter à crédit</button>
       <button class="secondary" data-act="dos-buy" data-m="cash" ${ret||cash<q.cashNeed||(use==='rp'&&(rp||!inCity))?'disabled':''}>Comptant · ${fmt(q.cashNeed)}</button>
       ${use==='rp'&&!bur&&inCity&&!rp&&S.home.type!==t?`<button class="ghost" data-act="home-rent" data-t="${t}">Le louer pour y vivre</button>`:''}</div>
@@ -2635,7 +2664,7 @@ function toastsHtml(){
 function ficheHtml(f){
   return `<div class="fiche"><span class="lbl">Fiche analyste · ${nm(f.a)}</span>
     <div class="tbl-wrap"><table><thead><tr><th>Indicateur</th><th class="n">Valeur</th><th class="n">Repère sain</th></tr></thead><tbody>
-    ${f.rows.map(r=>`<tr><td>${r.k}</td><td class="n">${r.v}</td><td class="n mut">${r.r}</td></tr>`).join('')}</tbody></table></div>
+    ${f.rows.map(r=>`<tr><td>${gl(r.k)}</td><td class="n">${r.v}</td><td class="n mut">${r.r}</td></tr>`).join('')}</tbody></table></div>
     <p class="mut small">Chaque indicateur peut tromper, rarement tous à la fois. Le consensus des analystes, lui, suit la foule.</p></div>`;
 }
 function defaultEnv(a){
@@ -2740,7 +2769,7 @@ function invData(){
 function invTable(title,rows,valLbl){
   if(!rows.length)return '';
   const irrTxt=x=>x==null?'<span class="mut">—</span>':`<span class="${cls(x)}">${pct(x)}</span>`;
-  return `<div class="tbl-wrap"><table class="inv"><caption class="mcap lbl">${title}</caption><thead><tr><th>${title}</th><th>Période</th><th class="n">Investi</th><th class="n">Récupéré</th><th class="n">${valLbl}</th><th class="n">Gain net</th><th class="n">Rendement / an</th></tr></thead><tbody>
+  return `<div class="tbl-wrap"><table class="inv"><caption class="mcap lbl">${title}</caption><thead><tr><th>${title}</th><th>Période</th><th class="n">Investi</th><th class="n">Récupéré</th><th class="n">${valLbl}</th><th class="n">Gain net</th><th class="n">${gl('TRI','Rendement / an')}</th></tr></thead><tbody>
     ${rows.map(x=>`<tr><td>${x.name}<br><small>${x.sub}</small></td><td class="nowrap per">${x.per}</td><td class="n" data-l="Investi">${fmt(x.inv)}</td><td class="n" data-l="Récupéré">${x.back>0.5?fmt(x.back):'<span class="mut">—</span>'}</td><td class="n" data-l="${valLbl}">${x.open?fmt(x.val):'<span class="mut">vendu</span>'}</td><td class="n ${cls(x.gain/Math.max(1,x.inv))}" data-l="Gain net">${x.gain>=0?'+':'−'}${fmt(Math.abs(x.gain))}</td><td class="n" data-l="Rendement / an">${irrTxt(x.irr)}</td></tr>`).join('')}</tbody></table></div>`;
 }
 function invBody(){
@@ -2783,12 +2812,16 @@ function chart(hist,h=230){
   const yt=niceTicks(lo,hi).map(v=>`<line x1="${L}" x2="${W-R}" y1="${Y(v)}" y2="${Y(v)}" stroke="var(--rule)" stroke-width="1"/><text x="${L-8}" y="${Y(v)+4}" text-anchor="end" font-size="11" fill="var(--muted)" font-family="var(--f-mono)">${kfmt(v)}</text>`).join('');
   const xt=TICKS.filter(t=>t<=x1).map(t=>`<text x="${X(t)}" y="${Hh-6}" text-anchor="middle" font-size="11" fill="var(--muted)" font-family="var(--f-mono)">${t}</text>`).join('');
   const last=hist[hist.length-1];
-  return `<div class="chart"><svg viewBox="0 0 ${W} ${Hh}" role="img" aria-label="Évolution du patrimoine">${yt}${xt}
+  // Repères : les années de krach (bande rouge) et les présidentielles (losange), pour lire la courbe avec l'histoire du monde.
+  const yrs=hist.slice(1).map(d=>d.x-1).filter(y=>S.fut[y]&&S.fut[y].mac);
+  const bands=yrs.filter(y=>S.fut[y].phase==='crise').map(y=>`<rect x="${X(y)}" y="${T}" width="${Math.max(2,X(y+1)-X(y))}" height="${Hh-T-B}" fill="var(--down)" opacity=".12"><title>Krach en ${y}</title></rect>`).join('');
+  const votes=yrs.filter(y=>S.fut[y].elec).map(y=>{const E=S.fut[y].elec[S.fut[y].elec.win],x=X(y+1);return `<path d="M${x} ${T+2}l4 4-4 4-4-4z" fill="var(--muted)"><title>Présidentielle ${y} : ${E.name}</title></path>`;}).join('');
+  return `<div class="chart"><svg viewBox="0 0 ${W} ${Hh}" role="img" aria-label="Évolution du patrimoine">${bands}${votes}${yt}${xt}
     <path d="${path('liv')}" fill="none" stroke="var(--muted)" stroke-width="1.8" stroke-dasharray="2 4"/>
     <path d="${path('trk')}" fill="none" stroke="var(--muted)" stroke-width="1.6" stroke-dasharray="6 4"/>
     <path d="${path('net')}" fill="none" stroke="var(--accent)" stroke-width="2.6" stroke-linejoin="round"/>
     <circle cx="${X(last.x)}" cy="${Y(last.net)}" r="4" fill="var(--accent)"/></svg>
-    <div class="legend"><span><i></i>Ton patrimoine net</span><span><i class="t"></i>Même vie, placements sur l’ETF Monde</span><span><i class="l"></i>Même vie, placements sur le Livret A</span></div></div>`;
+    <div class="legend"><span><i></i>Ton patrimoine net</span><span><i class="t"></i>Même vie, placements sur l’ETF Monde</span><span><i class="l"></i>Même vie, placements sur le Livret A</span>${hist.some(d=>S.fut[d.x-1]&&S.fut[d.x-1].phase==='crise')?'<span><i class="k"></i>Krach</span>':''}${hist.some(d=>S.fut[d.x-1]&&S.fut[d.x-1].elec&&d.x>Y0)?'<span><i class="v"></i>Présidentielle</span>':''}</div></div>`;
 }
 const lineName=l=>l.env==='liv'?'Livret A':`${nm(l.id)} <small>${l.env==='cto'?'CTO':l.env==='pea'?'PEA':'AV'}</small>`;
 function bilanView(){
@@ -2841,7 +2874,8 @@ function epilogue(){
 }
 function shareText(){
   const fs=finalScore(),na=Object.keys(S.ach||{}).length;
-  return `La Corbeille · ${profLabel()} · ${fs.title} · score ${NF.format(fs.score)} · ${fmt(fs.real)} en euros de ${Y0} · ${na}/${ACH.length} succès. À toi de jouer !`;
+  const w=S.wseed!=null?` · monde n° ${seedTxt(S.wseed)}${S.daily?' (monde du jour)':''}`:'',link=S.wseed!=null?` https://malaraxx.github.io/la-corbeille/#graine-${seedTxt(S.wseed)}`:'';
+  return `La Corbeille · ${profLabel()} · ${fs.title} · score ${NF.format(fs.score)} · ${fmt(fs.real)} en euros de ${Y0} · ${na}/${ACH.length} succès${w}. Joue le même monde :${link}`;
 }
 function endView(){
   const n=net(),fs=finalScore(),{trk,liv}=benchRef();
@@ -2849,7 +2883,7 @@ function endView(){
   const lifeTxt=['Ta vie perso a été sacrifiée.','Une vie perso correcte, avec des hauts et des bas.','Et une vie perso épanouie.'][fs.lt];
   return `${moneyBar()}<main class="stage"><section class="bilan">
     <div class="une-mast"><span>Le Courrier de la Corbeille · Édition spéciale</span><span>31 décembre ${YN}</span></div>
-    <p class="kicker">Fin de partie · ${profLabel()} · 75 ans</p><p class="rank">${fs.title}</p>${S.story?biography().map(b=>`<p class="lede bio"><b>${b.n}</b> <span class="mut small">${b.yrs}</span><br>${b.t}</p>`).join(''):`<p class="lede">${epilogue()}</p>`}<p class="lede">${S.flags.faillite?'Tes dettes ont dépassé ce que tu pouvais vendre.':moneyTxt+' '+lifeTxt}</p>
+    <p class="kicker">Fin de partie · ${profLabel()} · 75 ans${S.wseed!=null?` · monde n° ${seedTxt(S.wseed)}`:''}</p><p class="rank">${fs.title}</p>${S.story?biography().map(b=>`<p class="lede bio"><b>${b.n}</b> <span class="mut small">${b.yrs}</span><br>${b.t}</p>`).join(''):`<p class="lede">${epilogue()}</p>`}<p class="lede">${S.flags.faillite?'Tes dettes ont dépassé ce que tu pouvais vendre.':moneyTxt+' '+lifeTxt}</p>
     <div class="bigline"><div><span class="lbl">Score</span><div class="v">${NF.format(fs.score)}</div></div>
       <div><span class="lbl">Patrimoine en € de ${Y0}</span><div class="v">${fmt(fs.real)}</div></div>
       <div><span class="lbl">Bien-être moyen</span><div class="v">${Math.round(fs.be)} / 100</div></div>
@@ -2900,6 +2934,26 @@ function custFields(st){
       <input type="number" inputmode="numeric" min="0" max="30" step="1" data-cu="debtN" value="${esc(c.debtN??'')}" aria-label="Années restantes" class="yrs"><em>ans</em></span></label>
   </div>`;
 }
+// ----- glossaire : un mot souligné en pointillé s'explique au survol (ou au toucher) -----
+const GLOSS={
+  'PER':'Price Earning Ratio : le prix d’une action divisé par le bénéfice annuel par action. Au-delà de 20 à 25, la Bourse est chère.',
+  'TRI':'Taux de rendement interne : le rendement annuel moyen d’un placement, en tenant compte de la date de chaque versement et de chaque retrait.',
+  'PEA':'Plan d’épargne en actions : actions européennes et ETF, plafonné. Après 5 ans, les gains ne paient plus que les prélèvements sociaux.',
+  'Assurance-vie':'Enveloppe pour placer sur le fonds euros (garanti) ou des fonds. Après 8 ans, abattement annuel sur les gains et impôt réduit.',
+  'Taux d’effort':'La part de tes revenus qui part dans les mensualités de crédit. Les banques refusent au-delà de 35 %.',
+  'PTZ':'Prêt à taux zéro : pour un premier achat de résidence principale sous conditions de revenus. Il finance une partie du prix sans intérêts.',
+  'Courbe des taux inversée':'Quand les taux à 10 ans passent sous les taux courts de la banque centrale. Signal souvent suivi d’une récession.',
+  'Flat tax':'Prélèvement forfaitaire unique sur les gains du compte-titres : impôt plus prélèvements sociaux, 30 % au départ.',
+  'Fonds euros':'Support garanti de l’assurance-vie : le capital ne baisse pas, le rendement suit les taux d’intérêt.',
+  'ETF':'Fonds coté qui réplique un indice entier (par exemple les grandes entreprises du monde), avec des frais très faibles.',
+  'OAT':'Obligations assimilables du Trésor : la dette de l’État français. Leur valeur baisse quand les taux montent.',
+  'Prélèvements sociaux':'Contribution de 17,2 % au départ sur la plupart des revenus du capital, même dans le PEA et l’assurance-vie.',
+  'SCPI':'Société civile de placement immobilier : tu achètes des parts d’un parc de bureaux et de commerces, qui te verse des loyers.',
+  'LMNP':'Loueur en meublé non professionnel : louer meublé rapporte un loyer plus élevé et seule la moitié des loyers est imposée (micro-BIC).',
+  'IFI':'Impôt sur la fortune immobilière : dû chaque année au-delà de 1,3 million d’euros d’immobilier net, de 0,5 % à 1,5 %.',
+  'DPE':'Diagnostic de performance énergétique : un logement mal classé (passoire thermique) ne peut plus être loué sans travaux.',
+};
+const gl=(t,shown)=>GLOSS[t]?`<abbr class="gl" tabindex="0" data-def="${esc(GLOSS[t])}">${shown||t}</abbr>`:(shown||t);
 // ----- règles du jeu et avertissement : le jeu n'est pas la vraie vie -----
 const WARN_TXT='Ceci est un jeu. Le monde, les entreprises, les partis, les candidats et les personnages sont inventés, et ton histoire n’est pas la vraie vie. La fiscalité, les marchés et l’immobilier sont simplifiés. Rien ici n’est un conseil en investissement : dans la réalité, les rendements passés ne garantissent rien et chaque situation est différente.';
 const warnBox=()=>`<div class="warnbox" role="note"><b>Avertissement</b><p>${WARN_TXT}</p><button class="link" data-act="rules">Lire les règles du jeu →</button></div>`;
@@ -2913,6 +2967,7 @@ function rulesModal(){
       <h3>Chaque année</h3>${li(['Les décisions obligatoires s’ouvrent en fenêtre : rien d’autre n’est possible tant qu’elles ne sont pas prises.','Ton salaire tombe, ton budget est payé (logement, voiture, enfants, imprévus) et ce qui reste est épargné sur ton compte courant.','Rien n’est placé à ta place : c’est toi qui investis, dans l’onglet Portefeuille ou Immobilier.','Les années sans décision peuvent défiler toutes seules (interrupteur au bilan).'])}
       <h3>L’argent</h3>${li(['Livret A : sans risque, sans impôt, plafonné.','Compte-titres : tout est possible, plus-values taxées à la flat tax (30 % au départ).','PEA : actions européennes et ETF, presque sans impôt après 5 ans. Assurance-vie : avantage fiscal après 8 ans.','Immobilier : 20 % d’apport plus les frais de notaire, crédit refusé au-delà de 35 % de taux d’effort.','Les élections peuvent changer la fiscalité dès l’année suivante.'])}
       <h3>La vie</h3>${li(['Ton humeur et ton couple vont de 0 à 100. Trop bas : burn-out, rupture, ventes paniquées.','Se faire du bien coûte de l’argent mais remonte le moral ; les décisions de vie ont des conséquences des années plus tard.'])}
+      <h3>Glossaire</h3><dl class="gloss">${Object.entries(GLOSS).map(([k,v])=>`<dt>${k}</dt><dd>${v}</dd>`).join('')}</dl>
       <h3>Le score</h3>${li([`Patrimoine net en euros de ${Y0} (plus ce que tu as donné à tes enfants) × bien-être moyen × objectifs atteints × difficulté de ton profil.`,'Ton titre compare ton patrimoine à « la même vie, placements sur l’ETF Monde ou le Livret A », et ta qualité de vie.'])}
     </div></div></div>`;
 }
@@ -2939,6 +2994,8 @@ function introView(){
       <div class="kv"><span>Revenus du foyer</span><span>${fmt(cu?(+cu.sal||0)+(st.couple?+cu.salP||0:0):s.m*(st.couple?1.6:1))}/mois</span><span>Épargne de départ</span><span>${fmt(EPARGNES[st.cap].v)}</span>
         <span>${cu?'Ton loyer':`Loyer d’un ${st.couple?'T2':'studio'}`}</span><span>${fmt(rentFirst/12)}/mois</span><span>Tu pourras mettre de côté</span><span class="${reste<100?'down':''}">${er?'—':`≈ ${fmt(reste)}/mois`}</span></div>
       <div class="level"><span class="lbl">Difficulté</span><b>${lv}</b><span class="dots" aria-hidden="true">${[.75,1.35,2.4,99].map((x,i)=>`<i class="${c>=([0,.75,1.35,2.4][i])?'on':''}"></i>`).join('')}</span><span class="small mut">score × ${String(c).replace('.',',')}</span></div>
+      <fieldset><legend>Ton monde</legend><div class="chips"><button class="pchip" data-act="world" data-w="hasard" aria-pressed="${st.world==='hasard'}">Au hasard</button><button class="pchip" data-act="world" data-w="jour" aria-pressed="${st.world==='jour'}">Monde du jour</button>${st.seed!=null?`<button class="pchip" data-act="world" data-w="lien" aria-pressed="${st.world==='lien'}">Monde n° ${seedTxt(st.seed)}</button>`:''}</div>
+        <p class="small mut">${st.world==='jour'?`Aujourd’hui, tout le monde joue le monde n° ${seedTxt(daySeed(new Date()))} : mêmes cycles, mêmes krachs, mêmes élections. Compare ton score avec tes amis.`:st.world==='lien'?`Le monde n° ${seedTxt(st.seed)}, partagé par un lien : le même que celui de ton ami.`:'Un monde neuf, rien que pour toi.'}</p></fieldset>
       <fieldset><legend>Tes deux objectifs de vie</legend><div class="chips">${goals}</div>
         <p class="small mut">${st.goals.map(g=>`<b>${GOALS[g].n}</b> : ${GOALS[g].d}`).join('<br>')||'Aucun objectif choisi.'}</p></fieldset>
       <button class="primary big" data-act="start" ${er?'disabled':''}>Commencer →</button>
@@ -3009,6 +3066,10 @@ function onClick(ev_){
   const t=ev_.target.closest('[data-act]');if(!t||t.disabled)return;
   const a=t.dataset.act,key=t.dataset.key;
   U.toast=null;
+  // Annuler le dernier ordre du tour : on garde l'état d'avant chaque ordre (non sauvegardé, effacé à la fin de l'année).
+  const UNDO={buy:'l’achat',sell:'la vente',wd:'le retrait','pea-close':U.confirmClose&&'la clôture du PEA',place:'le placement',['rebal-ok']:'le rééquilibrage',['dos-buy']:'l’achat immobilier',['home-rent']:'le déménagement',['prop-sell']:U.confirmSell===+t.dataset.u&&'la vente du bien',reneg:'la renégociation',achat:'l’achat plaisir'}[a];
+  const snap=UNDO&&S&&S.phase==='turn'?JSON.stringify(S):null;
+  if(['end','next','start','reset','replay','broken-new'].includes(a)){U.undo=null;U.undoS=null;}
   if(a!=='reset')U.confirmReset=false;
   if(a!=='prop-sell')U.confirmSell=null;
   if(a!=='pea-close')U.confirmClose=false;
@@ -3018,13 +3079,16 @@ function onClick(ev_){
   const [e,id]=key?key.split(':'):[];
   switch(a){
     case 'start':{const st=U.setup,cu=st.custom&&st.cust;if(cu&&custErr(st))break;dropLegacy();U.legacy=null;U.view='profil';U.dossier=null;U.city=null;U.dur=null;U.fresh={};U.fx=true;
-      newGame({city:st.city,sal:st.sal,cap:st.cap,couple:st.couple,cust:cu?{...cu}:null},st.goals,true);
+      newGame({city:st.city,sal:st.sal,cap:st.cap,couple:st.couple,cust:cu?{...cu}:null,seed:st.world==='jour'?daySeed(new Date()):st.world==='lien'?st.seed:null},st.goals,true);
+      if(st.world==='jour')S.daily=new Date().toISOString().slice(0,10);
       if(S.cust){const o=homeOptions().find(x=>x.type==='perso');if(o)S.onbHome=o.n;}save();break;}
+    case 'world':U.setup.world=t.dataset.w;break;
     case 'custom':{const st=U.setup;st.custom=!st.custom;if(st.custom&&!st.cust)st.cust=custDefaults(st);break;}
     case 'set':{const st=U.setup,k=t.dataset.k,v=t.dataset.v;st[k]=k==='city'?v:k==='couple'?v==='true':+v;
       if(k==='sal')st.custom=false;
       if(st.cust&&k==='couple'){if(st[k]&&!(+st.cust.salP))st.cust.salP=Math.round(.6*(+st.cust.sal||0)/10)*10;if(st[k]&&+st.cust.dep<1350)st.cust.dep=1350;}break;}
-    case 'view':U.view=t.dataset.view;U.dossier=null;U.fx=true;break;
+    case 'view':U.view=t.dataset.view;(U.seen||(U.seen={}))[U.view]=true;U.dossier=null;U.fx=true;break;
+    case 'tuto-off':S.tutoDone=true;save();break;
     case 'icity':U.city=t.dataset.c;U.dossier=null;break;
     case 'dossier':U.dossier={t:t.dataset.t,use:BIENS[t.dataset.t].k==='bur'?'loc':'rp'};U.dur=null;U.fx=true;break;
     case 'dos-close':U.dossier=null;break;
@@ -3042,7 +3106,7 @@ function onClick(ev_){
     case 'goal':{const k=t.dataset.k,g=U.setup.goals;if(g.includes(k))U.setup.goals=g.filter(x=>x!==k);else U.setup.goals=[...g,k].slice(-2);break;}
     case 'skip-anim':U.anim=null;U.animList=null;U.animTok++;break;
     case 'copy':{const txt=shareText();try{navigator.clipboard.writeText(txt).then(()=>{U.copied=true;render();},()=>{U.copied='fallback';render();setTimeout(()=>{const ta=document.getElementById('share-txt');if(ta)ta.select();},0);});}catch(er){U.copied='fallback';}break;}
-    case 'tip-tab':U.view='portefeuille';U.tab=t.dataset.tab;U.open=null;U.envMsg={};U.fx=true;break;
+    case 'tip-tab':(U.seen||(U.seen={})).portefeuille=true;U.view='portefeuille';U.tab=t.dataset.tab;U.open=null;U.envMsg={};U.fx=true;break;
     case 'prof':S.profile=+t.dataset.p;save();break;
     case 'place':{if(S.profile==null||S.lock)break;const ops=[];placeIdle(S.profile,ops);U.allocMsg=ops.length?`Placé : ${ops.map(opText).join(' ; ')}.`:'Rien à placer.';save();break;}
     case 'rebal-preview':if(S.profile!=null){const p=S.profile;U.plan={p,...dry(()=>rebalance(p))};}break;
@@ -3071,12 +3135,15 @@ function onClick(ev_){
       const q=autoPass();U.quiet=q.length&&S.phase==='turn'?q:null;
       if(q.length&&canAnim()){U.animList=q;U.anim={i:0};render();runAnim();return;}break;}
     case 'quiet-ok':U.quiet=null;U.fx=true;break;
+    case 'undo':break;
     case 'rules':U.rules=true;break;
     case 'rules-close':U.rules=false;break;
     case 'chap-ok':if(S.story){S.story.chap=chapOf(S.year)+1;save();}U.fx=true;break;
     case 'auto':S.autoPass=S.autoPass===false;save();break;
     case 'broken-new':U.broken=false;S=null;wipe();U.fx=true;break;
   }
+  if(a==='undo'&&U.undoS){S=JSON.parse(U.undoS);U.undoS=null;U.undo=null;U.toast='Dernier ordre annulé.';save();}
+  else if(snap&&JSON.stringify(S)!==snap){U.undoS=snap;U.undo=UNDO;}
   render();
 }
 function onInput(e){
@@ -3113,6 +3180,7 @@ function boot(data){
   if(S&&!S.benchV){const f=net()-propNet();S.bench={liv:f,trk:f};S.yearProp=0;S.benchV=2;}
   if(S&&!S.moves)S.moves=[];
   if(!S)U.legacy=legacyGame();
+  try{const m=typeof location!=='undefined'&&/graine-(\d{1,6})/.exec(location.hash||'');if(m){U.setup.seed=+m[1];U.setup.world='lien';}}catch(e){}
   if(typeof document!=='undefined'){
     document.addEventListener('click',onClick);
     document.addEventListener('input',onInput);

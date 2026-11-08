@@ -1,5 +1,12 @@
 # Journal des versions
 
+## 3.8.0 — Le monde du jour et plus de confort (8 novembre 2026)
+- **Monde du jour** : au départ, choisis « Monde du jour » et tout le monde joue le même monde aujourd'hui (mêmes cycles, krachs et élections, quels que soient tes choix). Ou partage le lien de ton monde (`#graine-123456`) pour défier un ami sur le même terrain. Le résultat copié contient le lien.
+- **Annuler le dernier ordre** de l'année (achat, vente, placement, achat immobilier…).
+- **Premiers pas** guidés pendant les deux premières années, **glossaire** au survol (PER, TRI, PEA, PTZ, taux d'effort…) et dans les règles.
+- **Graphique annoté** : les krachs et les présidentielles apparaissent sur la courbe.
+- **Moins de fenêtres** : les Unes de marché sont plus rares (environ 37 fenêtres par partie). Sophie alerte quand l'argent dort depuis des années.
+
 ## 3.7.0 — Une vie, une histoire (8 novembre 2026)
 - **Cinq chapitres** : « Les débuts », « Bâtir », « Le milieu de la vie », « Préparer la suite », « Transmettre ». Chacun s'ouvre sur une carte qui résume où tu en es, avec ses propres moments de vie.
 - **Des personnages qui reviennent** et se souviennent de tes choix :

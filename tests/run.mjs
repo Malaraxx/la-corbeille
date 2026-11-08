@@ -483,6 +483,16 @@ test('Histoire : textes jamais répétés, présidentielles rares, fils conclus,
   console.log(`    ${games} parties · ${(win / games).toFixed(1)} fenêtres par partie · ${(elec / games).toFixed(1)} présidentielles en fenêtre · ${(beats / games).toFixed(1)} moments racontés · ${threads} fils conclus`);
 });
 
+test('Monde du jour : même graine, même monde, quels que soient les choix', () => {
+  const world = (pol) => { T.newGame({ city: 'lyon', sal: 2, cap: 1, couple: true, seed: 424242 }, []); const S = T.S;
+    while (S.phase !== 'end') { if (S.phase !== 'turn') { T.nextBilan(); continue; }
+      if (S.life) { const ch = S.life.v.choices.map(c => c.id); T.answerLife(pol ? ch[ch.length - 1] : ch[0]); for (const c of ch) if (!S.life.answered) T.answerLife(c); }
+      if (S.event) T.answerEvent('pass'); if (pol && S.cash > 2000) T.buyIn('cto', 'monde', S.cash / 2); T.endTurn(); }
+    return JSON.stringify(Object.values(S.fut).map(f => [f.phase, Math.round(f.mac.infl * 1000), f.elec ? f.elec.win + f.elec.A.name : '', f.cause || '']).concat(S.th.map(t => t.k + t.start))); };
+  check(world(false) === world(true), 'deux joueurs avec la même graine ne vivent pas le même monde');
+  check(T.S.wseed === 424242, 'graine du monde perdue');
+});
+
 test('Profils tout faits et immobilier multi-villes', () => {
   for (const a of Object.keys(T.PRESETS)) { const v = T.EPARGNES[T.PRESETS[a].cap].v; T.newGame(a, ['famille']); check(T.S.cash === v && T.S.start === v, `capital de départ faux pour ${a}`); T.turnView(); }
   T.newGame('heritier', []); T.S.cash = 3e6; T.S.start = 3e6;

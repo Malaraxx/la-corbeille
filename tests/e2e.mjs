@@ -144,6 +144,12 @@ for (const [name, viewport] of [['perso-desktop', { width: 1280, height: 720 }],
   const txt = await pg.evaluate(`document.querySelector('.budget').innerText`);
   if (!/4\s?900/.test(txt) || !/1\s?150/.test(txt) || !/Autre crédit/.test(txt)) errors.push(`${name} : budget du mois sans la saisie (${txt.replace(/\s+/g, ' ')})`);
   await pg.screenshot({ path: join(out, `${name}-2-budget.png`) });
+  // annuler le dernier ordre
+  const c0 = await pg.evaluate('S.cash');
+  await pg.click('[data-act=achat]:not([disabled]) >> nth=0');
+  if (!(await pg.$('[data-act=undo]'))) errors.push(`${name} : pas de bouton pour annuler le dernier ordre`);
+  else { await pg.click('[data-act=undo]'); if (Math.abs((await pg.evaluate('S.cash')) - c0) > 0.5) errors.push(`${name} : l’annulation ne rend pas l’argent`); }
+  if (!(await pg.$('.tuto'))) errors.push(`${name} : pas de premiers pas la première année`);
   console.log(`✓ ${name} : profil sur mesure saisi et repris dans le budget`);
   await ctx.close();
 }
