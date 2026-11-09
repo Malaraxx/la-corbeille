@@ -271,7 +271,7 @@ input[type=range]::-moz-range-thumb{width:22px;height:22px;border-radius:14px;ba
 .sheet .foot{position:sticky;bottom:calc(-20px - env(safe-area-inset-bottom,0px));margin:0 calc(-1 * max(16px,env(safe-area-inset-right,0px))) calc(-20px - env(safe-area-inset-bottom,0px));padding:10px max(16px,env(safe-area-inset-right,0px)) calc(14px + env(safe-area-inset-bottom,0px));background:#fff;border-top:1px solid var(--line);display:flex;flex-direction:column;gap:8px}
 @keyframes up{from{transform:translateY(100%)}to{transform:translateY(0)}}
 @keyframes fade{from{opacity:0}to{opacity:1}}
-.toast{position:absolute;left:16px;right:16px;max-width:520px;margin:0 auto;top:calc(14px + env(safe-area-inset-top,0px));z-index:30;background:var(--navy);color:#fff;border-radius:12px;padding:12px 14px;font-weight:600;font-size:14.5px;line-height:1.4;box-shadow:0 8px 24px rgba(11,30,59,.3);animation:pop .3s;border-left:4px solid var(--gold)}
+.toast{position:absolute;left:16px;right:16px;max-width:520px;margin:0 auto;bottom:calc(76px + env(safe-area-inset-bottom,0px));pointer-events:none;z-index:30;background:var(--navy);color:#fff;border-radius:12px;padding:12px 14px;font-weight:600;font-size:14.5px;line-height:1.4;box-shadow:0 8px 24px rgba(11,30,59,.3);animation:pop .3s;border-left:4px solid var(--gold)}
 .toast.bad{border-left-color:var(--red)}.toast.good{border-left-color:var(--up-d)}
 .tip{position:absolute;right:max(14px,env(safe-area-inset-right,0px));bottom:calc(80px + env(safe-area-inset-bottom,0px));z-index:10;width:50px;height:50px;border-radius:25px;background:var(--red);color:#fff;border:0;font:800 25px 'Archivo',sans-serif;cursor:pointer;box-shadow:0 6px 16px rgba(200,16,46,.35);animation:pulse 2s ease-in-out infinite}
 .tip[data-seen="1"]{animation:none}
@@ -313,6 +313,7 @@ input[type=range]::-moz-range-thumb{width:22px;height:22px;border-radius:14px;ba
   .sheet .foot{bottom:-20px;margin-bottom:-20px;padding-bottom:16px;border-radius:0 0 20px 20px}
   .tip{bottom:28px;right:28px}
   .bubble{left:auto;right:28px;width:380px;bottom:92px}
+  .toast{left:254px;right:24px;bottom:24px}
   .cats{grid-template-columns:repeat(7,minmax(0,1fr))}
 }
 @media (prefers-reduced-motion: reduce){*{animation:none!important;transition:none!important}}
@@ -394,6 +395,9 @@ var Y0=2026, A0=20;
 var RETIRE_AGE=64;
 var SMIC=1823.03;       // SMIC mensuel brut 2026, 35 h (cahier des charges, §4.1)
 var SMIC_NET=1443;      // ≈ net correspondant
+var SMIC_H_NET=SMIC_NET/151.67; // ≈ 9,51 € net de l'heure (151,67 h par mois)
+var PGE_MAX=20000;      // prêt étudiant garanti par l'État : jusqu'à 20 000 € (cahier des charges v2, §2.2)
+var STU2_MAX=25000;     // prêt étudiant bancaire complémentaire : plafond du jeu, en euros de 2026
 var LIVRET_CAP=22950, PEA_CAP=150000;
 // Barème de l'impôt 2026 (revenus 2025), par part. Source : service-public.fr, fiche F1419, vérifiée le 15 avril 2026.
 var IR_BAREME=[[11600,0],[29579,.11],[84577,.30],[181917,.41],[Infinity,.45]];
@@ -422,8 +426,8 @@ var HOMES={parents:{e:'🏡',t:'Chez tes parents'},coloc:{e:'🛋️',t:'En colo
 // g : progression réelle du salaire par an (avant 30 ans, 30-45 ans, après 45 ans), en plus de l'inflation.
 var DOMS={
  etudes:[
-  {k:'com',e:'💼',n:'École de commerce',school:'ESC {V} Métropole',dip:'Master Grande École',d:5,fees:10000,out:'ecom',chips:[['5 ans',''],['10 000 €/an','r'],['Puis ta boîte : e-commerce','o']]},
-  {k:'ing',e:'⚙️',n:'École d’ingénieurs',school:'École Centrale du Nord',dip:'Diplôme d’ingénieur',d:5,fees:3000,out:'tech',chips:[['5 ans',''],['3 000 €/an','o'],['Puis ta startup','o']]},
+  {k:'com',e:'💼',n:'École de commerce',school:'ESC {V} Métropole',dip:'Master Grande École',d:5,fees:10000,out:'mkt',chips:[['5 ans',''],['10 000 €/an','r'],['Puis consultant·e à ton compte','o']]},
+  {k:'ing',e:'⚙️',n:'École d’ingénieurs',school:'École Centrale du Nord',dip:'Diplôme d’ingénieur',d:5,fees:3000,out:'ingc',chips:[['5 ans',''],['3 000 €/an','o'],['Puis ton bureau d’études','o']]},
   {k:'inf',e:'🩺',n:'Soins infirmiers',school:'IFSI de {V}',dip:'Diplôme d’État infirmier',d:3,fees:170,out:'inf',chips:[['3 ans',''],['Quasi gratuit','g'],['Puis ton cabinet libéral','o']]},
   {k:'droit',e:'⚖️',n:'Droit',school:'Faculté de droit de {V}',dip:'Master de droit des affaires',d:5,fees:180,out:'avocat',chips:[['5 ans',''],['Fac : 180 €/an','g'],['Puis avocat·e à ton compte','o']]},
   {k:'info',e:'💻',n:'Informatique',school:'IUT de {V}',dip:'BUT Informatique',d:3,fees:180,out:'dev',chips:[['3 ans',''],['IUT : 180 €/an','g'],['Puis freelance','o']]},
@@ -439,8 +443,8 @@ var DOMS={
  ]
 };
 // Indépendant·es : taux journalier de départ (euros 2026), jours facturés, cotisations URSSAF de la micro-entreprise (≈ 22-25 %).
-// Provisoire (réorientation v2) : infirmier·ère libéral·e et avocat·e collaborateur·rice, chiffres à vérifier à l'étape « Création ».
-var INDEP={inf:{n:'Infirmier·ère libéral·e',tjm:300,days:205,urs:.246,frais:300},avocat:{n:'Avocat·e collaborateur·rice',tjm:230,days:200,urs:.246,frais:250},dev:{n:'Développeur·se freelance',tjm:330,days:170,urs:.246,frais:150},coach:{n:'Coach sportif·ve',tjm:180,days:180,urs:.246,frais:120},artisan:{n:'Artisan·e menuisier·ère',tjm:260,days:190,urs:.212,frais:350}};
+// Provisoire (réorientation v2, palier 1 du §4.5 : on démarre seul·e) : chiffres à vérifier à l'étape « Création » (taux micro 2026, URSSAF).
+var INDEP={mkt:{n:'Consultant·e marketing et vente',tjm:330,days:170,urs:.246,frais:200},ingc:{n:'Ingénieur·e conseil (bureau d’études)',tjm:420,days:180,urs:.246,frais:300},inf:{n:'Infirmier·ère libéral·e',tjm:300,days:205,urs:.246,frais:300},avocat:{n:'Avocat·e collaborateur·rice',tjm:230,days:200,urs:.246,frais:250},dev:{n:'Développeur·se freelance',tjm:330,days:170,urs:.246,frais:150},coach:{n:'Coach sportif·ve',tjm:180,days:180,urs:.246,frais:120},artisan:{n:'Artisan·e menuisier·ère',tjm:260,days:190,urs:.212,frais:350}};
 var BIZN=['Atelier Lumen','Studio Phoenix','Maison Karma','Comptoir du Nord','Agence Totem','Bellevue & Co'];
 var PSEUDOS={h:['Le Loup de Lille','Tom Krach','Max Dividende','Le Baron du PEA','Hugo Cash'],f:['Reine du PEA','Lou Dividende','La Baronne','Inès Krach','Jade Rendement']};
 var PARTN={h:['Julie','Camille','Sarah','Léa','Manon','Inès','Chloé'],f:['Thomas','Hugo','Karim','Lucas','Maxime','Yanis','Paul']};
@@ -488,12 +492,12 @@ function envOf(id){ for (var k in ASSETS) for (var i=0;i<ASSETS[k].length;i++) i
 function badYear(a,x){ if (a.fixed) return 0; var r=a.mu+a.b*(-.25-.07)-1.3*a.i; if (a.b<0) r=a.mu-.12-1.3*a.i; return Math.min(0,Math.round(x*Math.max(-.95,r))); }
 
 /* ===== MOTEUR : état ===== */
-var SAVE_V=1;
-function fresh(){ return {v:SAVE_V,seed:1,rs:1,sexe:'h',pseudo:'',city:'lille',path:'',dk:'',prof:'',home:'coloc',fund:'',loanStu:0,ech:1,
+var SAVE_V=2;
+function fresh(){ return {v:SAVE_V,seed:1,rs:1,sexe:'h',pseudo:'',city:'lille',path:'',dk:'',prof:'',home:'coloc',ech:1,
   year:Y0,age:A0,cpi:1,eco:{infl:.015,rate:.02,livA:.015,mort:.033,m:0,crash:false,ci:{lille:1,lyon:1,paris:1,bordeaux:1,marseille:1}},
   cash:0,livret:0,env:{pea:{open:0,hold:{},dep:0},cto:{open:0,hold:{}},av:{open:0,hold:{}},pee:{open:0,hold:{},lots:[]}},
   props:[],owned:{},subs:0,hum:65,couple:null,partner:'',pInc:0,married:false,kids:0,rep:50,
-  job:null,study:null,indep:null,biz:null,cho:null,debts:[],doss:[],ev:null,evDone:'',evY:{},flags:{},
+  job:null,study:null,indep:null,biz:null,cho:null,stu:{h:0,loan:0},surend:null,debts:[],doss:[],ev:null,evDone:'',evY:{},flags:{},
   xp:0,ach:{},hist:[],log:[],seenTips:{},yr:null,last:{r:{}},une:null,over:false,konami:false,flow:{},humH:[]}; }
 function yrFresh(){ return {inv:0,out:0,shop:0,casino:0,tax:0,raise:null,ev:'',bought:[],pee:0,div:0,start:0}; }
 function g(m,f){ return ST&&ST.sexe==='f'?f:m; }
@@ -561,15 +565,19 @@ function payslip(){ var j=ST.job; if (!j) return null; var net=j.net, rate=.22, 
   return {brut:brut,cot:brut-net,net:net,pas:pas,paid:net-pas,rate:rate,tauxPAS:net?pas/net:0}; }
 // Prime d'activité (simplifiée) : pour un·e salarié·e seul·e autour du SMIC.
 function primeAct(netM){ if (inCouple()||netM<SMIC_NET*.5*ST.cpi) return 0; return Math.max(0,Math.round(165*ST.cpi-(netM-SMIC_NET*ST.cpi)*.5)); }
+function jobPay(h){ return h*52/12*SMIC_H_NET*ST.cpi; }
+function stuLent(){ return ST.study&&ST.study.lent||0; }
+// Réussite aux examens : humeur, réputation, et le temps pris par le job étudiant.
+function examOk(){ if (ST.prof==='apprenti') return .96; return clamp(.86+(ST.hum-60)/300+(ST.rep-50)/400-(ST.stu?ST.stu.h:0)*.006,.6,.97); }
 function workLines(){ var L=[], d=dom(), p=ST.prof, k=ST.cpi;
   if (p==='etudiant'){ var s=ST.study;
-    if (ST.fund==='parents') L.push({t:'Virement de tes parents',a:500*k,s:'Ils paient aussi tes frais de scolarité'});
-    else if (ST.fund==='job') L.push({t:'Job étudiant',a:650*k,s:'12 h par semaine en caisse, payé au SMIC'});
-    else { L.push({t:'Bourse CROUS',a:CROUS[ST.ech]*k/12,s:'Échelon '+(ST.ech?ST.ech:'0 bis')+' : '+eur(CROUS[ST.ech]*k)+' sur 10 mois, lissés sur 12'});
-      if (s.loanM) L.push({t:'Versement du prêt étudiant',a:s.loanM,s:'Ton prêt de '+eur(ST.loanStu)+' débloqué chaque mois'}); }
+    var h=ST.stu.h; if (h) L.push({t:'Job étudiant',a:jobPay(h),s:h+' h par semaine, payé au SMIC horaire'});
+    L.push({t:'Bourse CROUS',a:CROUS[ST.ech]*k/12,s:'Échelon '+(ST.ech?ST.ech:'0 bis')+' (revenus de tes parents) : '+eur(CROUS[ST.ech]*k)+' sur 10 mois, lissés sur 12'});
+    if (s.loanM&&stuLent()<ST.stu.loan) L.push({t:'Versement du prêt étudiant',a:s.loanM,s:'Ton prêt garanti par l’État de '+eur(ST.stu.loan)+', débloqué chaque mois'});
     if (ST.home!=='parents'&&!ownRP()) L.push({t:'APL',a:(ST.home==='coloc'?110:150)*k,s:'Aide au logement de la CAF'});
   } else if (p==='apprenti'){ var b=apprentiBrut(ST.age,ST.study.y)*k;
     L.push({t:'Salaire d’apprenti·e',a:apprentiNet(b),s:vtxt(d.emp)+' · '+Math.round(b/k/SMIC*100)+' % du SMIC brut, '+ST.study.y+(ST.study.y===1?'re':'e')+' année'});
+    if (ST.home!=='parents'&&!ownRP()) L.push({t:'APL',a:(ST.home==='coloc'?110:150)*k,s:'Aide au logement de la CAF, ouverte aux apprenti·es'});
   } else if (p==='salarie'){ var j=ST.job;
     L.push({t:'Salaire net',a:j.net,s:gz(j.title)+' · '+j.emp+(j.cdd?' · CDD jusqu’en '+(j.cdd-1):'')});
     if (j.tips) L.push({t:'Pourboires',a:j.tips*k,s:'En moyenne, non déclarés'});
@@ -603,7 +611,7 @@ function fixedLines(incWork){ var L=[], k=ST.cpi, rp=ownRP(), stu=ST.prof==='etu
   L.push({t:'Assurances et mutuelle',a:(stu?20:55)*k,s:stu?'Mutuelle étudiante':'Habitation, responsabilité civile, mutuelle',c:'vie'});
   if (ST.kids) L.push({t:ST.kids>1?'Tes '+ST.kids+' enfants':'Ton enfant',a:ST.kids*200*k,s:'≈ 200 € par mois et par enfant : crèche, cantine, vêtements',c:'vie'});
   if (ST.subs) L.push({t:'Abonnements et entretien',a:ST.subs*k,s:'Achats du centre commercial',c:'vie'});
-  if (stu&&ST.fund!=='parents'&&dom().fees>500) L.push({t:'Frais de scolarité',a:dom().fees*k/12,s:vtxt(dom().school)+' · '+eur(dom().fees*k)+' par an',c:'vie'});
+  if (stu&&dom().fees>0) L.push({t:'Frais de scolarité',a:dom().fees*k/12,s:vtxt(dom().school)+' · '+eur(dom().fees*k)+' par an',c:'vie'});
   var ir=irShare(); if (ir>0) L.push({t:'Impôt sur le revenu',a:ir/12,s:'Prélevé à la source · taux '+pc(ir/Math.max(1,taxBase()),1)+(ST.married?' · foyer de '+String(parts()).replace('.',',')+' parts':''),c:'imp'});
   var rt=rentTax(); if (rt>0) L.push({t:'Impôt et prélèvements sur tes loyers',a:rt/12,s:'Micro-foncier ou micro-BIC (LMNP), 17,2 % de prélèvements sociaux',c:'imp'});
   return L.filter(function(x){return x.a>0.5;}); }
@@ -638,8 +646,8 @@ function where100(B){ B=B||budget(); var c={log:0,vie:0,cred:0,imp:0}; B.F.conca
 function newGame(o){ ST=fresh(); ST.seed=(o.seed>>>0)||1; ST.rs=ST.seed; ST.sexe=o.sexe||'h'; ST.pseudo=o.pseudo||PSEUDOS[ST.sexe][0]; ST.city=o.city||'lille';
   ST.path=o.path; ST.dk=o.dk; ST.home=o.home||'coloc'; ST.yr=yrFresh(); var d=dom(); ST.ech=Math.floor(rnd()*rnd()*8);
   cash(1900,'depart'); ST.livret=500;
-  if (ST.path==='etudes'){ ST.study={y:1,d:d.d,fail:0}; ST.prof=d.alt?'apprenti':'etudiant'; ST.fund=d.alt?'':(o.fund||'parents');
-    if (ST.fund==='pret'){ ST.loanStu=clamp(o.loan||0,0,20000); ST.study.loanM=ST.loanStu/(d.d*12); ST.debts.push({k:'stu',t:'Prêt étudiant garanti par l’État',left:0,mens:0,rate:.025,due:Y0+d.d}); } }
+  if (ST.path==='etudes'){ ST.study={y:1,d:d.d,fail:0,lent:0}; ST.prof=d.alt?'apprenti':'etudiant'; ST.stu={h:d.alt?0:clamp(Math.round(o.jobH||0),0,20),loan:d.alt?0:clamp(Math.round(o.loan||0),0,PGE_MAX)};
+    if (ST.stu.loan){ ST.study.loanM=ST.stu.loan/(d.d*12); ST.debts.push({k:'stu',t:'Prêt étudiant garanti par l’État',left:0,mens:0,rate:.025,due:Y0+d.d}); } }
   else if (ST.path==='boite'){ cash(ST.livret,'livret'); ST.livret=0; if (d.prof==='independant') startIndep(d.indep,o.put||d.mise); else startBiz(d,o); }
   ST.hum=clamp(66+(ST.home==='coloc'?5:ST.home==='parents'?-6:2),0,100);
   ST.hist=[{y:Y0-1,n:Math.round(net()),r:Math.round(net())}];
@@ -665,7 +673,7 @@ function assetRet(a,m){ if (a.fixed) return Math.max(.005,ST.eco.rate+.005); ret
 
 /* ===== MOTEUR : carrière (une année) ===== */
 function careerYear(N){ var p=ST.prof, d=dom(), k=ST.cpi, infl=ST.eco.infl;
-  if (p==='etudiant'||p==='apprenti'){ var s=ST.study, okP=p==='apprenti'?.96:clamp(.86+(ST.hum-60)/300+(ST.rep-50)/400-(ST.fund==='job'?.07:0),.6,.97);
+  if (p==='etudiant'||p==='apprenti'){ var s=ST.study, okP=examOk();
     if (rnd()>okP&&s.fail<1){ s.fail++; N.push('📚 Année ratée : tu redoubles ta '+s.y+(s.y===1?'re':'e')+' année.'); bump('hum',-8); logL('Redoublement'); }
     else if (s.y>=s.d){ graduate(N); }
     else s.y++; return; }
@@ -683,9 +691,9 @@ function careerYear(N){ var p=ST.prof, d=dom(), k=ST.cpi, infl=ST.eco.infl;
 }
 // À la sortie des études, on crée son entreprise (cahier des charges v2, §3). Le choix entre plusieurs projets arrive à l'étape « Création ».
 function graduate(N){ var d=dom(); ST.achQ=(ST.achQ||[]).concat('diplome'); ST.study=null; N.push('🎓 '+d.dip+' obtenu !'); logL('Diplôme : '+d.dip);
+  ST.debts.forEach(function(st){ if ((st.k==='stu'||st.k==='stu2')&&st.left>0){ st.mens=Math.round(mensu(st.left,st.rate,120)); N.push('🏦 '+st.t.replace(' (remboursement différé)','')+' : '+eur(st.left)+' à rembourser sur 10 ans, '+eur(st.mens)+' par mois.'); } });
   if (INDEP[d.out]){ startIndep(d.out,0); N.push('🚀 Tu te lances à ton compte : '+gz(INDEP[d.out].n).toLowerCase()+'.'); }
   else { var b=domOf('boite',d.out), m=b.mise*ST.cpi, put=Math.floor(Math.min(Math.max(0,ST.cash),m)), hon=Math.ceil(Math.max(0,m-put)/500)*500; createBiz(b,put,hon); N.push('🚀 Tu crées '+ST.biz.name+' ('+b.sect+')'+(hon?' avec un prêt d’honneur de '+eur(hon):'')+'.'); }
-  ST.debts.forEach(function(st){ if ((st.k==='stu'||st.k==='stu2')&&st.left>0){ st.mens=Math.round(mensu(st.left,st.rate,120)); N.push('🏦 '+st.t.replace(' (remboursement différé)','')+' : '+eur(st.left)+' à rembourser sur 10 ans, '+eur(st.mens)+' par mois.'); } });
 }
 // Fin d'un CDD : droits au chômage (ARE) ouverts par le contrat, le temps de lancer un nouveau projet.
 function cddEnd(N){ var j=ST.job, brut=j.net/.78, m=Math.min(24,Math.max(6,(ST.year+1-j.since)*12)); ST.cho={are:Math.round(brut*.57*.93),left:m,ref:j.net,title:j.title,emp2:j.emp}; ST.job=null; ST.prof='chomage';
@@ -706,10 +714,15 @@ function bizYear(N){ var B=ST.biz, d=domOf('boite',B.k), k=ST.cpi, e=ST.eco;
   B.tre+=netR-(bankC-interest); B.age++; B.pay=r10(B.pay*(1+e.infl));
   B.hist.push({y:ST.year,ca:Math.round(B.ca),charges:Math.round(charges),dir:Math.round(dir),res:Math.round(res),is:Math.round(is),net:Math.round(netR),tre:Math.round(B.tre)});
   N.push((netR>=0?'🚀 ':'📉 ')+B.name+' : chiffre d’affaires '+eur(B.ca)+', résultat net '+sgn(netR)+'.');
-  if (B.tre<0){ var need=-B.tre; if (ST.cash>=need&&ST.flags.autoSave!==false&&need<ST.cash*.5){ cash(-need,'pro'); B.tre=0; N.push('💸 Tu as renfloué '+B.name+' de '+eur(need)+' avec ton épargne.'); }
-    else bizFail(N); } }
-function bizFail(N){ var B=ST.biz; B.dead=true; ST.flags.wasChef=1; ST.flags.fails=(ST.flags.fails||0)+1; ST.flags.everFail=1;
-  N.push('💀 Faillite de '+B.name+'. La société est liquidée. Président·e de SAS, tu n’as pas droit au chômage.'); logL('Faillite : '+B.name); bump('hum',-15); bump('rep',-5);
+  if (B.tre>=0){ B.neg=0; return; }
+  var need=-B.tre, why=netR>=0?' Le résultat est positif, mais la trésorerie est passée dans le rouge'+(bankC-interest>0?' (remboursement du prêt : '+eur(bankC-interest)+')':'')+'.':'';
+  if (ST.cash>=need&&ST.flags.autoSave!==false&&need<ST.cash*.5){ cash(-need,'pro'); B.tre=0; B.neg=0; N.push('💸'+why+' Tu as renfloué '+B.name+' de '+eur(need)+' avec ton épargne.'); return; }
+  B.neg=(B.neg||0)+1;
+  if (B.neg>=2) bizFail(N,'Deux ans de suite avec une trésorerie négative ('+eur(B.tre)+') : la banque coupe le découvert.');
+  else if (need>Math.max(.25*B.ca,10000*k)) bizFail(N,'Trou de trésorerie de '+eur(need)+', plus d’un quart du chiffre d’affaires : personne ne suit.');
+  else N.push('⚠️'+(why||' ')+' Trésorerie de '+B.name+' : '+eur(B.tre)+'. La banque tolère un découvert un an : il faut revenir dans le vert l’an prochain.'); }
+function bizFail(N,why){ var B=ST.biz; B.dead=true; ST.flags.wasChef=1; ST.flags.fails=(ST.flags.fails||0)+1; ST.flags.everFail=1;
+  N.push('💀 Faillite de '+B.name+'. '+(why?why+' ':'')+'La société est liquidée. Président·e de SAS, tu n’as pas droit au chômage.'); logL('Faillite : '+B.name); bump('hum',-15); bump('rep',-5);
   ST.prof='chomage'; ST.cho={are:0,left:0,ref:Math.max(1600*ST.cpi,B.pay||0),title:'Chargé·e de développement',emp2:'Nord Distribution'}; ST.biz=null; }
 
 /* ===== MOTEUR : carrière, actions du joueur ===== */
@@ -760,9 +773,13 @@ function bridgeBiz(k,put,honor){ var d=domOf('boite',k); if (!d||!canBridge('boi
 // Création d'une société : ta mise, un prêt d'honneur à 0 % si besoin ; 60 % de la mise part en matériel et frais de lancement.
 function createBiz(d,put,honor,exp){ cash(-put,'pro'); if (honor) ST.debts.push({k:'honneur',t:'Prêt d’honneur (à 0 %)',left:honor,mens:Math.round(honor/60),rate:0});
   ST.prof='chef'; ST.biz={name:BIZN[DOMS.boite.indexOf(d)]||'Ma société',k:d.k,share:1,mult:d.mult,ca:d.ca*ST.cpi*(exp?1.25:1),tre:put+honor-d.mise*.6*ST.cpi,pay:r10(d.pay0*ST.cpi),staff:0,age:0,hist:[],bank:null,dead:false,lev:0,since:ST.year,exp:!!exp,capIn:put};
-  (ST.achQ=ST.achQ||[]).push('boss'); logL('Création de '+ST.biz.name); }
+  // Le dirigeant se verse le salaire de départ du secteur ; s'il n'a pas un an d'épargne pour combler son budget, il se verse ce qui manque.
+  // La banque finance un an de ce salaire (prêt de création à 5,5 % sur 5 ans, 50 000 € au plus).
+  var B=ST.biz, p0=r10(d.pay0*ST.cpi); B.pay=p0; var gap=0; for (var i=0;i<3;i++){ gap=Math.max(0,-monthRest()-Math.max(0,ST.cash+ST.livret)/12); if (gap<=0) break; B.pay=r10(B.pay+gap+30); }
+  var L=Math.min(50000*ST.cpi,Math.round(B.pay*12*1.8/1000)*1000); if (L>0){ B.tre+=L; B.bank={left:L,mens:Math.round(mensu(L,.055,60))}; }
+  (ST.achQ=ST.achQ||[]).push('boss'); logL('Création de '+ST.biz.name+(L?' · prêt de création de '+eur(L):'')); }
 function bridgeIndep(k){ if (!canBridge('indep')) return null; var ind=leaveJob(); startIndep(k,0); ST.cho=null; logL('À ton compte : '+gz(INDEP[k].n)); return {ind:ind}; }
-function indepChoices(){ var L=['coach']; if (ST.dk==='info'||ST.dk==='ing'||ST.flags.dev) L.unshift('dev'); if (ST.dk==='art') L.unshift('artisan'); if (ST.dk==='inf') L.unshift('inf'); if (ST.dk==='droit') L.unshift('avocat'); return L; }
+function indepChoices(){ var L=['coach']; if (ST.dk==='info'||ST.dk==='ing'||ST.flags.dev) L.unshift('dev'); if (ST.dk==='art') L.unshift('artisan'); if (ST.dk==='inf') L.unshift('inf'); if (ST.dk==='droit') L.unshift('avocat'); if (ST.dk==='com') L.unshift('mkt'); if (ST.dk==='ing') L.unshift('ingc'); return L; }
 // Sans emploi : accepter tout de suite un poste moins payé, ou une reconversion d'un an.
 // CDD de transition (cahier des charges v2, §10) : 2 ans au plus, le temps de rebondir.
 function jobOffer(){ var c=ST.cho, ref=c?c.ref:1600*ST.cpi; return {net:r10(Math.max(SMIC_NET*ST.cpi,ref*.88)),title:(c&&c.title)||'Commercial·e',emp:'Nord Distribution'}; }
@@ -781,6 +798,7 @@ function crowdIn(i,x){ var o=crowdOffers()[i]; if (!o||ST.evY[o.id]!==undefined)
 /* ===== MOTEUR : vie perso (une année) ===== */
 function lifeYear(N,inv0){ var d=0;
   if (ST.home==='parents'&&!ownRP()&&ST.age>=23) d-=3;
+  if (ST.prof==='etudiant'&&ST.stu.h) d-=Math.round(ST.stu.h/5);
   if (inCouple()) d+=1; else if (ST.age>28) d-=1;
   if (ST.eco.crash&&inv0>5000) d-=4;
   if (monthRest()<0) d-=5;
@@ -802,7 +820,7 @@ function closeYear(){ var S0=snap(), y=ST.year, N=[], before=net(), invB=placed(
   var flow0={}; for (var q in ST.flow) flow0[q]=ST.flow[q];
   // 1. épargne du mois × 12
   var saved=B.rest*12; cash(saved,'epargne');
-  if (ST.prof==='etudiant'&&ST.fund==='pret'){ var st=ST.debts.filter(function(x){return x.k==='stu';})[0]; if (st) st.left+=ST.study.loanM*12; }
+  if (ST.prof==='etudiant'&&ST.stu.loan){ var st=ST.debts.filter(function(x){return x.k==='stu';})[0], lend=Math.min(ST.study.loanM*12,ST.stu.loan-stuLent()); if (st&&lend>0){ st.left+=lend; ST.study.lent=stuLent()+lend; } }
   // 2. économie
   var E=drawEco(), e=ST.eco; e.m=E.m; e.crash=E.crash;
   var inv0=invTot();
@@ -825,11 +843,8 @@ function closeYear(){ var S0=snap(), y=ST.year, N=[], before=net(), invB=placed(
   // 7. vie perso
   lifeYear(N,inv0);
   // 8. découvert
-  if (ST.cash<0){ var need=-ST.cash, t=Math.min(need,ST.livret); if (t>0){ ST.livret-=t; cash(t,'livret'); need-=t; }
-    if (need>0){ cash(need,'credit'); need=Math.round(need*100)/100;
-      if (ST.prof==='etudiant'||ST.prof==='apprenti'){ var sd=ST.debts.filter(function(x){return x.k==='stu2';})[0]; if (!sd) ST.debts.push(sd={k:'stu2',t:'Prêt étudiant bancaire (remboursement différé)',left:0,mens:0,rate:.03}); sd.left+=need; N.push('🎓 Il te manquait '+eur(need)+' : ta banque te prête à 3 %, remboursable après ton diplôme.'); }
-      else { var cd=ST.debts.filter(function(x){return x.k==='conso';})[0]; if (!cd) ST.debts.push(cd={k:'conso',t:'Crédit de trésorerie',left:0,mens:0,rate:.065}); cd.left+=need; cd.mens=Math.round(mensu(cd.left,.065,60)); N.push('🚨 Découvert : la banque t’accorde '+eur(need)+' de plus à 6,5 % sur 5 ans.'); } }
-    else N.push('⚠️ Compte à sec : ton Livret A a comblé le trou.'); }
+  if (ST.cash<0) cover(-ST.cash,N);
+  if (ST.surend&&ST.year+1>=ST.surend.until) endSurend(N);
   // 9. nouvelle année
   ST.cpi*=1+E.infl; e.infl=E.infl; e.rate=E.rate; e.livA=Math.max(.005,Math.round((E.infl+E.rate)/2*1000)/1000); e.mort=clamp(E.rate+.013+.002*gauss(),.01,.09);
   ST.age++; ST.year++; ST.yr0=ST.yr; ST.yr=yrFresh();
@@ -842,6 +857,30 @@ function closeYear(){ var S0=snap(), y=ST.year, N=[], before=net(), invB=placed(
   ST.yr.start=after;
   var other=delta-saved-(placed()-invB)-(propNet()-propB)-(bizVal()-bizB);
   return {S0:S0,S1:snap(),y:y,delta:delta,saved:saved,inv:placed()-invB,prop:propNet()-propB,biz:bizVal()-bizB,other:other,news:N.concat(DN.map(function(x){return x.txt;})),yr:ST.yr0,infl:E.infl,m:E.m,crash:E.crash}; }
+// Trou sur le compte courant au 31 décembre : Livret A, puis ventes forcées des placements, puis crédit plafonné, puis surendettement.
+function cover(need,N){ var t=Math.min(need,ST.livret); if (t>0){ ST.livret-=t; cash(t,'livret'); need-=t; if (need<=0){ N.push('⚠️ Compte à sec : ton Livret A a comblé le trou.'); return; } }
+  var got=forceSell(need); if (got>0){ need-=got; N.push('🔻 Ventes forcées de tes placements : '+eur(got)+' après impôt.'); } if (need<=0.005) return;
+  need=Math.round(need*100)/100; var stu=ST.prof==='etudiant'||ST.prof==='apprenti';
+  var cap=stu?STU2_MAX*ST.cpi:creditCap(); ST.flags.capUsed=cap;
+  var room=ST.surend?0:Math.max(0,cap-debtOf(stu?'stu2':'conso')), lend=Math.min(need,room);
+  if (lend>0){ cash(lend,'credit'); need-=lend;
+    if (stu){ var sd=debtOf('stu2',true); sd.left+=lend; N.push('🎓 Il te manquait '+eur(lend)+' : ta banque te prête à 3 %, remboursable après ton diplôme.'); }
+    else { var cd=debtOf('conso',true); cd.left+=lend; cd.mens=Math.round(mensu(cd.left,.065,60)); N.push('🚨 Découvert : la banque t’accorde '+eur(lend)+' de plus à 6,5 % sur 5 ans (plafond : '+eur(creditCap())+').'); } }
+  if (need>0.005){ if (!ST.surend) startSurend(N);
+    cash(need,'restrictions'); bump('hum',-6); N.push('🥖 La banque ne prête plus : tu te serres la ceinture, '+eur(need)+' de dépenses en moins sur l’année.'); logL('Restrictions',need); } }
+// Crédit de trésorerie : la banque prête au plus 6 mois de revenus du travail (3 000 € au minimum, indexés).
+function creditCap(){ return Math.round(Math.max(3000*ST.cpi,6*Math.max(0,workMonthly()))); }
+function debtOf(k,make){ var d=ST.debts.filter(function(x){return x.k===k;})[0]; if (!d&&make){ d=k==='stu2'?{k:'stu2',t:'Prêt étudiant bancaire (remboursement différé)',left:0,mens:0,rate:.03}:{k:'conso',t:'Crédit de trésorerie',left:0,mens:0,rate:.065}; ST.debts.push(d); } return make?d:(d?d.left:0); }
+// Ventes forcées : compte-titres, assurance vie, PEA, PEE disponible, au prorata de chaque ligne, impôt de chaque enveloppe déduit.
+function forceSell(need){ var got=0; ['cto','av','pea','pee'].forEach(function(k){ if (got>=need) return; var H=ST.env[k].hold;
+  for (var id in H){ if (got>=need) break; var h=H[id], f=k==='pee'?peeFree():1; if (h.v<=0||f<=0) continue; var gross=Math.min(h.v*f,(need-got)/.69+1), part=gross/h.v, gain=(h.v-h.b)*part, tax=taxOn(k,gain);
+    h.v-=gross; h.b-=h.b*part; if (h.v<.01){ delete H[id]; } var nt=gross-tax; cash(nt,'vente'); ST.yr.out+=nt; ST.yr.tax+=tax; got+=nt; } }); return got; }
+// Surendettement (Banque de France) : plan de 7 ans à 0 %, plus aucun crédit ; ce qui reste à la fin est effacé.
+function startSurend(N){ ST.surend={y:ST.year,until:ST.year+7}; ST.flags.surend=(ST.flags.surend||0)+1; bump('hum',-10);
+  ST.debts.forEach(function(d){ if (d.k==='conso'||d.k==='stu2'){ d.rate=0; d.mens=Math.round(d.left/84); d.t=d.t.replace(' (remboursement différé)','')+' · plan de surendettement'; } });
+  N.push('⚖️ Dossier de surendettement à la Banque de France : tes crédits sont gelés à 0 % sur 7 ans, et plus aucune banque ne te prête.'); logL('Surendettement'); }
+function endSurend(N){ var er=0; ST.debts.forEach(function(d){ if (d.t.indexOf('plan de surendettement')>=0){ er+=d.left; d.left=0; } }); ST.debts=ST.debts.filter(function(d){return d.left>0;});
+  ST.surend=null; N.push('🕊️ Fin du plan de surendettement'+(er>0?' : '+eur(er)+' de dettes effacées.':'.')); logL('Fin du surendettement',er); }
 function retire(N){ var last=ST.job?ST.job.net:ST.biz?ST.biz.pay:ST.indep?ST.indep.tjm*ST.indep.days*(1-ST.indep.urs)/12:ST.cho?ST.cho.ref*.6:1200*ST.cpi;
   ST.pension=Math.max(1000*ST.cpi,Math.round(last*(ST.prof==='chef'||ST.prof==='independant'?.45:.55)));
   ST.prof='retraite'; ST.over=true; N.push('🏖️ À '+RETIRE_AGE+' ans, tu prends ta retraite : '+eur(ST.pension)+' net par mois.'); logL('Retraite'); }
@@ -905,7 +944,12 @@ function checkAch(){ var n=real(net()); if (invTot()>0) unlock('invest'); if (ST
 
 /* ===== MOTEUR : sauvegarde ===== */
 var KEY='la-corbeille-s4';
-function migrate(o){ if (!o||typeof o!=='object') return null; if (!o.v) return null; /* v1 : format de départ */ return o; }
+function migrate(o){ if (!o||typeof o!=='object') return null; if (!o.v) return null;
+  if (o.v<2){ // v1 → v2 (cahier des charges v2) : financement combinable, plus de salariat à vie ni de fonctionnaire
+    o.stu={h:o.fund==='job'?12:0,loan:o.fund==='pret'?(o.loanStu||0):0}; if (o.fund==='parents'){ o.stu.h=10; } o.surend=null;
+    if (o.study&&o.study.lent===undefined) o.study.lent=o.study.loanM?Math.min(o.stu.loan,o.study.loanM*12*(o.study.y-1)):0;
+    if (o.prof==='fonctionnaire') o.prof='salarie'; if (o.job&&!o.job.cdd) o.job.cdd=o.year+2; if (o.biz) o.biz.neg=o.biz.neg||0; o.v=2; }
+  return o; }
 function serialize(){ return JSON.stringify(ST); }
 function restore(s){ var o=null; try{ o=JSON.parse(s); }catch(e){ return null; } o=migrate(o); if (!o) return null; ST=o; return ST; }
 
@@ -973,7 +1017,7 @@ function meet(){ var L=PARTN[ST.sexe]; ST.partner=pick(L); ST.couple=70; var bas
 function tipsFor(tab){ var L=[], B=budget();
   if (tab==='home'){ if (ST.ev) L.push(['La décision de l’année','Elle t’attend juste en dessous. Tu ne peux pas clôturer l’année sans l’avoir prise.']);
     if (ST.doss.length) L.push(['Tes dossiers en cours','Chaque dossier se dénoue dans la Une de son année d’échéance, parfois en plusieurs étapes.']);
-    L.push(['La réputation pro','Elle monte avec les formations, les pots de départ ou un bon costume. Elle compte pour les augmentations, les promotions et l’embauche.']); }
+    L.push(['La réputation pro','Elle monte avec les bons choix pro et la soirée qu’on sacrifie. Elle compte pour tes examens, tes clients et l’embauche après un coup dur.']); }
   if (tab==='budget'){ if (B.rest<0) L.push(['Ton budget est dans le rouge','Chaque mois coûte '+eur(-B.rest)+' de plus que ce qui rentre. Le Livret A comblera le trou, puis la banque te prêtera à 6,5 %.']);
     else L.push(['Se payer en premier','Place ton épargne dès que l’argent arrive : ce qui reste sur le compte courant finit souvent dépensé.']);
     L.push(['Le taux d’épargne','Mettre de côté 10 à 20 % de ses revenus, c’est déjà très bien. Le tien : '+(B.tin>0?Math.round(Math.max(0,B.rest)/B.tin*100):0)+' %.']); }
@@ -981,7 +1025,7 @@ function tipsFor(tab){ var L=[], B=budget();
     L.push(['L’or','Il protège pendant les crises, mais sur le long terme les actions ont fait mieux. Une petite part, pas tout.']);
     if (ST.livret<3*Math.max(0,B.tout)) L.push(['Le coussin de sécurité','Garde 3 à 6 mois de dépenses sur ton Livret A avant de placer en Bourse.']); }
   if (tab==='immo'){ L.push(['L’apport','La banque demande en général 10 % du prix plus les frais de notaire (7,5 % dans l’ancien, 2,5 % dans le neuf).']); L.push(['Les 35 %','Toutes tes mensualités de crédit, assurance comprise, ne doivent pas dépasser 35 % de tes revenus.']); }
-  if (tab==='job'){ L.push(['L’entretien annuel','Une demande d’augmentation par an. Tes chances dépendent de ton ancienneté, de ta réputation, de la santé de ton entreprise et de ton humeur.']); }
+  if (tab==='job'){ L.push(['Salaire ou dividendes ?','Un salaire coûte environ 1,8 fois son montant net à ta société, mais ouvre des droits à la retraite. Un dividende est pris sur le bénéfice après impôt sur les sociétés, puis taxé à 31,4 %.']); L.push(['La trésorerie','Une société peut être rentable et manquer d’argent : remboursement du prêt, client qui paie en retard. La banque tolère un an de trésorerie négative, pas deux.']); }
   if (tab==='shop'){ L.push(['Le casino','La maison gagne toujours sur la durée : 2,7 % à la roulette, 16 % à la machine à sous. C’est un loisir, pas un placement.']); L.push(['Plaisir ou placement ?','Un achat plaisir fait monter ton humeur tout de suite. Le même argent placé à 7 % double en dix ans.']); }
   if (tab==='profil'){ L.push(['Les niveaux','Chaque année jouée, chaque décision et chaque succès donnent de l’expérience.']); L.push(['Un secret','Les vieux joueurs connaissent un code de console célèbre. Sur téléphone, touche 7 fois ton avatar.']); }
   return L.slice(0,3); }
@@ -1030,7 +1074,7 @@ function amountCtl(id,max,onChange,init){ max=Math.max(0,Math.floor(max)); var x
     set(init||0); }
   return {html:h,bind:bind,get:function(){return x;},zone:function(html){ $(id+'-z').innerHTML=html; }}; }
 function prudence(x){ var q=x/Math.max(1,net()); return x<=0?'':q<.05?'<span class="chip g">Prudent</span>':q<.15?'<span class="chip o">Mesuré</span>':q<.35?'<span class="chip r">Concentré</span>':'<span class="chip r">Tout risquer</span>'; }
-function sheet(title,html,foot){ closeSheet(); var v=document.createElement('div'); v.className='veil'; v.id='veil'; var s=document.createElement('div'); s.className='sheet'; s.id='sheet'; s.setAttribute('role','dialog'); s.setAttribute('aria-modal','true'); s.setAttribute('aria-label',title);
+function sheet(title,html,foot){ closeSheet(); var ot=document.querySelector('.toast'); if (ot) ot.remove(); var v=document.createElement('div'); v.className='veil'; v.id='veil'; var s=document.createElement('div'); s.className='sheet'; s.id='sheet'; s.setAttribute('role','dialog'); s.setAttribute('aria-modal','true'); s.setAttribute('aria-label',title);
   s.innerHTML='<span class="grab" aria-hidden="true"></span>'+html+(foot?'<div class="foot">'+foot+'</div>':''); app.appendChild(v); app.appendChild(s); v.addEventListener('click',closeSheet); return {el:s,close:closeSheet}; }
 function closeSheet(){ var v=$('veil'), s=$('sheet'); if (v) v.remove(); if (s) s.remove(); }
 document.addEventListener('keydown',function(e){ if (e.key==='Escape') closeSheet(); });
@@ -1046,13 +1090,13 @@ onUnlock=function(k){ var a=ACH.filter(function(x){return x.k===k;})[0]; if (a) 
 var cur='home';
 function screen(id){ ['scr-title','scr-make','scr-hub','scr-end'].forEach(function(s){ $(s).hidden=s!==id; }); }
 function renderTitle(){ ST=null; screen('scr-title'); var hi=+(store(KEY+'-hi')||0); $('t-cont').hidden=!store(KEY); $('t-hi').textContent=hi?'Record : '+eur(hi)+' (euros de 2026)':''; }
-$('t-new').addEventListener('click',function(){ D={sexe:'h',pseudo:'',city:'lille',path:'etudes',dk:'',fund:'',loan:0,home:'coloc',biz:'',honor:0,love:0,bank:0,put:0}; mk=0; screen('scr-make'); renderMake(); });
+$('t-new').addEventListener('click',function(){ D={sexe:'h',pseudo:'',city:'lille',path:'etudes',dk:'',jobH:10,loan:0,home:'coloc',seed:(Date.now()^Math.floor(Math.random()*4294967296))>>>0}; mk=0; screen('scr-make'); renderMake(); });
 $('t-cont').addEventListener('click',function(){ var s=store(KEY); if (!s||!restore(s)){ store(KEY,null); renderTitle(); toast('Ta sauvegarde est illisible : elle a été effacée.','bad'); return; } if (ST.over){ endGame(); return; } go('home'); });
 
 /* ===== UI : création du personnage ===== */
 var D=null, mk=0;
 function ddom(){ return domOf(D.path,D.dk); }
-function flow(){ var f=['qui','ville','domaine'], d=ddom(); if (d&&!d.alt) f.push('argent'); f.push('maison','recap'); return f; }
+function flow(){ var f=['qui','ville','domaine','maison'], d=ddom(); if (d&&!d.alt) f.push('argent'); f.push('recap'); return f; }
 function renderMake(){
   var F=flow(), id=F[mk], d=ddom(), cy=CITIES[D.city], h='<div class="steps">'+(mk>0?'<button class="back" id="mk-back" aria-label="Étape précédente">←</button>':'<button class="back" id="mk-home" aria-label="Écran titre">✕</button>');
   for (var i=0;i<F.length-1;i++) h+='<i class="'+(i<=mk?'on':'')+'"></i>'; h+='</div>';
@@ -1066,22 +1110,23 @@ function renderMake(){
   } else if (id==='domaine'){
     h+='<span class="lab">Étape 3 · Tes études</span><h1>Tu as 20 ans. Quelles études ?</h1><p class="sub">Les études sont obligatoires. À la sortie, tu crées ton entreprise.</p><div class="sec">'+DOMS.etudes.map(function(x){ var sub=x.school+' · '+x.dip; return '<button class="opt" data-dom="'+x.k+'"><span class="e">'+x.e+'</span><span><b>'+G(x.n)+'</b><small>'+esc(G(sub))+'</small>'+chipsH(x.chips.map(function(c){return [G(c[0]),c[1]];}))+'</span></button>'; }).join('')+'</div>';
   } else if (id==='argent'&&D.path==='etudes'){
-    h+='<span class="lab">Étape 4 · Financement</span><h1>Qui paie tes études ?</h1><div class="card pad sec">'+kv(G(d.school),eur(d.fees)+' / an')+kv('Durée',d.d+' ans')+
-      '<div class="seg" role="group" aria-label="Financement">'+[['parents','👪 Tes parents'],['job','🍔 Job étudiant'],['pret','🏦 Prêt + bourse']].map(function(s){return '<button data-fund="'+s[0]+'" aria-pressed="'+(D.fund===s[0])+'">'+s[1]+'</button>';}).join('')+'</div>'+
-      '<p class="sub" id="f-info"></p><div id="f-rest"></div><div id="loanbox" hidden class="sec"><label class="lab" for="loan">Prêt garanti par l’État · 20 000 € maximum, sans caution</label><input type="range" id="loan" min="0" max="20000" step="1000" value="'+D.loan+'">'+kv('Tu empruntes','<span id="loan-v"></span>')+kv('Remboursement après le diplôme','<span id="loan-m"></span>')+'</div></div>'+
+    h+='<span class="lab">Étape 5 · Financement</span><h1>Comment paies-tu tes études ?</h1><p class="sub">Tes parents ne paient pas. Tu combines un job, le prêt garanti par l’État et ta bourse.</p><div class="card pad sec">'+kv(G(d.school),eur(d.fees)+' / an')+kv('Durée',d.d+' ans')+kv('Logement',HOMES[D.home].t)+
+      '<label class="lab" for="jobh">Job étudiant : heures par semaine</label><input type="range" id="jobh" min="0" max="20" step="1" value="'+D.jobH+'">'+kv('Job','<span id="jobh-v"></span>')+
+      '<label class="lab" for="loan">Prêt garanti par l’État · 20 000 € au plus, sans caution</label><input type="range" id="loan" min="0" max="20000" step="500" value="'+D.loan+'">'+kv('Tu empruntes','<span id="loan-v"></span>')+kv('Remboursement après le diplôme','<span id="loan-m"></span>')+
+      '<div id="f-rest"></div><button class="btn ghost sm" id="f-bal"><span>Équilibrer mon budget</span></button></div>'+
       '<button class="btn" id="mk-next" style="margin-top:auto"><span>Continuer</span></button>';
   } else if (id==='maison'){
-    h+='<span class="lab">Étape '+(F.length-1)+' · Logement</span><h1>Où habites-tu à '+cy.n+' ?</h1><div class="sec">'+[['parents','Pas de loyer : tu participes 100 € aux courses. Ta liberté en prend un coup.',[['0 € de loyer','g'],['Humeur −','r']]],['coloc','Une chambre dans une grande colocation.',[[eur(cy.rent.coloc)+' charges comprises','o'],['Humeur +','g']]],['studio','Un studio rien qu’à toi.',[[eur(cy.rent.studio)+' charges comprises','r'],['Liberté','g']]]].map(function(x){return '<button class="opt" data-home="'+x[0]+'"><span class="e">'+HOMES[x[0]].e+'</span><span><b>'+HOMES[x[0]].t+'</b><small>'+x[1]+'</small>'+chipsH(x[2])+'</span></button>';}).join('')+'</div><p class="sub">Acheter ta résidence principale se débloque dans l’onglet Immobilier, quand tu as l’apport.</p>';
+    h+='<span class="lab">Étape 4 · Logement</span><h1>Où habites-tu à '+cy.n+' ?</h1><div class="sec">'+[['parents','Pas de loyer : tu participes 100 € par mois aux courses. Ta liberté en prend un coup après 22 ans.',[['0 € de loyer','g'],['Humeur −','r']]],['coloc','Une chambre dans une grande colocation.',[[eur(cy.rent.coloc)+' charges comprises','o'],['Humeur +','g']]],['studio','Un studio rien qu’à toi.',[[eur(cy.rent.studio)+' charges comprises','r'],['Liberté','g']]]].map(function(x){return '<button class="opt" data-home="'+x[0]+'"><span class="e">'+HOMES[x[0]].e+'</span><span><b>'+HOMES[x[0]].t+'</b><small>'+x[1]+'</small>'+chipsH(x[2])+'</span></button>';}).join('')+'</div><p class="sub">Acheter ta résidence principale se débloque dans l’onglet Immobilier, quand tu as l’apport.</p>';
   } else {
     h+='<span class="lab">Récapitulatif</span><div style="display:flex;gap:14px;align-items:center"><span style="width:72px;height:72px;border-radius:16px;overflow:hidden;flex:none">'+avatar(D.sexe,72)+'</span><div style="min-width:0"><h1 style="overflow-wrap:anywhere">'+esc(D.pseudo)+'</h1><p class="sub">20 ans · '+cy.n+' · janvier 2026</p></div></div><div class="card pad">'+preview()+'</div>'+
       '<button class="btn gold" id="go" style="margin-top:auto"><span>Commencer ma vie</span></button>';
   }
   $('make').innerHTML=h; $('make').scrollTop=0; bindMake(id); }
 // Aperçu de la fiche contrat : on simule le début de partie sans toucher à rien.
-function preview(){ var o=ST; newGame(Object.assign({},D,{seed:1})); var h=contractKV(true)+kv('Logement',HOMES[ST.home].t)+kv('Compte courant',eur(ST.cash))+(ST.livret?kv('Livret A',eur(ST.livret)):'')+kv('Reste du mois',sgn(monthRest()),monthRest()>=0?'up':'dn'); ST=o; return h; }
+function preview(){ var o=ST; newGame(D); var h=contractKV(true)+kv('Logement',HOMES[ST.home].t)+kv('Compte courant',eur(ST.cash))+(ST.livret?kv('Livret A',eur(ST.livret)):'')+kv('Reste du mois',sgn(monthRest()),monthRest()>=0?'up':'dn'); ST=o; return h; }
 function contractKV(pre){ var d=dom(), p=ST.prof, h='';
   if (p==='apprenti'){ var b=apprentiBrut(ST.age,ST.study.y)*ST.cpi; h+=kv('Employeur',vtxt(d.emp))+kv('Contrat','Apprentissage · '+d.d+' ans')+kv('Formation',d.dip+' · '+vtxt(d.school))+kv('Rythme','3 sem. atelier / 1 sem. CFA')+kv('Salaire brut',eur(b))+kv('Salaire net',eur(apprentiNet(b)))+kv('Soit',Math.round(b/ST.cpi/SMIC*100)+' % du SMIC, '+ST.study.y+(ST.study.y===1?'re':'e')+' année')+kv('Après le diplôme','CDI possible · '+eur(d.sal*city().sal)+' net'); }
-  else if (p==='etudiant'){ h+=kv('École',vtxt(d.school))+kv('Diplôme visé',d.dip)+kv('Année',ST.study.y+(ST.study.y===1?'re':'e')+' sur '+ST.study.d)+kv('Frais de scolarité',eur(d.fees*ST.cpi)+' / an')+kv('Financement',ST.fund==='parents'?'Tes parents':ST.fund==='job'?'Job étudiant':'Prêt de '+eur(ST.loanStu)+' + bourse')+kv('Débouché',gz(d.job)+' · ≈ '+eur(d.sal*city().sal)+' net'); }
+  else if (p==='etudiant'){ h+=kv('École',vtxt(d.school))+kv('Diplôme visé',d.dip)+kv('Année',ST.study.y+(ST.study.y===1?'re':'e')+' sur '+ST.study.d)+kv('Frais de scolarité',eur(d.fees*ST.cpi)+' / an')+kv('Financement',[ST.stu.h?'job '+ST.stu.h+' h/sem.':'',ST.stu.loan?'prêt de '+eur(ST.stu.loan):'','bourse'].filter(Boolean).join(' + '))+kv('Débouché',gz(d.job)+' · ≈ '+eur(d.sal*city().sal)+' net'); }
   else if (p==='salarie'){ var j=ST.job, ps=payslip(); h+=kv('Employeur',esc(j.emp))+kv('Poste',gz(j.title))+kv('Contrat',j.cdd?'CDD de transition · jusqu’en '+(j.cdd-1):'Salarié·e')+kv('Salaire brut',eur(ps.brut))+kv('Salaire net',eur(j.net))+(j.comm?kv('Commissions','Selon le marché'):'')+(j.tips?kv('Pourboires','≈ '+eur(j.tips*ST.cpi)+' / mois'):''); }
   else if (p==='independant'){ var I=ST.indep; h+=kv('Statut','Micro-entreprise')+kv('Activité',gz(INDEP[I.k].n))+kv('Tarif',eur(I.tjm)+' la journée')+kv('Jours facturés','≈ '+I.days+' par an')+kv('Cotisations URSSAF',pc(I.urs)); }
   else if (p==='chef'){ var B=ST.biz; h+=kv('Société',esc(B.name))+kv('Secteur',d.sect)+kv('Statut',g('SASU · président','SASU · présidente'))+kv('Mise de départ',eur(d.mise))+kv('Trésorerie',eur(B.tre))+kv('Ton salaire',B.pay?eur(B.pay)+' / mois':'Aucun au départ'); }
@@ -1096,16 +1141,17 @@ function bindMake(id){
     $('dice').addEventListener('click',function(){ var L=PSEUDOS[D.sexe]; D.pseudo=L[(L.indexOf(D.pseudo)+1)%L.length]; $('pseudo').value=D.pseudo; });
     nx.addEventListener('click',function(){ D.pseudo=(D.pseudo||'').trim(); if (!D.pseudo){ shake($('pseudo')); return; } mk++; renderMake(); }); }
   if (id==='ville') document.querySelectorAll('[data-city]').forEach(function(x){ x.addEventListener('click',function(){ D.city=x.dataset.city; mk++; renderMake(); }); });
-  if (id==='domaine') document.querySelectorAll('[data-dom]').forEach(function(x){ x.addEventListener('click',function(){ D.dk=x.dataset.dom; D.loan=0; D.fund=''; var d=ddom(); D.put=d.mise?Math.min(2400,d.mise):0; D.honor=0; D.love=0; D.bank=0; if (d.mise>2400){ D.honor=Math.min(20000,Math.ceil((d.mise-2400)/500)*500); } mk++; renderMake(); }); });
-  if (id==='maison') document.querySelectorAll('[data-home]').forEach(function(x){ x.addEventListener('click',function(){ D.home=x.dataset.home; mk++; renderMake(); }); });
-  if (id==='argent'){ var r=$('loan');
-    var upd=function(){ var d=ddom(); document.querySelectorAll('[data-fund]').forEach(function(x){ x.setAttribute('aria-pressed',String(x.dataset.fund===D.fund)); }); $('loanbox').hidden=D.fund!=='pret';
-      $('f-info').textContent=D.fund==='parents'?'Ils paient tes frais de scolarité et te versent 500 € par mois. En échange, ils compteront sur toi : plus de décisions « famille ».':D.fund==='job'?'12 h par semaine en caisse : environ 650 € par mois. '+(d.fees>3000?'Attention : ça ne couvre pas '+eur(d.fees)+' de frais par an. Tes partiels en pâtiront aussi.':'Ça couvre tes frais, mais tes partiels en pâtiront un peu.'):D.fund==='pret'?'Ta bourse CROUS (échelon selon les revenus de tes parents) plus les versements du prêt chaque mois. Remboursement sur 10 ans après le diplôme, à 2,5 %.':'Choisis comment tu finances tes études.';
-      D.loan=D.fund==='pret'?+r.value:0; rangeFill(r); $('loan-v').textContent=eur(D.loan);
-      if (D.fund){ var o=ST; newGame(Object.assign({},D,{seed:1,home:D.home||'coloc'})); var rm=monthRest(); ST=o; $('f-rest').innerHTML=kv('Reste du mois estimé (en colocation)',sgn(rm),rm>=0?'up':'dn')+(rm<0?'<p class="note">Il te manquera '+eur(-rm)+' par mois : ta banque complétera par un prêt étudiant à 3 %, à rembourser après le diplôme.</p>':''); } else $('f-rest').innerHTML=''; $('loan-m').textContent=D.loan?'≈ '+eur(mensu(D.loan*1.05,.025,120))+' / mois pendant 10 ans':'—'; nx.disabled=!D.fund; };
-    document.querySelectorAll('[data-fund]').forEach(function(x){ x.addEventListener('click',function(){ D.fund=x.dataset.fund; if (D.fund==='pret'&&!+r.value) r.value=Math.min(20000,Math.max(5000,Math.ceil(ddom().fees*ddom().d/1000)*1000)); upd(); }); });
-    r.addEventListener('input',upd); upd(); nx.addEventListener('click',function(){ mk++; renderMake(); }); }
-  if (id==='recap') hold($('go'),function(btn){ D.seed=(Date.now()^Math.floor(Math.random()*4294967296))>>>0; newGame(D); save(); bills(btn,10); setTimeout(function(){ go('home'); },RM?0:350); });
+  if (id==='domaine') document.querySelectorAll('[data-dom]').forEach(function(x){ x.addEventListener('click',function(){ D.dk=x.dataset.dom; D.loan=0; D.balanced=false; var d=ddom(); D.put=d.mise?Math.min(2400,d.mise):0; D.honor=0; D.love=0; D.bank=0; if (d.mise>2400){ D.honor=Math.min(20000,Math.ceil((d.mise-2400)/500)*500); } mk++; renderMake(); }); });
+  if (id==='maison') document.querySelectorAll('[data-home]').forEach(function(x){ x.addEventListener('click',function(){ D.home=x.dataset.home; D.balanced=false; mk++; renderMake(); }); });
+  if (id==='argent'){ var r=$('loan'), jh=$('jobh');
+    var upd=function(){ D.jobH=+jh.value; D.loan=+r.value; rangeFill(jh); rangeFill(r); var o=ST; newGame(D); var rm=monthRest(), ok=Math.round(examOk()*100), pay=ST.stu.h?jobPay(ST.stu.h):0, ech=ST.ech; ST=o;
+      $('jobh-v').textContent=D.jobH?eur(pay)+' / mois · examens réussis '+ok+' %':'Aucun · examens réussis '+ok+' %'; $('loan-v').textContent=eur(D.loan);
+      $('loan-m').textContent=D.loan?'≈ '+eur(mensu(D.loan*1.05,.025,120))+' / mois pendant 10 ans':'—';
+      $('f-rest').innerHTML=kv('Bourse CROUS (échelon '+(ech?ech:'0 bis')+')',eur(CROUS[ech]/12)+' / mois')+kv('Reste du mois',sgn(rm),rm>=0?'up':'dn')+(rm<0?'<p class="note">Il te manquera '+eur(-rm)+' par mois : ta banque complétera chaque fin d’année par un prêt étudiant à 3 % (25 000 € au plus), à rembourser après le diplôme. Plus d’heures de job, un prêt plus gros ou un logement moins cher équilibrent ton budget.</p>':''); };
+    var bal=function(){ var rest=function(x){ var o=ST; newGame(Object.assign({},D,x)); var rm=monthRest(); ST=o; return rm; };
+      var h=D.jobH; while (h<20&&rest({jobH:h,loan:PGE_MAX})<0) h++; jh.value=h; D.jobH=h; var lo=0, hi=PGE_MAX; for (var i=0;i<16;i++){ var mid=(lo+hi)/2; if (rest({jobH:h,loan:mid})>=0) hi=mid; else lo=mid; } r.value=Math.min(PGE_MAX,Math.ceil(hi/500)*500); upd(); };
+    jh.addEventListener('input',upd); r.addEventListener('input',upd); $('f-bal').addEventListener('click',bal); if (!D.balanced){ D.balanced=true; bal(); } else upd(); nx.addEventListener('click',function(){ mk++; renderMake(); }); }
+  if (id==='recap') hold($('go'),function(btn){ newGame(D); save(); bills(btn,10); setTimeout(function(){ go('home'); },RM?0:350); });
 }
 
 /* ===== UI : hub ===== */
@@ -1178,7 +1224,7 @@ function meterH(v,col){ return '<div class="alloc" style="height:10px" role="img
 function heroJob(){ var B=budget(), w=sum(B.W,function(x){return x.a;}), p=ST.prof, e={etudiant:'🎓',apprenti:'🔧',salarie:'💼',pause:'🧭',independant:'💻',chef:'🚀',chomage:'📉',retraite:'🏖️'}[p];
   var sub=p==='salarie'?ST.job.emp+' · depuis '+ST.job.since:p==='pause'?'Tu peux lancer un nouveau projet quand tu veux':p==='chef'?ST.biz.name+' · créée en '+ST.biz.since:p==='etudiant'||p==='apprenti'?vtxt(dom().school):p==='independant'?'Micro-entreprise depuis '+ST.indep.since:p==='chomage'?(ST.cho.left>0?'Indemnisé·e encore '+ST.cho.left+' mois':'Fin de droits : RSA'):'';
   return '<section class="card dark pad sec full"><div style="display:flex;gap:12px;align-items:center"><span style="font-size:34px">'+e+'</span><div style="flex:1;min-width:0"><span class="lab d">'+gz(profShort())+'</span><b class="H" style="display:block;font-size:21px;line-height:1.15">'+esc(gz(profName()))+'</b><span class="note">'+esc(gz(sub))+'</span></div></div>'+
-    kv('Revenus du travail par mois',eur(w))+'<div class="kv"><span>Réputation pro</span><b>'+ST.rep+' / 100</b></div>'+meterH(ST.rep,'var(--gold)')+'<p class="note">Elle monte avec les formations, les pots de départ, le costume. Elle pèse sur les augmentations, les promotions et l’embauche.</p></section>'; }
+    kv('Revenus du travail par mois',eur(w))+'<div class="kv"><span>Réputation pro</span><b>'+ST.rep+' / 100</b></div>'+meterH(ST.rep,'var(--gold)')+'<p class="note">Elle monte avec les bons choix pro. Elle pèse sur tes examens, tes clients et l’embauche après un coup dur.</p></section>'; }
 function payslipH(){ var P=payslip(), j=ST.job, fp=false;
   return '<section class="sec"><div class="sec-h"><h2>Ma fiche de paie</h2><span class="lab">'+ST.year+'</span></div><div class="ticket"><h3>'+esc(j.emp)+'</h3><div class="d">'+esc(ST.pseudo)+' · '+esc(gz(j.title))+'</div>'+
     '<div class="ln"><span>Salaire brut<small>'+(fp?'Traitement indiciaire et primes':'35 h par semaine')+'</small></span><span>'+eur(P.brut)+'</span></div>'+
@@ -1195,7 +1241,7 @@ function peeH(){ var j=ST.job; if (!j||!j.pee) return ''; var v=envVal('pee');
   return '<section class="sec"><div class="sec-h"><h2>🏢 Mon PEE</h2><b class="M">'+eur(v)+'</b></div><div class="card pad sec"><p class="note">'+ENV.pee.d+'</p>'+kv('Abondement encore possible cette année',eur(peeCapLeft()))+kv('Disponible (versements de plus de 5 ans)',pc(peeFree(),0))+
     '<div class="grid2"><button class="btn sm" data-pee="peef"><span>🏭 Fonds de l’entreprise</span></button><button class="btn sm" data-pee="peed"><span>⚖️ Fonds diversifié</span></button></div></div></section>'; }
 function studyH(){ var d=dom(), s=ST.study, p=ST.prof, alt=p==='apprenti';
-  var ok=alt?96:Math.round(clamp(.86+(ST.hum-60)/300+(ST.rep-50)/400-(ST.fund==='job'?.07:0),.6,.97)*100);
+  var ok=Math.round(examOk()*100);
   return '<section class="sec"><div class="sec-h"><h2>'+(alt?'Mon contrat d’apprentissage':'Mes études')+'</h2></div><div class="card pad">'+contractKV(false)+kv('Diplôme prévu','Fin '+(ST.year+s.d-s.y))+kv('Chances de valider l’année',ok+' %',ok>=85?'up':'dn')+'</div><p class="note">'+(alt?'À la sortie, '+vtxt(d.emp)+' te proposera un CDI.':'Réussite selon ton humeur, ta réputation et le temps que te prend ton job. Un seul redoublement possible. Le stage d’été arrive en décision.')+'</p></section>'; }
 function indepH(){ var I=ST.indep, ca=I.tjm*I.days;
   return '<section class="sec"><div class="sec-h"><h2>Mon activité</h2></div><div class="card pad">'+kv('Tarif journalier',eur(I.tjm))+kv('Jours facturés cette année','≈ '+I.days+' sur 218 ouvrés')+kv('Chiffre d’affaires',eur(ca))+kv('Cotisations URSSAF ('+pc(I.urs)+')',eur(-ca*I.urs),'dn')+kv('Frais professionnels',eur(-I.frais*12*ST.cpi),'dn')+'<div class="kv tot"><span>Revenu net de l’année</span><b>'+eur(ca*(1-I.urs)-I.frais*12*ST.cpi)+'</b></div>'+
@@ -1264,7 +1310,7 @@ function bindJob(){
 function confirmSheet(title,html,label,fn,color,disabled){ var S=sheet(title,'<h3>'+esc(title)+'</h3><div class="note" style="font-size:14px">'+html+'</div>','<button class="btn '+(color||'green')+'" id="cf-ok"'+(disabled?' disabled':'')+'><span>'+label+'</span></button><button class="btn ghost" id="cf-no"><span>Annuler</span></button>');
   $('cf-no').addEventListener('click',S.close); hold($('cf-ok'),function(btn){ S.close(); fn(btn); }); return S; }
 function bridgeSheet(to){
-  if (to==='indep'){ var L=indepChoices(); var S=sheet('À mon compte','<h3>Me mettre à mon compte</h3><p class="note">Micro-entreprise : pas de chômage, des trous d’activité, mais tu fixes ton tarif.</p><div class="sec">'+L.map(function(k){ var I=INDEP[k]; return '<button class="opt" data-ind="'+k+'"><span class="e">'+({dev:'💻',coach:'🏋️',artisan:'🔧',inf:'🩺',avocat:'⚖️'}[k]||'💼')+'</span><span><b>'+gz(I.n)+'</b><small>≈ '+eur(I.tjm*ST.cpi)+' la journée, '+I.days+' jours par an, URSSAF '+pc(I.urs)+'</small></span></button>'; }).join('')+'</div>','<button class="btn ghost" id="in-no"><span>Annuler</span></button>');
+  if (to==='indep'){ var L=indepChoices(); var S=sheet('À mon compte','<h3>Me mettre à mon compte</h3><p class="note">Micro-entreprise : pas de chômage, des trous d’activité, mais tu fixes ton tarif.</p><div class="sec">'+L.map(function(k){ var I=INDEP[k]; return '<button class="opt" data-ind="'+k+'"><span class="e">'+({dev:'💻',coach:'🏋️',artisan:'🔧',inf:'🩺',avocat:'⚖️',mkt:'📣',ingc:'⚙️'}[k]||'💼')+'</span><span><b>'+gz(I.n)+'</b><small>≈ '+eur(I.tjm*ST.cpi)+' la journée, '+I.days+' jours par an, URSSAF '+pc(I.urs)+'</small></span></button>'; }).join('')+'</div>','<button class="btn ghost" id="in-no"><span>Annuler</span></button>');
     $('in-no').addEventListener('click',S.close); S.el.querySelectorAll('[data-ind]').forEach(function(b){ b.addEventListener('click',function(){ var r=bridgeIndep(b.dataset.ind); S.close(); done('💻 À ton compte'+(r.ind?' · '+eur(r.ind)+' d’indemnité':'')+'.'); }); }); return; }
   if (to==='boite'){ var S2=sheet('Créer ma boîte','<h3>Créer ma boîte</h3><p class="note">Ta mise vient de ton compte courant ('+eur(ST.cash)+') et d’un prêt d’honneur à 0 % si besoin. '+(BRIDGE[ST.dk]?'Ton expérience compte dans : '+domOf('boite',BRIDGE[ST.dk]).n.toLowerCase()+' (risque −30 %, clients dès le départ).':'')+'</p><div class="sec">'+DOMS.boite.map(function(d){ var need=Math.max(0,d.mise*ST.cpi-ST.cash), ok=need<=20000; return '<button class="opt" data-nb="'+d.k+'"'+(ok?'':' disabled style="opacity:.5"')+'><span class="e">'+d.e+'</span><span><b>'+d.n+(BRIDGE[ST.dk]===d.k?' · ton domaine':'')+'</b><small>Mise '+eur(d.mise*ST.cpi)+(need>0?' · prêt d’honneur de '+eur(Math.ceil(need/500)*500):'')+'</small></span></button>'; }).join('')+'</div>','<button class="btn ghost" id="nb-no"><span>Annuler</span></button>');
     $('nb-no').addEventListener('click',S2.close); S2.el.querySelectorAll('[data-nb]').forEach(function(b){ b.addEventListener('click',function(){ var d=domOf('boite',b.dataset.nb), m=d.mise*ST.cpi, put=Math.min(ST.cash,m), hon=Math.ceil(Math.max(0,m-put)/500)*500; var old=ST.cash; var r=bridgeBiz(d.k,put,hon); S2.close(); if (!r){ toast('Impossible de réunir la mise.','bad'); return; } done('🚀 C’est parti'+(r.ind?' · '+eur(r.ind)+' d’indemnité':'')+'.','good',old); }); }); }

@@ -1,6 +1,15 @@
 # Journal des versions
 
 ## Saison 4 (en construction, dossier `saison4/`, 9 novembre 2026)
+- **Étape 0, corrections** (rapport du 9 novembre) :
+  - plus de dette sans limite : ventes forcées de tes placements, crédit plafonné (6 mois de revenus), puis dossier de surendettement sur 7 ans à 0 % ; le pire moment mesuré passe de −1,3 M€ à −45 000 € ;
+  - plus de « résultat net positif » suivi d'une faillite inexpliquée : la banque tolère un an de trésorerie négative, et le message dit pourquoi ;
+  - l'onglet Carrière du demandeur d'emploi montre tes droits, les offres et la reconversion ;
+  - études : tes parents ne paient plus, tu combines job (en heures), prêt garanti par l'État et bourse ; le logement se choisit avant, et le jeu te propose un budget équilibré ;
+  - l'agent immobilier n'existe plus (plus de salariat), et la spirale de dettes qui l'emportait est corrigée ;
+  - `npm run balance:s4` fonctionne et mesure les cibles de la v2 ;
+  - les messages s'affichent en bas de l'écran, plus jamais sur ton pseudo ;
+  - à la sortie des études, chaque filière démarre à son compte (consultant·e, ingénieur·e conseil, infirmier·ère, avocat·e, freelance, artisan·e) ; la société se crée ensuite, avec un prêt de création.
 - **Nouveau cap (cahier des charges v2)** : la Saison 4 devient un jeu d'entrepreneur. Les études sont obligatoires, et à la sortie tu crées ton entreprise (pour l'instant selon ta filière : e-commerce, startup, cabinet infirmier, avocat·e, freelance ou artisan·e). Plus de salariat à vie ni de fonctionnaire. Gardés de l'étape 2 : le tableau de bord de ta société (salaire, dividendes, embauches, publicité, revente), le chômage et la reconversion, le CDD de transition de 2 ans, le financement participatif, la fiche de paie.
 - **Étape 1, le socle** : une vie de 20 ans à la retraite (64 ans, en 2070). Création du personnage en six touchers (homme ou femme, pseudo, ville, études, travail ou boîte, domaine, financement, logement), en-tête permanent, la Une, la décision de l'année en versus ou en pari au curseur, les dossiers en cours, le budget « Où vont tes 100 € » avec l'inflation, le récap en trois blocs avant de clôturer, le bilan animé. Fiscalité 2026 vérifiée (barème de l'impôt, apprentissage, retraite). La version 3 reste jouable à la racine, avec un lien « Essayer la Saison 4 ».
 

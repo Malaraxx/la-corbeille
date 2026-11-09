@@ -66,8 +66,8 @@ async function run(name, viewport, reduced, years, plan, tag) {
   await tap(pg, `[data-sx=${plan.sx}]`); await layout(pg, name, 'création · qui'); if (reduced) await S('creation-qui'); await tap(pg, '#mk-next');
   await layout(pg, name, 'création · ville'); if (reduced) await S('creation-ville'); await tap(pg, `[data-city=${plan.city}]`);
   await layout(pg, name, 'création · domaine'); if (reduced) await S('creation-domaine'); await tap(pg, `[data-dom=${plan.dom}]`);
-  if (plan.fund) { await tap(pg, `[data-fund=${plan.fund}]`); await layout(pg, name, 'création · financement'); if (reduced) await S('creation-financement'); await tap(pg, '#mk-next'); }
-  await layout(pg, name, 'création · logement'); await tap(pg, '[data-home=coloc]');
+  await layout(pg, name, 'création · logement'); await tap(pg, `[data-home=${plan.home || 'coloc'}]`);
+  if (plan.fund) { await layout(pg, name, 'création · financement'); if (reduced) await S('creation-financement'); if (plan.fund === 'max') { await pg.locator('#jobh').fill('20'); await pg.locator('#loan').fill('20000'); } await tap(pg, '#f-bal'); if (reduced) await S('creation-financement-equilibre'); await tap(pg, '#mk-next'); }
   await layout(pg, name, 'création · récap'); if (reduced) await S('creation-recap');
   await holdOn(pg, '#go'); await pg.waitForTimeout(500);
   let y = 0;
@@ -85,6 +85,7 @@ async function run(name, viewport, reduced, years, plan, tag) {
       await tap(pg, `.nav [data-nav=${t}]`); await layout(pg, name, `onglet ${t} ${2026 + y}`); if (reduced && (y === 1 || y === 15 || (tag && t === 'job'))) await S(`onglet-${t}-${2026 + y}`);
       if (t === 'job') await jobActions(pg, y, S, reduced);
     }
+    if (y === 1 && reduced && !tag) await chomage(pg, name, S);
     if (y === 1) { await pg.locator('#tip').click({ force: true }); await pg.waitForTimeout(100); await layout(pg, name, 'conseils'); if (reduced) await S('conseils'); await tap(pg, '#tip-n2'); }
     await tap(pg, '.nav [data-nav=home]');
     await tap(pg, '#next'); await pg.waitForTimeout(reduced ? 50 : 350);
@@ -101,6 +102,22 @@ async function run(name, viewport, reduced, years, plan, tag) {
   await browser.close();
 }
 
+// Onglet Carrière d'un·e demandeur·se d'emploi (bug du 9 novembre : il était vide), et message éphémère qui ne couvre pas le pseudo.
+async function chomage(pg, name, S) {
+  const snap = await pg.evaluate(() => JSON.stringify(ST));
+  await pg.evaluate(() => { ST.prof = 'chomage'; ST.study = null; ST.indep = null; ST.job = null; ST.cho = { are: 980, left: 14, ref: 1700, title: 'Commercial·e', emp2: 'Nord Distribution' }; });
+  await tap(pg, '.nav [data-nav=job]'); await layout(pg, name, 'Carrière · chômage'); await S('carriere-chomage');
+  const txt = await pg.locator('#body').innerText(); check(/Mes droits/.test(txt) && /Retrouver un travail/.test(txt) && /Créer ma boîte/.test(txt), `${name} : onglet Carrière du chômage incomplet`);
+  await tap(pg, '#c-take'); await pg.waitForTimeout(80);
+  const hit = await pg.evaluate(() => { const t = document.querySelector('#cf-ok'); return !!t; }); check(hit, `${name} : la feuille « Accepter ce poste » ne s’ouvre pas`); await tap(pg, '#cf-no');
+  await pg.evaluate(() => { document.querySelector('#hud-av').click(); }); // un toucher sur l'avatar ne fait rien, on force un message :
+  await pg.evaluate(() => { const b = document.querySelector('[data-nav=home]'); b.click(); });
+  await pg.evaluate(() => { const o = document.createElement('div'); o.className = 'toast'; o.textContent = 'Message de test'; document.getElementById('app').appendChild(o); });
+  const over = await pg.evaluate(() => { const a = document.querySelector('.toast').getBoundingClientRect(), b = document.getElementById('hud-name').getBoundingClientRect(); return !(a.bottom <= b.top || a.top >= b.bottom || a.right <= b.left || a.left >= b.right); });
+  check(!over, `${name} : le message éphémère recouvre le pseudo`); await S('message');
+  await pg.evaluate(() => document.querySelector('.toast').remove());
+  await pg.evaluate(s => { ST = JSON.parse(s); }, snap); await tap(pg, '.nav [data-nav=home]');
+}
 // Actions de l'onglet Carrière : augmentation, PEE, dividendes, participation.
 async function jobActions(pg, y, S, reduced) {
   if (await pg.$('#raise') && y % 2) { await holdOn(pg, '#raise'); await pg.waitForTimeout(reduced ? 100 : 1300); }
@@ -112,10 +129,10 @@ const t0 = Date.now();
 try {
   for (const [name, vp] of [['mobile', { width: 390, height: 844 }], ['desktop', { width: 1440, height: 900 }]]) {
     if (only && only !== name) continue;
-    const plan = name === 'mobile' ? { sx: 'f', city: 'paris', dom: 'com', fund: 'pret' } : { sx: 'h', city: 'lyon', dom: 'art' };
+    const plan = name === 'mobile' ? { sx: 'f', city: 'paris', dom: 'com', fund: 'auto', home: 'parents' } : { sx: 'h', city: 'lyon', dom: 'art' };
     await run(name, vp, false, 2, plan);
     await run(name, vp, true, MAXY, plan);
-    if (name === 'mobile' && !process.argv.includes('--short')) for (const [tag, p] of [['infirmier', { sx: 'h', city: 'marseille', dom: 'inf', fund: 'job' }], ['info', { sx: 'f', city: 'bordeaux', dom: 'info', fund: 'pret' }], ['droit', { sx: 'h', city: 'lille', dom: 'droit', fund: 'job' }]])
+    if (name === 'mobile' && !process.argv.includes('--short')) for (const [tag, p] of [['infirmier', { sx: 'h', city: 'marseille', dom: 'inf', fund: 'auto' }], ['info', { sx: 'f', city: 'bordeaux', dom: 'info', fund: 'max', home: 'studio' }], ['droit', { sx: 'h', city: 'lille', dom: 'droit', fund: 'auto' }]])
       await run(name, vp, true, Math.min(MAXY, 6), p, tag);
   }
 } catch (e) { errors.push('arrêt : ' + e.message.split('\n')[0]); }
