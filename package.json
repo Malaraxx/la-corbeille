@@ -11,7 +11,12 @@
     "test:full": "node tests/run.mjs --full",
     "balance": "node tests/run.mjs --balance",
     "e2e": "node tests/e2e.mjs",
-    "monde": "node tools/monde.mjs"
+    "monde": "node tools/monde.mjs",
+    "build:s4": "node saison4/tools/build.mjs",
+    "check:s4": "node saison4/tools/build.mjs --check",
+    "test:s4": "node saison4/tools/build.mjs --check && node saison4/tests/run.mjs",
+    "balance:s4": "node saison4/tests/run.mjs --balance",
+    "e2e:s4": "node saison4/tests/e2e.mjs"
   },
   "engines": {
     "node": ">=18"

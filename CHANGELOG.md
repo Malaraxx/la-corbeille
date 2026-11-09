@@ -1,5 +1,8 @@
 # Journal des versions
 
+## Saison 4 (en construction, dossier `saison4/`, 9 novembre 2026)
+- **Étape 1, le socle** : une vie de 20 ans à la retraite (64 ans, en 2070). Création du personnage en six touchers (homme ou femme, pseudo, ville, études, travail ou boîte, domaine, financement, logement), en-tête permanent, la Une, la décision de l'année en versus ou en pari au curseur, les dossiers en cours, le budget « Où vont tes 100 € » avec l'inflation, le récap en trois blocs avant de clôturer, le bilan animé. Fiscalité 2026 vérifiée (barème de l'impôt, apprentissage, retraite). La version 3 reste jouable à la racine, avec un lien « Essayer la Saison 4 ».
+
 ## 3.14.0 — Les décisions de Flo (8 novembre 2026)
 - **Le prévisionnel de ta boîte** s'ouvre de lui-même la première année, puis seulement quand ta boîte va mal (perte l'an dernier, trésorerie dans le rouge, ou perte prévue). Le reste du temps, ton budget continue ; « Mon budget » le rouvre quand tu veux.
 - **Fiscalité 2026** : la CSG sur les revenus du capital augmente. Compte-titres : flat tax de 31,4 % (prélèvements sociaux 18,6 %) ; PEA après 5 ans : 18,6 %. L'assurance-vie, les loyers et les plus-values immobilières restent à 17,2 % de prélèvements sociaux (flat tax de l'assurance-vie : 30 %). Les parties en cours passent aux nouveaux taux.
