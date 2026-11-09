@@ -51,7 +51,7 @@ async function holdOn(pg, sel) {
 function check(c, m) { if (!c) throw new Error(m); }
 async function tap(pg, sel) { const el = pg.locator(sel).first(); try { await el.scrollIntoViewIfNeeded({ timeout: 4000 }); await el.click({ timeout: 4000 }); } catch (e) { throw new Error('toucher impossible : ' + sel + ' · ' + e.message.split(String.fromCharCode(10))[0]); } await pg.waitForTimeout(60); }
 
-async function run(name, viewport, reduced, years) {
+async function run(name, viewport, reduced, years, plan, tag) {
   const browser = await chromium.launch();
   const ctx = await browser.newContext({ viewport, reducedMotion: reduced ? 'reduce' : 'no-preference', hasTouch: name === 'mobile', isMobile: false });
   const pg = await ctx.newPage(); let n = 0;
@@ -59,17 +59,14 @@ async function run(name, viewport, reduced, years) {
   pg.on('console', m => { if (m.type() === 'error' && !/fonts\.(googleapis|gstatic)/.test(m.text() + (m.location()?.url || ''))) errors.push(`${name} : ${m.text()}`); });
   pg.on('requestfailed', r => { if (!/fonts\.(googleapis|gstatic)/.test(r.url())) errors.push(`${name} : échec de chargement ${r.url()}`); });
   await pg.goto(url); await pg.waitForTimeout(300);
-  const S = (label) => shot(pg, name + (reduced ? '' : '-anim'), n++, label);
+  const S = (label) => shot(pg, name + (tag ? '-' + tag : '') + (reduced ? '' : '-anim'), n++, label);
   await layout(pg, name, 'titre'); if (reduced) await S('titre');
   await tap(pg, '#t-new');
   // création : femme sur mobile, homme sur desktop ; un chemin différent par vue
-  const plan = name === 'mobile' ? { sx: 'f', city: 'paris', path: 'etudes', dom: 'com', fund: 'pret' } : { sx: 'h', city: 'lyon', path: 'boite', dom: 'btp' };
   await tap(pg, `[data-sx=${plan.sx}]`); await layout(pg, name, 'création · qui'); if (reduced) await S('creation-qui'); await tap(pg, '#mk-next');
   await layout(pg, name, 'création · ville'); if (reduced) await S('creation-ville'); await tap(pg, `[data-city=${plan.city}]`);
-  await layout(pg, name, 'création · chemin'); await tap(pg, `[data-path=${plan.path}]`);
   await layout(pg, name, 'création · domaine'); if (reduced) await S('creation-domaine'); await tap(pg, `[data-dom=${plan.dom}]`);
   if (plan.fund) { await tap(pg, `[data-fund=${plan.fund}]`); await layout(pg, name, 'création · financement'); if (reduced) await S('creation-financement'); await tap(pg, '#mk-next'); }
-  if (plan.path === 'boite') { await layout(pg, name, 'création · société'); if (reduced) await S('creation-societe'); await tap(pg, '#mk-next'); }
   await layout(pg, name, 'création · logement'); await tap(pg, '[data-home=coloc]');
   await layout(pg, name, 'création · récap'); if (reduced) await S('creation-recap');
   await holdOn(pg, '#go'); await pg.waitForTimeout(500);
@@ -85,7 +82,8 @@ async function run(name, viewport, reduced, years) {
     // tour des onglets
     for (const t of ['job', 'inv', 'immo', 'budget', 'shop', 'profil']) {
       if (y > 2 && y % 7 && t !== 'budget') continue;
-      await tap(pg, `.nav [data-nav=${t}]`); await layout(pg, name, `onglet ${t} ${2026 + y}`); if (reduced && (y === 1 || y === 15)) await S(`onglet-${t}-${2026 + y}`);
+      await tap(pg, `.nav [data-nav=${t}]`); await layout(pg, name, `onglet ${t} ${2026 + y}`); if (reduced && (y === 1 || y === 15 || (tag && t === 'job'))) await S(`onglet-${t}-${2026 + y}`);
+      if (t === 'job') await jobActions(pg, y, S, reduced);
     }
     if (y === 1) { await pg.locator('#tip').click({ force: true }); await pg.waitForTimeout(100); await layout(pg, name, 'conseils'); if (reduced) await S('conseils'); await tap(pg, '#tip-n2'); }
     await tap(pg, '.nav [data-nav=home]');
@@ -103,12 +101,22 @@ async function run(name, viewport, reduced, years) {
   await browser.close();
 }
 
+// Actions de l'onglet Carrière : augmentation, PEE, dividendes, participation.
+async function jobActions(pg, y, S, reduced) {
+  if (await pg.$('#raise') && y % 2) { await holdOn(pg, '#raise'); await pg.waitForTimeout(reduced ? 100 : 1300); }
+  if (await pg.$('[data-pee]') && y === 2) { await tap(pg, '[data-pee=peed]'); await tap(pg, '#pe-r ~ .quick [data-q="500"]'); await layout(pg, 'mobile', 'PEE'); await S('pee'); if (await pg.$('#pe-ok:not([disabled])')) await holdOn(pg, '#pe-ok'); else await tap(pg, '#pe-no'); await pg.waitForTimeout(500); }
+  if (await pg.$('#div-go:not([disabled])') && y % 3 === 2) { await tap(pg, '#div-go'); await tap(pg, '#dv-r ~ .quick [data-q="max"]'); await S('dividendes'); await holdOn(pg, '#dv-ok'); await pg.waitForTimeout(500); }
+  if (await pg.$('[data-crowd]') && y === 3) { await tap(pg, '[data-crowd]'); await tap(pg, '#cw-r ~ .quick [data-q="100"]'); await S('participation'); if (await pg.$('#cw-ok:not([disabled])')) await holdOn(pg, '#cw-ok'); else await tap(pg, '#cw-no'); await pg.waitForTimeout(500); }
+}
 const t0 = Date.now();
 try {
   for (const [name, vp] of [['mobile', { width: 390, height: 844 }], ['desktop', { width: 1440, height: 900 }]]) {
     if (only && only !== name) continue;
-    await run(name, vp, false, 2);
-    await run(name, vp, true, MAXY);
+    const plan = name === 'mobile' ? { sx: 'f', city: 'paris', dom: 'com', fund: 'pret' } : { sx: 'h', city: 'lyon', dom: 'art' };
+    await run(name, vp, false, 2, plan);
+    await run(name, vp, true, MAXY, plan);
+    if (name === 'mobile' && !process.argv.includes('--short')) for (const [tag, p] of [['infirmier', { sx: 'h', city: 'marseille', dom: 'inf', fund: 'job' }], ['info', { sx: 'f', city: 'bordeaux', dom: 'info', fund: 'pret' }], ['droit', { sx: 'h', city: 'lille', dom: 'droit', fund: 'job' }]])
+      await run(name, vp, true, Math.min(MAXY, 6), p, tag);
   }
 } catch (e) { errors.push('arrêt : ' + e.message.split('\n')[0]); }
 console.log(`${((Date.now() - t0) / 1000).toFixed(0)} s · captures dans saison4/tests/screenshots/`);

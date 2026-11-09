@@ -1,6 +1,6 @@
 # La Corbeille · Saison 4 : brief pour Claude Code
 
-Ce fichier est lu au début de chaque session qui touche à `saison4/`. **La référence des règles et des chiffres est le cahier des charges** (`docs/saison4/CAHIER_DES_CHARGES_SAISON4.md`) ; le prototype (`docs/saison4/prototype-saison4.html`) montre l'esprit et la mise en page. En cas de contradiction, le cahier des charges gagne. Pour tout le reste (Flo, ton, commits, publication), le `CLAUDE.md` de la racine s'applique.
+Ce fichier est lu au début de chaque session qui touche à `saison4/`. **La référence des règles et des chiffres est le cahier des charges v2** (`docs/saison4/CAHIER_DES_CHARGES_SAISON4_V2.md`, 9 novembre 2026 : le jeu d'entrepreneur). Il remplace la v1 (`CAHIER_DES_CHARGES_SAISON4.md`) partout où les deux diffèrent ; ce que la v2 ne dit pas reste valable dans la v1. Le prototype (`docs/saison4/prototype-saison4.html`) montre l'esprit et la mise en page. En cas de contradiction, le cahier des charges gagne. Les chiffres marqués « à vérifier » dans la v2 sont vérifiés sur service-public.fr, l'URSSAF ou Bpifrance avant d'être codés, source en commentaire. Pour tout le reste (Flo, ton, commits, publication), le `CLAUDE.md` de la racine s'applique.
 
 La version 3 reste intacte et jouable à la racine (`src/la-corbeille.html`). On n'y touche pas, sauf le lien « Essayer la Saison 4 » de l'écran de départ.
 
@@ -8,7 +8,7 @@ La version 3 reste intacte et jouable à la racine (`src/la-corbeille.html`). On
 
 ## 1. Le jeu
 
-Simulation de patrimoine adulte et sobre. On démarre à 20 ans en janvier 2026 (génération 2006) et on joue une année par tour jusqu'à la retraite, à 64 ans en 2070. Un minimum de gestes : toucher, glisser un curseur, maintenir pour valider. Chaque profil est un autre monde (étudiant·e, apprenti·e, salarié·e, fonctionnaire, indépendant·e, chef·fe d'entreprise, sans emploi). Tout chiffre dit d'où il vient.
+Un jeu de création et de gestion d'entreprise, avec la vie perso et le patrimoine autour. On démarre à 20 ans en janvier 2026 (génération 2006) et on joue une année par tour jusqu'à la retraite, à 64 ans en 2070. **Les études sont obligatoires** (2 à 5 ans, elles servent de tutoriel) ; **à la sortie, on crée son entreprise** (société, ou activité libérale à son compte). Il n'y a plus de salariat à vie ni de carrière de fonctionnaire : seuls restent le job étudiant, l'apprentissage et un **CDD de transition** de 2 ans au plus après une faillite ou une fin d'activité. Une faillite n'est pas la fin : chômage, reconversion, puis nouveau projet. Tout chiffre dit d'où il vient.
 
 **Boucle d'une année** : la Une (actualité et dénouement des dossiers) → la décision obligatoire (versus ou pari au curseur) → gestion libre → « Clôturer » → récap en trois blocs (vie pro, patrimoine, vie perso) et maintien → bilan animé → année suivante.
 
@@ -58,7 +58,7 @@ Un seul `<script>`, en deux parties balisées :
 |---|---|
 | `seed`, `rs` | graine et état du hasard |
 | `sexe`, `pseudo`, `city`, `path`, `dk` | identité, ville, chemin de départ et domaine (clé dans `DOMS`) |
-| `prof` | `etudiant`, `apprenti`, `salarie`, `fonctionnaire`, `independant`, `chef`, `chomage`, `retraite` |
+| `prof` | `etudiant`, `apprenti`, `salarie` (CDD de transition seulement, `job.cdd` = année de fin), `independant`, `chef`, `chomage`, `pause` (entre deux projets, après une revente), `retraite` |
 | `year`, `age`, `cpi`, `eco` | date, indice des prix, économie (`infl`, `rate`, `livA`, `mort`, `m`, `crash`, `ci` = indice immobilier par ville) |
 | `cash`, `livret`, `env{pea,cto,av,pee}` | compte courant, Livret A, enveloppes (`open` = année d'ouverture, `hold{id:{v,b}}` = valeur et prix de revient) |
 | `props`, `debts`, `doss` | biens immobiliers, dettes (`stu`, `stu2`, `honneur`, `conso`), dossiers en cours |
@@ -119,9 +119,16 @@ Un seul `<script>`, en deux parties balisées :
 
 ## 8. Avancement
 
+Plan de la v2 (section 9 du cahier des charges v2) :
+
 | Étape | Contenu | État |
 |---|---|---|
-| 1. Socle | structure, build, tests, moteur (budget avec inflation, marchés, année), création, en-tête, Accueil, Budget, récap, bilan | fait |
-| 2. Carrière et société | espaces par profil, fiche de paie, entretien, fonctionnaire, indépendant, salaire ou dividendes, participations, PEE | à faire |
-| 3. Patrimoine | Placer, Immobilier et dossier de crédit, Shopping, casino | à faire |
-| 4. Vie et finition | 60+ événements, dossiers et chaînes, retraite, profil, astuces, classement, équilibrage, passe mobile | à faire |
+| Socle (v1) | structure, build, tests, moteur (budget avec inflation, marchés, année), création, en-tête, Accueil, Budget, récap, bilan | fait (`702f3e2`) |
+| Réorientation | l'étape 2 de la v1 gardée pour ce qui sert la v2 (chef d'entreprise, chômage et reconversion, CDD de transition, financement participatif, fiche de paie) ; salariat à vie et fonctionnaire retirés ; études obligatoires puis création automatique selon la filière (provisoire) | fait |
+| 0. Corrections | dette sans limite, faillite incohérente, Carrière vide pour le demandeur d'emploi, déficit étudiant, agent immobilier, `balance.mjs`, messages sur le pseudo | à faire |
+| 1. Interactions | appui simple, confirmation en deux temps, « Passer des années », règles sur les parents, taxe foncière, quitter ses parents | à faire |
+| 2. Études et tutoriel | 7 filières, financement combinable, examens, redoublement, mention, mentor | à faire |
+| 3. Création et moteur d'entreprise | offres, statuts, financement, tableau de bord, leviers, salaire ou dividendes, alertes, faillite et rebond | à faire |
+| 4. Croissance | 4 paliers par secteur, rachats, levées, cession | à faire |
+| 5. Vie et patrimoine | déménagement, 80 dilemmes, dossiers à 2-3 ans, fin de partie, équilibrage, passe mobile finale | à faire |
+| Patrimoine (v1, étape 3) | Placer, Immobilier et dossier de crédit, Shopping : à intégrer dans les étapes 1 et 5 | à faire |

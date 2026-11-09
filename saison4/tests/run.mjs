@@ -26,14 +26,15 @@ const ctx = { console, Intl, JSON, Math: Object.assign(Object.create(Math), { ra
 vm.createContext(ctx);
 vm.runInContext(js + `;globalThis.T={get ST(){return ST},set ST(v){ST=v},newGame,closeYear,chooseEvent,evById,pickEvent,EVENTS,budget,monthRest,net,real,placed,invTot,envVal,propNet,debtTot,bizVal,
   irCalc,parts,taxOn,apprentiBrut,apprentiNet,SMIC,DOMS,CITIES,serialize,restore,yearNews,tipsFor,where100,payslip,profName,RETIRE_AGE,ASSETS,
-  };globalThis.X={};['trade','openEnv','livretMove','buyProp','sellProp','loanQuote','askRaise','setPay','payDiv','shopBuy','casinoPlay','peeIn'].forEach(function(n){ try{ X[n]=eval(n); }catch(e){} });`, ctx);
+  };globalThis.CA={askRaise,raiseInfo,peeIn,setPay,payMax,payDiv,divMax,bizHire,bizFire,bizAds,bizSell,bizVal,bizCalc,canBridge,bridgeBiz,bridgeIndep,indepChoices,takeJob,reconvert,RECONV,crowdIn,crowdOffers,indepRate};globalThis.X={};['trade','openEnv','livretMove','buyProp','sellProp','loanQuote','askRaise','setPay','payDiv','shopBuy','casinoPlay','peeIn'].forEach(function(n){ try{ X[n]=eval(n); }catch(e){} });`, ctx);
 const T = ctx.T, X = ctx.X; // X : fonctions d'ordre des étapes suivantes, si elles existent
 
 let pass = 0, fail = 0;
 function check(c, m) { if (!c) throw new Error(m); }
 function test(name, fn) { const t0 = Date.now(); try { fn(); pass++; console.log(`✓ ${name} (${((Date.now() - t0) / 1000).toFixed(1)} s)`); } catch (e) { fail++; console.log(`✗ ${name}\n    ${e.stack.split('\n').slice(0, 3).join('\n    ')}\n    rejouer : node saison4/tests/run.mjs --seed=${seed}`); } }
 function scan(o, p = 'ST') { if (typeof o === 'number') { check(Number.isFinite(o), `valeur non finie en ${p}`); return; } if (o && typeof o === 'object') for (const k in o) scan(o[k], `${p}.${k}`); }
-const ALL = []; for (const path of ['etudes', 'travail', 'boite']) for (const d of T.DOMS[path]) ALL.push([path, d.k]);
+// Cahier des charges v2 : tout le monde commence par des études ; l'entreprise vient à la sortie.
+const ALL = []; for (const d of T.DOMS.etudes) ALL.push(['etudes', d.k]);
 const CITY = Object.keys(T.CITIES);
 
 function setup(path, dk, s, o = {}) {
@@ -72,7 +73,7 @@ function play(path, dk, s, strat = 'rand', o = {}) {
 
 if (!BALANCE) {
   test('Fiscalité 2026 : barème de l’impôt (F1419)', () => {
-    T.newGame({ seed: 1, path: 'travail', dk: 'vente' });
+    T.newGame({ seed: 1, path: 'etudes', dk: 'com' });
     check(T.irCalc(11600, 1) === 0, 'tranche à 0 %');
     const t = T.irCalc(30000, 1); check(Math.abs(t - ((29579 - 11600) * .11 + (30000 - 29579) * .30)) < .01, 'barème 30 000 € : ' + t);
     const c = T.irCalc(60000, 2); check(Math.abs(c - 2 * T.irCalc(30000, 1)) < .01, 'quotient conjugal');
@@ -84,7 +85,7 @@ if (!BALANCE) {
   });
   test('Retraite à 64 ans (génération 2006, F14043)', () => { check(T.RETIRE_AGE === 64, 'âge légal'); });
   test('Fiscalité des enveloppes', () => {
-    T.newGame({ seed: 2, path: 'travail', dk: 'banque' }); const S = T.ST;
+    T.newGame({ seed: 2, path: 'etudes', dk: 'com' }); const S = T.ST;
     S.env.cto.open = S.year; check(Math.abs(T.taxOn('cto', 1000) - 314) < .01, 'flat tax 31,4 %');
     S.env.pea.open = S.year - 2; check(Math.abs(T.taxOn('pea', 1000) - 314) < .01, 'PEA avant 5 ans');
     S.env.pea.open = S.year - 6; check(Math.abs(T.taxOn('pea', 1000) - 186) < .01, 'PEA après 5 ans : 18,6 %');
@@ -97,6 +98,21 @@ if (!BALANCE) {
   test('Parties complètes, un domaine après l’autre (invariants chaque année)', () => {
     for (const [p, k] of ALL) for (let i = 0; i < 3; i++) play(p, k, 1 + Math.floor(R() * 1e9));
   });
+  test('Carrière : toutes les actions du joueur, au hasard, pendant des parties complètes', () => {
+    const t = ctx.CA; const used = {};
+    const each = S => {
+      const u = R(), p = S.prof, run = (n, f) => { const r = f(); if (r) used[n] = (used[n] || 0) + 1; };
+      if (p === 'chef') { t.setPay(R() * t.payMax()); if (R() < .3) run('div', () => t.payDiv(t.divMax() * .5)); if (R() < .1) run('hire', () => t.bizHire()); if (R() < .1) run('ads', () => t.bizAds(S.biz.tre * .1)); if (R() < .04 && t.bizVal() > 0) run('sell', () => t.bizSell()); }
+      if (p === 'independant' && R() < .3) run('rate', () => t.indepRate(R() < .5));
+      if (p === 'chomage' || p === 'pause') { if (R() < .3) run('take', () => t.takeJob()); else if (R() < .3) run('reconv', () => t.reconvert(t.RECONV[Math.floor(R() * 4)].k)); }
+      if (R() < .02 && t.canBridge('boite')) { const d = T.DOMS.boite[Math.floor(R() * 6)]; run('bridgeBiz', () => t.bridgeBiz(d.k, Math.min(S.cash, d.mise * S.cpi), Math.ceil(Math.max(0, d.mise * S.cpi - S.cash) / 500) * 500)); }
+      if (R() < .02 && t.canBridge('indep')) run('bridgeIndep', () => t.bridgeIndep(t.indepChoices()[0]));
+      if (R() < .15) run('crowd', () => t.crowdIn(0, Math.floor(S.cash * .05)));
+      const rs = S.rs; t.raiseInfo(); t.crowdOffers(); t.bizCalc && S.biz && t.bizCalc(); check(S.rs === rs, 'une vue de carrière a consommé du hasard');
+    };
+    for (const [p, k] of ALL) for (let i = 0; i < 4; i++) play(p, k, 1 + Math.floor(R() * 1e9), 'rand', { each });
+    for (const n of ['div', 'hire', 'crowd', 'bridgeBiz', 'rate', 'take']) check(used[n] > 0, 'action jamais jouée : ' + n);
+  });
   test('Déterminisme : même graine, même partie', () => {
     const a = JSON.stringify(play('etudes', 'com', 4242, 'rand')); R = mulberry(seed);
     const b0 = mulberry(seed); R = b0; const a2 = JSON.stringify(play('etudes', 'com', 4242, 'rand'));
@@ -104,14 +120,14 @@ if (!BALANCE) {
     check(a2 === b2, 'deux parties identiques divergent');
   });
   test('Sauvegarde : aller-retour identique en cours de partie', () => {
-    setup('travail', 'logi', 77); for (let i = 0; i < 6; i++) { decide('rand'); T.closeYear(); }
+    setup('etudes', 'info', 77); for (let i = 0; i < 6; i++) { decide('rand'); T.closeYear(); }
     const s1 = T.serialize(); T.restore(s1); check(T.serialize() === s1, 'aller-retour différent');
     const r = mulberry(5); R = r; decide('rand'); T.closeYear(); const after = T.serialize();
     T.restore(s1); R = mulberry(5); decide('rand'); T.closeYear(); check(T.serialize() === after, 'la partie rechargée diverge');
     check(T.restore('{pas du json') === null, 'sauvegarde abîmée acceptée');
   });
   test('Événements : jamais deux fois en 5 ans', () => {
-    setup('travail', 'vente', 9); const seen = {};
+    setup('etudes', 'droit', 9); const seen = {};
     while (!T.ST.over) { const id = T.ST.ev; if (id) { check(!(id in seen) || T.ST.year - seen[id] >= 5, `${id} répété en ${T.ST.year}`); seen[id] = T.ST.year; } decide('rand'); T.closeYear(); }
   });
   console.log(`\n${pass} réussi(s), ${fail} échec(s) · graine ${seed}`);

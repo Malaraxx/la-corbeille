@@ -1,6 +1,7 @@
 # Journal des versions
 
 ## Saison 4 (en construction, dossier `saison4/`, 9 novembre 2026)
+- **Nouveau cap (cahier des charges v2)** : la Saison 4 devient un jeu d'entrepreneur. Les études sont obligatoires, et à la sortie tu crées ton entreprise (pour l'instant selon ta filière : e-commerce, startup, cabinet infirmier, avocat·e, freelance ou artisan·e). Plus de salariat à vie ni de fonctionnaire. Gardés de l'étape 2 : le tableau de bord de ta société (salaire, dividendes, embauches, publicité, revente), le chômage et la reconversion, le CDD de transition de 2 ans, le financement participatif, la fiche de paie.
 - **Étape 1, le socle** : une vie de 20 ans à la retraite (64 ans, en 2070). Création du personnage en six touchers (homme ou femme, pseudo, ville, études, travail ou boîte, domaine, financement, logement), en-tête permanent, la Une, la décision de l'année en versus ou en pari au curseur, les dossiers en cours, le budget « Où vont tes 100 € » avec l'inflation, le récap en trois blocs avant de clôturer, le bilan animé. Fiscalité 2026 vérifiée (barème de l'impôt, apprentissage, retraite). La version 3 reste jouable à la racine, avec un lien « Essayer la Saison 4 ».
 
 ## 3.14.0 — Les décisions de Flo (8 novembre 2026)
