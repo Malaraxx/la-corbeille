@@ -39,7 +39,7 @@ vm.runInContext(js + `;globalThis.T={get S(){return S},set S(v){S=v},newGame,sta
   buyProp,sellProp,reneg,canReneg,answerEvent,answerLife,evDef,LIFE,EVT,net,tradable,ORDER,ENVS,META,EQUITY,STOCKS,THEMES,PRESETS,GOALS,ACH,ADV,PHASES,GOOD,Y0,get YN(){return YN},get A0(){return A0},setA0,age,AY,gTxt,
   eligEnvs,peaCap,envTotal,turnReady,finalScore,placeIdle,rebalance,dry,alloc,eqShare,irr,invData,coups,epilogue,shareText,genYear,peekR,hv,ev,conseils,rappels,pct,f1,
   homeOptions,recoHome,onbHome,onbNext,onbView,budgetTable,kidsCost,rpOf,PRESETS,EPARGNES,SALAIRES,coefOf,BIENS,dossierHtml,acheter,achatState,ACHATS,migrate,bestRental,bestBuy,buyHome,moveTo,propQuote,coussin,yearlySave,monthlySpend,CITIES,loanLeft,
-  halfYear,bizCalc,bizForecast,setBud,budgetModal,budDue,bizBad,psRate,psFRate,ctoRate,avRate,wdCalc,pvImmoTax,applyProg,PROG,BUD0,setRent,rentExp,vacP,runPlans,moveCity,immoTab,bizSellPart,bizPlan,statusName,bizCreate,bizSell,bizRaise,bizDiv,bizHire,bizPay,bizLeave,bizStake,bizOffer,canRaise,DOMS,
+  halfYear,bizCalc,bizForecast,setBud,budgetModal,budDue,bizBad,psRate,psFRate,ctoRate,avRate,wdCalc,pvImmoTax,applyProg,PROG,BUD0,setRent,rentExp,vacP,runPlans,moveCity,immoTab,bizSellPart,bizPlan,statusName,bizCreate,bizSell,bizRaise,bizDiv,bizHire,bizPay,bizLeave,bizStake,bizOffer,canRaise,DOMS,bizExpand,canExpand,exCost,bizRoom,bizMkt,careerView,boiteTab,
   halfYear,buyHomeKeep,ifiTax,benchRef,biography,threadEnds,chapOf,boot,endView,envTotal,custErr,custLeft,custDefaults,homeName,startSave,turnView,bilanView,endView,introView,moneyBar,profilTab,portefeuilleTab,immoTab,patrimoineTab,animHtml,toastsHtml,advHtml,spark,save,load,legacyGame,U};`, ctx);
 const T = ctx.T;
 
@@ -94,8 +94,9 @@ const randomPolicy = {
       if (R() < .2) T.bizHire(R() < .6 ? 1 : -1);
       if (R() < .2) T.bizRaise();
       if (R() < .2) T.bizDiv();
+      if (R() < .15) T.bizExpand();
       if (R() < .03) T.bizSell(R() < .5 ? 'vente' : 'fermeture');
-      if (R() < .3) { T.setBud('mk', pickR([0, .05, .1, .15, .2])); T.setBud('pr', pickR([0, .05, .1, .15])); T.setBud('px', pickR([-.05, 0, .05, .1])); }
+      if (R() < .3) { T.setBud('mk', pickR([0, .05, .1, .15, .2, .25])); T.setBud('pr', pickR([0, .05, .1, .15])); T.setBud('px', pickR([-.1, -.05, 0, .05, .1, .15])); }
     } else if (S.biz && S.biz.alive && R() < .05) T.bizSell('vente');
   },
 };
@@ -700,6 +701,32 @@ test('Fiscalité 2026 : 31,4 % au compte-titres, 18,6 % au PEA, 30 % pour l’as
   // partie d'avant la 3.14 : un seul taux, la hausse de 2026 ne touche que le compte-titres et le PEA
   const old = JSON.parse(JSON.stringify(S)); old.pol.ps = .172; delete old.pol.psF; T.boot({ S: old });
   check(eq(T.S.pol.ps, .186) && eq(T.S.pol.psF, .172), 'migration des prélèvements sociaux');
+});
+
+test('Pas de plafond : marché, ouverture, valorisation calculée', () => {
+  for (const dom of Object.keys(T.DOMS)) {
+    T.newGame({ city: 'lille', sal: 2, cap: 2, couple: false, seed: 900 }, []); let S = T.S;
+    check(!T.bizCreate(dom), 'création ' + dom);
+    check(T.canExpand(), `ouverture permise avant le premier bilan (${dom})`);
+    if (S.life) for (const c of S.life.v.choices) if (!S.life.answered) T.answerLife(c.id); if (S.event) T.answerEvent('pass'); T.endTurn(); T.nextBilan(); S = T.S;
+    if (!S.biz || !S.biz.alive || S.phase !== 'turn') continue;
+    const B = S.biz, D = T.DOMS[dom];
+    check(B.vm && Math.abs(B.vm.mult - D.mult * B.vm.fg * B.vm.fm * B.vm.fk) < 1e-9, `multiple non décomposé (${dom})`);
+    const room0 = T.bizRoom(B, S.defl), m0 = T.bizMkt(B);
+    B.hist[B.hist.length - 1].res = Math.max(1, B.hist[B.hist.length - 1].res); B.red = 0; B.tre = Math.max(B.tre, T.exCost(B));
+    if (S.w.phase === 'crise') continue;
+    const c = T.exCost(B), tre0 = B.tre, debt0 = B.debt, F0 = T.bizForecast();
+    check(!T.bizExpand(), `ouverture refusée (${dom})`);
+    check(T.bizMkt(B) > m0 && T.bizRoom(B, S.defl) > room0, `le marché ne s’agrandit pas (${dom})`);
+    check(Math.abs(tre0 - B.tre - c / 3) < 1e-6 && Math.abs(B.debt - debt0 - c * 2 / 3) < 1e-6, `financement de l’ouverture faux (${dom})`);
+    check(T.bizExpand(), `deux ouvertures la même année (${dom})`);
+    const F1 = T.bizForecast(); check(F1.fixe > F0.fixe, `l’ouverture n’ajoute pas de frais fixes (${dom})`);
+    if (D.ex.ca) check(F1.ca > F0.ca, `un nouveau site n’apporte pas de chiffre (${dom})`);
+    check(cashIdentity(S) < 1, 'argent créé ou perdu par une ouverture');
+    T.U.view = 'boite'; check(T.turnView().includes('Grandir'), 'section Grandir absente');
+  }
+  T.newGame({ city: 'lille', sal: 2, cap: 2, couple: false, seed: 901 }, []); T.U.view = 'boite';
+  const h = T.turnView(); check(!/× CA|Coup dur<\/th>|Croissance<\/th>/.test(h) && h.includes('Aucun chiffre'), 'le tableau des chiffres fixés est encore là');
 });
 
 test('Prévisionnel : imposé la première année, puis seulement quand la boîte va mal', () => {

@@ -416,6 +416,15 @@ svg.ico{display:block;flex:none}
 .rentbox{display:flex;flex-direction:column;gap:4px;margin-top:6px}.rentbox .seg button{padding:3px 9px;font-size:12.5px}.rentbox small{font-size:12px;color:var(--muted)}
 .idle.move{flex-wrap:wrap;gap:8px;margin-bottom:10px}
 .g-boite .card>*{flex-shrink:0}
+.doms{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:10px;margin:10px 0}
+.dom{border:1px solid var(--rule);border-radius:2px;padding:12px 14px;display:flex;flex-direction:column;gap:8px;background:var(--paper);min-width:0}
+.dom.on{border-color:var(--accent);box-shadow:inset 3px 0 0 var(--accent)}
+.dom-h{display:flex;justify-content:space-between;align-items:baseline;gap:8px}.dom-h b{font-family:'Bodoni Moda',Georgia,serif;font-size:17px}
+.dom .kv{display:grid;grid-template-columns:auto 1fr;gap:2px 12px;font-size:13px}.dom .kv span:nth-child(even){text-align:right;white-space:nowrap;font-family:'IBM Plex Mono',monospace;font-variant-numeric:tabular-nums}
+.dom p{margin:0;font-size:13px;line-height:1.45}.dom button{margin-top:auto}
+.risk{font-size:11px;text-transform:uppercase;letter-spacing:.06em;padding:1px 6px;border:1px solid currentColor;border-radius:2px;white-space:nowrap}
+.risk.r2{color:var(--warn)}.risk.r1{color:var(--muted)}
+.vbreak{display:grid;grid-template-columns:auto 1fr;gap:2px 12px;font-size:13px;margin:6px 0}.vbreak span:nth-child(even){text-align:right;font-family:'IBM Plex Mono',monospace}
 ul.plain{list-style:none;padding:0;margin:0}ul.plain li{padding:3px 0;border-bottom:1px solid var(--rule)}
 /* profil */
 .foyer li{grid-template-columns:38px minmax(0,1fr) auto}
@@ -987,11 +996,11 @@ function newGame(spec,goals,guided){
 // coûts fixes (F, par an), CA possible par personne (cpp), coût d'un salarié (sc), volatilité (sd), risque de coup dur par an (f) et sa gravité (hs),
 // sensibilité au cycle (cyc), valorisation en multiple du CA (mult), salariés au départ (st0), ouverte aux investisseurs (vc).
 const DOMS={
-  logiciel:{n:'Logiciel',d:'une application vendue sur abonnement',cap:10000,ca0:40000,g:.45,v:.10,F:12000,cpp:120000,sc:70000,sd:.22,f:.10,hs:.35,cyc:.8,mult:3.5,st0:0,vc:true,el:1.2,mkS:1,mg:'−20 à +25 %',names:['Codalis','Nuvio','Logikar','Tessera']},
-  ecom:{n:'E-commerce',d:'une boutique en ligne',cap:15000,ca0:150000,g:.27,v:.65,F:15000,cpp:300000,sc:45000,sd:.18,f:.10,hs:.3,cyc:1.2,mult:1,st0:0,vc:true,el:2.5,mkS:1.2,mg:'≈ 5 %',names:['Panier Malin','Maison Brune','Atelier Volt','Comptoir Vert']},
-  resto:{n:'Restauration',d:'un restaurant',cap:60000,ca0:250000,g:.05,v:.28,F:40000,cpp:110000,sc:38000,sd:.10,f:.06,hs:.18,cyc:1.1,mult:.8,st0:2,el:3,mkS:.5,mg:'≈ 8 %',names:['La Table d’à côté','Le Comptoir','Chez Nous','L’Ardoise']},
-  conseil:{n:'Conseil',d:'un cabinet de conseil',cap:5000,ca0:90000,g:.12,v:.10,F:8000,cpp:160000,sc:75000,sd:.12,f:.05,hs:.25,cyc:.9,mult:1,st0:0,el:.8,mkS:.4,mg:'≈ 20 %',names:['Cap Conseil','Boussole Partners','Arpège Conseil','Lumen']},
-  btp:{n:'Artisanat et BTP',d:'une entreprise du bâtiment',cap:20000,ca0:200000,g:.07,v:.36,F:15000,cpp:130000,sc:45000,sd:.10,f:.05,hs:.18,cyc:1.1,mult:.6,st0:1,el:2,mkS:.4,mg:'≈ 10 %',names:['Bâti Nord','Les Compagnons','Atelier Pierre','Rénov’Plus']},
+  logiciel:{n:'Logiciel',d:'une application vendue sur abonnement',cap:10000,ca0:40000,g:.45,v:.10,F:12000,cpp:120000,sc:70000,sd:.22,f:.10,hs:.35,cyc:.8,mult:3.5,st0:0,vc:true,el:1.2,mkS:1,mg:'−20 à +25 %',M:6,gR:.23,m0:.15,risk:'élevé',win:'Investir dans le produit et lever des fonds : la valeur vient de la croissance.',ex:{l:'Attaquer un nouveau pays',c:60000,m:.6,ca:0,Fx:10000,st:0},names:['Codalis','Nuvio','Logikar','Tessera']},
+  ecom:{n:'E-commerce',d:'une boutique en ligne',cap:15000,ca0:150000,g:.27,v:.65,F:15000,cpp:300000,sc:45000,sd:.18,f:.10,hs:.3,cyc:1.2,mult:1,st0:0,vc:true,el:2.5,mkS:1.2,mg:'≈ 5 %',M:2.8,gR:.16,m0:.08,risk:'élevé',win:'Le commercial paie, mais les clients comparent les prix : la marge est fine.',ex:{l:'Vendre dans un nouveau pays européen',c:30000,m:.6,ca:0,Fx:8000,st:0},names:['Panier Malin','Maison Brune','Atelier Volt','Comptoir Vert']},
+  resto:{n:'Restauration',d:'un restaurant',cap:60000,ca0:250000,g:.05,v:.28,F:40000,cpp:110000,sc:38000,sd:.10,f:.06,hs:.18,cyc:1.1,mult:.8,st0:2,el:3,mkS:.5,mg:'≈ 8 %',M:1.2,gR:.09,m0:.08,risk:'moyen',win:'Un restaurant plafonne vite : on grandit en ouvrant d’autres adresses.',ex:{l:'Ouvrir un autre restaurant',c:150000,m:1,ca:.8,Fx:40000,st:2},names:['La Table d’à côté','Le Comptoir','Chez Nous','L’Ardoise']},
+  conseil:{n:'Conseil',d:'un cabinet de conseil',cap:5000,ca0:90000,g:.12,v:.10,F:8000,cpp:160000,sc:75000,sd:.12,f:.05,hs:.25,cyc:.9,mult:1,st0:0,el:.8,mkS:.4,mg:'≈ 20 %',M:1.5,gR:.11,m0:.16,risk:'modéré',win:'Ton équipe est ta capacité : chaque consultant embauché ajoute du chiffre.',ex:{l:'Ouvrir un bureau dans une autre ville',c:40000,m:.7,ca:0,Fx:15000,st:0},names:['Cap Conseil','Boussole Partners','Arpège Conseil','Lumen']},
+  btp:{n:'Artisanat et BTP',d:'une entreprise du bâtiment',cap:20000,ca0:200000,g:.07,v:.36,F:15000,cpp:130000,sc:45000,sd:.10,f:.05,hs:.18,cyc:1.1,mult:.6,st0:1,el:2,mkS:.4,mg:'≈ 10 %',M:1.4,gR:.1,m0:.09,risk:'modéré',win:'Des équipes pour tenir les chantiers, des agences pour en trouver d’autres.',ex:{l:'Ouvrir une nouvelle agence',c:60000,m:.8,ca:.3,Fx:15000,st:1},names:['Bâti Nord','Les Compagnons','Atelier Pierre','Rénov’Plus']},
 };
 const HITS={logiciel:['un gros client résilie son abonnement','un concurrent étranger casse les prix','une panne géante fait fuir des clients'],ecom:['un fournisseur lâche en pleine saison','la plateforme change ses règles et ton trafic s’effondre','un stock invendable à solder'],
   resto:['des travaux bloquent la rue pendant des mois','le chef part chez un concurrent','une mauvaise critique fait le tour des réseaux'],conseil:['ton plus gros client internalise la mission','un associé part avec deux clients','les budgets de conseil sont gelés'],
@@ -1029,7 +1038,7 @@ function bizCreate(dom){
   if(own<need/3-.5)return `Il te faut au moins ${fmt(need/3)} d’apport (la banque prête le reste). Tu as ${fmt(dispo)}.`;
   if(S.cash<own&&S.liv>0)livOut(Math.min(S.liv,own-S.cash));
   S.uid=(S.uid||1)+1;
-  const B=S.biz={uid:S.uid,dom,name:pick(D.names),born:y,role:'own',share:1,ca:D.ca0*d,staff:D.st0,tre:need,debt:need-own,debt0:need-own,inv:own,pay:'smic',payV:0,hist:[],raises:0,lastRaise:null,alive:true,red:0,val:own,divY:null};
+  const B=S.biz={uid:S.uid,dom,name:pick(D.names),born:y,role:'own',share:1,ca:D.ca0*d,staff:D.st0,tre:need,debt:need-own,debt0:need-own,inv:own,pay:'smic',payV:0,hist:[],raises:0,lastRaise:null,alive:true,red:0,val:own,divY:null,dl:d};
   S.cash-=own;lgFlow('biz','boite'+B.uid,-own);S.lg.lines['biz:boite'+B.uid].label=B.name;
   S.salRef=S.revenu;bizPay('smic');
   (S.bizCh||(S.bizCh=[])).push(chapOf(y));
@@ -1041,7 +1050,7 @@ function bizCreate(dom){
 function bizJoin(name){
   const d=S.defl;S.uid=(S.uid||1)+1;
   const B=S.biz={uid:S.uid,dom:'logiciel',name,born:S.year-3,role:'emp',share:0,ca:1.5e6*d,staff:11,tre:2e6*d,debt:0,debt0:0,inv:0,pay:'avant',payV:0,hist:[],raises:1,lastRaise:S.year-1,alive:true,red:0,val:0,divY:null,burn:.35};
-  B.val=DOMS.logiciel.mult*B.ca+B.tre;
+  B.val=DOMS.logiciel.mult*B.ca+B.tre;B.vm=null;
   S.salRef=S.revenu;S.revenu=Math.round(.8*S.salRef);
 }
 // Prix d'un repreneur : 90 % de la valorisation pour une boîte que tu diriges, 70 % pour des actions minoritaires.
@@ -1100,7 +1109,29 @@ function canRaise(){
   if(S.w.phase==='crise')return 'En pleine crise, les investisseurs ont fermé le robinet.';
   return null;
 }
-const raiseAmt=()=>{const B=S.biz;return Math.round(.25*Math.max(0,DOMS[B.dom].mult*B.ca+B.tre-B.debt));};
+const raiseAmt=()=>{const B=S.biz;return Math.round(.25*Math.max(0,B.val));};
+// Grandir : ouvrir un nouveau marché (pays, ville, restaurant, agence). Le projet coûte D.ex.c (indexé), 25 % de plus à chaque
+// ouverture (la complexité monte) ; la trésorerie en paie un tiers, la banque prête le reste sur 5 ans. Le marché s'agrandit,
+// des frais fixes et parfois une équipe s'ajoutent ; un site (restaurant, agence) apporte du chiffre dès l'année suivante.
+const exCost=B=>Math.round(DOMS[B.dom].ex.c*S.defl*(1+.25*(B.ex||0)));
+function canExpand(){
+  const B=S.biz;if(!bizBoss())return 'Tu ne diriges pas de boîte.';
+  const h=B.hist[B.hist.length-1];if(!h)return 'Attends ton premier bilan : la banque veut des chiffres.';
+  if(B.red)return 'Redresse d’abord ta trésorerie.';
+  if(B.exY===S.year)return 'Une ouverture par an au plus.';
+  if(h.res<=0)return 'Après une année en perte, la banque ne finance pas d’ouverture.';
+  if(S.w.phase==='crise')return 'En pleine crise, la banque ne finance pas d’ouverture.';
+  const c=exCost(B);if(B.tre<c/3)return `Il faut ${fmt(c/3)} de trésorerie (un tiers du projet), la banque prête le reste.`;
+  return null;
+}
+function bizExpand(){
+  const e=canExpand();if(e)return e;
+  const B=S.biz,D=DOMS[B.dom],c=exCost(B),own=c/3,d=S.defl;
+  B.tre-=own;B.debt+=c-own;B.debt0=B.debt;B.val=Math.max(0,B.val-(c-own));
+  B.ex=(B.ex||0)+1;B.Fx=(B.Fx||0)+D.ex.Fx;B.staff+=D.ex.st;B.exB=(B.exB||0)+D.ex.ca*D.ca0*d;B.exY=S.year;
+  logIt('Ouverture',`${B.name} : ${D.ex.l.toLowerCase()}, ${fmt(c)} dont ${fmt(c-own)} prêtés par la banque.`);logBeat(`${B.name} grandit en ${S.year} : ${D.ex.l.toLowerCase()}.`);
+  return null;
+}
 function bizRaise(){const e=canRaise();if(e)return e;const B=S.biz,a=raiseAmt();B.tre+=a;B.val+=a;B.share*=.8;B.raises++;B.lastRaise=S.year;logIt('Levée de fonds',`${B.name} lève ${fmt(a)} : ta part passe à ${pc0(B.share)}.`);return null;}
 // Dividende : le bénéfice de l'an dernier, ou un quart des réserves s'il est plus petit, jamais plus de la moitié de la trésorerie.
 const divAmt=()=>{const B=S.biz,h=B.hist[B.hist.length-1];return h&&h.res>0?Math.max(0,Math.min(B.tre*.5,Math.max(h.res,B.tre*.25))):0;};
@@ -1121,29 +1152,39 @@ function bizDiv(){
 // augmente le CA possible par personne et, pour le logiciel et l'e-commerce, la valorisation ; le prix joue sur la marge
 // et sur le volume (élasticité el : CA × (1 + prix)^(1 − el), appliqué une fois au changement de prix).
 const BUD0={mk:.05,pr:.05,px:0};
-const MKS=[0,.05,.1,.15,.2],PRS=[0,.05,.1,.15],PXS=[-.05,0,.05,.1];
+const MKS=[0,.05,.1,.15,.2,.25],PRS=[0,.05,.1,.15],PXS=[-.1,-.05,0,.05,.1,.15];
+// Le marché de la boîte, en CA de 2026 : D.M fois le CA de départ, agrandi à chaque ouverture (D.ex.m). Il n'y a pas de plafond :
+// la croissance de base ralentit à mesure que la boîte prend son marché (« de la place », de 1 au départ à 0,12 au minimum),
+// et repart quand elle en ouvre un nouveau (jusqu'à 1,5).
+const bizMkt=B=>{const D=DOMS[B.dom];return D.ca0*D.M*(1+(B.ex||0)*D.ex.m);};
+const bizRoom=(B,d)=>{const D=DOMS[B.dom],sh=B.ca/((B.dl||d)*bizMkt(B)),s0=1/D.M; // B.dl : l'indice des prix du dernier bilan (B.ca est en euros de ce moment-là)
+  return clamp((1-sh)/(1-s0),.12,1.5);};
 const PHG={expansion:.03,surchauffe:.05,recession:-.08,crise:-.2,reprise:.03};
 const budOf=B=>B.role==='own'?{...BUD0,...(B.bud||{})}:BUD0;
 // Le calcul d'une année, sans rien modifier : o = {phase, z (aléa, en écarts-types), hit (coup dur), infl (inflation de l'année, en fraction)}.
 function bizCalc(B,o,bud){
   const D=DOMS[B.dom],d=S.defl,y=S.year,ag=y-B.born,first=!B.hist.length&&B.role==='own',bu=bud||budOf(B),own=B.role==='own';
-  const K=B.K??.25,cf=clamp(1+.6*(K-.25),.8,1.3),vf=clamp(1-.5*(K-.25),.75,1.15),gm=m=>.55*Math.sqrt(Math.max(0,m))*D.mkS*Math.max(.3,1-ag/20);
+  const room=bizRoom(B,d),K=B.K??.25,cf=clamp(1+.6*(K-.25),.8,1.3),vf=clamp(1-.5*(K-.25),.75,1.15),gm=m=>.55*Math.sqrt(Math.max(0,m))*D.mkS*clamp(room,.3,1);
   const staff=own?B.staff:Math.max(B.staff,Math.ceil(B.ca*1.1/(D.cpp*d))-1);
   const ph=(PHG[o.phase]||0)*D.cyc;
-  let g=first?o.z*D.sd*.5:D.g*Math.max(.12,1-ag/14)+ph+o.z*D.sd+(B.hired===y?.06:0);
+  let g=first?o.z*D.sd*.5:D.g*room+ph+o.z*D.sd+(B.hired===y?.06:0);
   if(own)g+=gm(bu.mk)-gm(.05);
   if(o.hit)g-=D.hs;
   const pm=own?Math.pow((1+bu.px)/(1+(B.pxA||0)),1-D.el):1;
-  let ca=(first?B.ca:B.ca*(1+o.infl))*(1+g)*pm;
+  let ca=(first?B.ca:B.ca*(1+o.infl))*(1+g)*pm+(first?0:B.exB||0); // exB : le chiffre d'un site ouvert l'an dernier
   const capa=D.cpp*cf*(staff+1)*d*(1+(own?bu.px:0)); // capacité exprimée en CA, au prix pratiqué
   if(ca>capa)ca=capa+(ca-capa)*.15;
   ca=Math.max(B.ca*.3,ca);
-  const vol=ca/(1+(own?bu.px:0)),cv=Math.max(0,D.v-.1)*vf*vol,mk=bu.mk*ca,pr=bu.pr*ca,fixe=D.F*d*(1+.1*staff),team=staff*D.sc*d;
+  const vol=ca/(1+(own?bu.px:0)),cv=Math.max(0,D.v-.1)*vf*vol,mk=bu.mk*ca,pr=bu.pr*ca,fixe=(D.F*(1+.1*staff)+(B.Fx||0))*d,team=staff*D.sc*d;
   const intr=B.debt*(S.w.credit+2)/100,burn=B.burn&&ag<8?B.burn*ca:0,pay=own?B.payV*1.45:0;
   const ops=cv+mk+pr+fixe+team+intr+burn,ebit=ca-ops-pay,tax=ebit>0?ebit*.25:0,res=ebit-tax,rep=Math.min(B.debt,B.debt0/5);
-  const tre=B.tre+res-rep,gr=first?0:ca/B.ca-1,mult=D.mult*(D.vc?clamp(1+.6*(K-.25),.8,1.2):1);
-  const val=Math.max(0,(res>0||gr>.2?mult:mult*.5)*ca+tre-(B.debt-rep));
-  return {ca,g:gr,cv,mk,pr,fixe,team,intr,burn,pay,ops,tax,res,rep,tre,val,staff,capa,first};
+  const tre=B.tre+res-rep,gr=first?0:ca/B.ca-1;
+  // Valorisation calculée : multiple du métier × croissance des 3 dernières années (face au repère gR) × marge (face au repère m0).
+  const hs=B.hist.slice(B.role==='own'?1:0).slice(-2).map(x=>x.g);if(!first)hs.push(gr);
+  const g3=hs.length?hs.reduce((a,b)=>a+b,0)/hs.length:D.gR,mg=ca>0?res/ca:0;
+  const fg=clamp(1+2*(g3-D.gR),.5,2.5),fm=clamp(1+3*(mg-D.m0),.4,2),fk=D.vc?clamp(1+.6*(K-.25),.8,1.2):1,mult=D.mult*fg*fm*fk;
+  const val=Math.max(0,mult*ca+tre-(B.debt-rep));
+  return {ca,g:gr,cv,mk,pr,fixe,team,intr,burn,pay,ops,tax,res,rep,tre,val,staff,capa,first,room,g3,mg,fg,fm,fk,mult};
 }
 // Prévisionnel : l'économie de l'an dernier continue, aucun aléa ni coup dur, inflation de l'an dernier.
 const bizForecast=bud=>bizCalc(S.biz,{phase:S.w.phase,z:0,hit:false,infl:S.w.infl/100},bud);
@@ -1160,7 +1201,7 @@ function bizYear(y,f,b){
     const cyc=bizCalc(B,{phase:f.phase,z:0,hit:false,infl:f.mac.infl/100}).ca-fc.ca,hd=hit?R.ca-bizCalc(B,{phase:f.phase,z,hit:false,infl:f.mac.infl/100}).ca:0;
     b.biz={name:B.name,fc,R,why:{cyc,hit:hd,alea:R.ca-fc.ca-cyc-hd},hitT:hit?pick(HITS[B.dom]):null};
   }
-  B.staff=R.staff;B.debt-=R.rep;B.tre=R.tre;B.ca=R.ca;B.val=R.val;
+  B.staff=R.staff;B.debt-=R.rep;B.tre=R.tre;B.ca=R.ca;B.val=R.val;B.exB=0;B.dl=S.defl;B.vm={g3:R.g3,mg:R.mg,fg:R.fg,fm:R.fm,fk:R.fk,mult:R.mult};
   if(own){B.K=.8*(B.K??.25)+bu.pr;B.pxA=bu.px;}
   if(B.role==='emp')B.share=Math.min(.01,B.share+.0025);
   B.hist.push({y,ca:R.ca,g:R.g,ops:R.ops,pay:R.pay,tax:R.tax,res:R.res,tre:B.tre,staff:B.staff,val:B.val,mk:R.mk,pr:R.pr,fc:fc?{ca:fc.ca,res:fc.res,tre:fc.tre}:null});
@@ -3093,7 +3134,7 @@ const bizBad=()=>{const B=S.biz,h=B.hist[B.hist.length-1];if(!h)return true;cons
 const budDue=()=>S.phase==='turn'&&bizBoss()&&(U.budEdit||(S.biz.budY!==S.year&&!S.half&&bizBad()));
 const prLbl=dom=>['resto','btp'].includes(dom)?'Équipement et investissement':'Produit et innovation';
 function budgetModal(){
-  const B=S.biz,D=DOMS[B.dom],bu=budOf(B),F=bizForecast(),F0=bizForecast(BUD0),d=S.defl,gm=m=>.55*Math.sqrt(m)*D.mkS*Math.max(.3,1-(S.year-B.born)/20);
+  const B=S.biz,D=DOMS[B.dom],bu=budOf(B),F=bizForecast(),F0=bizForecast(BUD0),d=S.defl,gm=m=>.55*Math.sqrt(m)*D.mkS*clamp(bizRoom(B,d),.3,1);
   const seg=(k,L,f)=>`<div class="budseg" role="group">${L.map(v=>`<button class="pchip" data-act="bud" data-k="${k}" data-v="${v}" aria-pressed="${Math.abs(bu[k]-v)<1e-9}">${f(v)}</button>`).join('')}</div>`;
   const p0=v=>Math.round(v*100)+' %',sg=v=>v===0?'Marché':(v>0?'+':'−')+Math.round(Math.abs(v)*100)+' %';
   const r=(l,v,c='',sub='')=>`<tr class="${c}"><td>${l}${sub?`<br><small class="mut">${sub}</small>`:''}</td><td class="n ${v<0?'':''}">${sgn(v)}</td></tr>`;
@@ -3132,6 +3173,24 @@ function bizChart(h){
     <p class="small mut">Chiffre d’affaires de chaque année (le plus haut : ${fmt(mx)}) ; en rouge, une année en perte.</p>`;
 }
 const sgn=v=>`${v<0?'−':''}${fmt(Math.abs(v))}`;
+// Pourquoi ta boîte vaut ce qu'elle vaut : rien n'est fixé, le multiple vient de ta croissance et de ta marge.
+const xf=v=>'× '+f1(v).replace('.',',');
+function valWhy(B){
+  const D=DOMS[B.dom],m=B.vm;if(!m)return `<p class="small mut">Ta valorisation sera calculée à ton premier bilan, à partir de ta croissance et de ta marge.</p>`;
+  const room=bizRoom(B,S.defl);
+  return `<h4>Pourquoi ta boîte vaut ${fmt(B.val)}</h4><div class="vbreak">
+    <span>Repère du métier</span><span>${xf(D.mult)} le CA</span>
+    <span>Ta croissance (${pct(m.g3,0)} par an)</span><span class="${m.fg>=1?'up':'down'}">${xf(m.fg)}</span>
+    <span>Ta marge (${pct(m.mg,0)} du CA)</span><span class="${m.fm>=1?'up':'down'}">${xf(m.fm)}</span>
+    ${D.vc?`<span>Ton produit</span><span class="${m.fk>=1?'up':'down'}">${xf(m.fk)}</span>`:''}
+    <span><b>Ton multiple</b></span><span><b>${xf(m.mult)} le CA</b></span></div>
+    <p class="small mut">Plus la trésorerie, moins les dettes. ${room<.45?`Ta boîte a pris l’essentiel de son marché : pour grandir encore, ${D.ex.l.toLowerCase()}.`:room>1?'Ton nouveau marché laisse beaucoup de place pour grandir.':'Il reste de la place sur ton marché.'}</p>`;
+}
+function expandBox(B,conf){
+  const D=DOMS[B.dom],e=canExpand(),c=exCost(B),n=B.ex||0;
+  return `<div class="btns col"><button class="${conf==='exp'?'primary':'secondary'}" data-act="biz-exp" ${e?'disabled':''}>${conf==='exp'?`Confirmer : ${fmt(c)}, dont ${fmt(c*2/3)} prêtés`:`${D.ex.l} · ${fmt(c)}`}</button>${e?`<span class="small mut">${e}</span>`:''}</div>
+    <p class="small mut">Ça agrandit ton marché${D.ex.ca?' et apporte du chiffre dès cette année':''}, mais ajoute ${fmt(D.ex.Fx*S.defl)} de frais fixes par an${D.ex.st?` et ${D.ex.st} salarié${D.ex.st>1?'s':''}`:''}. La trésorerie paie un tiers, la banque prête le reste sur 5 ans.${n?` Déjà ${n} ouverture${n>1?'s':''} : chaque nouvelle coûte 25 % de plus.`:''}</p>`;
+}
 function boiteTab(){
   const msg=U.bizMsg?`<p class="${U.bizMsg.err?'err':'ok'}" role="status">${U.bizMsg.t}</p>`:'';
   if(!bizOn())return careerView(msg);
@@ -3149,7 +3208,7 @@ function boiteTab(){
       ${row('Effectif',`${B.staff+(own?1:0)} ${B.staff+(own?1:0)>1?'personnes':'personne'}${own?', toi compris':''}`)}
       ${row(gl('Valorisation','Valorisation'),fmt(B.val))}${row(`Ta part (${pc0(B.share)})`,fmt(bizStake()))}</tbody></table>${run}${red}</section>`;
   const cardB=`<section class="card bz-chart"><div class="ch"><h3>Chiffre d’affaires</h3></div>${bizChart(B.hist)}
-    <p class="small mut">Dans ce métier, une boîte se valorise environ ${String(D.mult).replace('.',',')} fois son chiffre d’affaires (deux fois moins si elle perd de l’argent sans croître vite), plus sa trésorerie, moins ses dettes.</p></section>`;
+    ${valWhy(B)}</section>`;
   const conf=U.bizConf;
   let dec;
   if(own){
@@ -3160,6 +3219,7 @@ function boiteTab(){
       <p class="small mut">Commercial ${Math.round(budOf(B).mk*100)} % · ${prLbl(B.dom).split(' ')[0].toLowerCase()} ${Math.round(budOf(B).pr*100)} % · prix ${budOf(B).px?pct(budOf(B).px,0):'du marché'}. Résultat prévu : ${sgn(bizForecast().res)}.</p>
       <h4>Ton équipe</h4><div class="btns"><button class="secondary" data-act="biz-hire" data-v="1">Embaucher · ${fmt(D.sc*d)}/an</button><button class="ghost" data-act="biz-hire" data-v="-1" ${B.staff<1?'disabled':''}>Réduire l’équipe</button></div>
       <p class="small mut">À ${B.staff+1}, ta boîte peut faire jusqu’à ${fmt(D.cpp*(B.staff+1)*d)} de chiffre d’affaires par an. Licencier coûte trois mois de salaire.</p>
+      <h4>Grandir</h4>${expandBox(B,conf)}
       <h4>Ton argent</h4><div class="btns col">
         ${D.vc?`<button class="secondary" data-act="biz-raise" ${er?'disabled':''}>Lever ${fmt(raiseAmt())} contre 20 % du capital</button>${er?`<span class="small mut">${er}</span>`:''}`:''}
         <button class="secondary" data-act="biz-div" ${hd<100||B.divY===S.year?'disabled':''}>Te verser un dividende${hd>=100?` · ${fmt(hd*B.share*(1-ctoRate()))} net`:''}</button>
@@ -3179,9 +3239,13 @@ function boiteTab(){
 }
 function careerView(msg){
   const y=S.year,A=prof(),past=S.bizPast||[],conf=U.bizConf,late=retired(y)||age(y)>=60,used=(S.bizCh||[]).includes(chapOf(y));
-  const rows=Object.entries(DOMS).map(([k,D])=>{const er=late||used?null:dry(()=>bizCreate(k));
-    return `<tr><td><b>${D.n}</b><br><small>${D.d}</small></td><td class="n" data-l="Apport">${fmt(D.cap*S.defl)}</td><td class="n" data-l="Croissance">+${pc0(D.g)}</td><td class="n" data-l="Marge">${D.mg}</td><td class="n" data-l="Coup dur">${pc0(D.f)}/an</td><td class="n" data-l="Valorisation">${String(D.mult).replace('.',',')} × CA</td>
-      <td><button class="${conf===k?'primary':'secondary'} sm" data-act="biz-create" data-d="${k}" ${late||used||er?'disabled':''} ${er?`title="${er}"`:''}>${conf===k?'Confirmer':'Créer'}</button></td></tr>`;}).join('');
+  const rows=Object.entries(DOMS).map(([k,D])=>{const er=late||used?null:dry(()=>bizCreate(k)),d=S.defl,need=D.cap*d;
+    return `<article class="dom ${conf===k?'on':''}"><div class="dom-h"><b>${D.n}</b><span class="risk ${D.risk==='élevé'?'r2':'r1'}">Risque ${D.risk}</span></div>
+      <p class="mut">${D.d[0].toUpperCase()+D.d.slice(1)}</p>
+      <div class="kv"><span>Projet</span><span>${fmt(need)}</span><span>Ton apport minimum</span><span>${fmt(need/3)}</span><span>Chiffre de départ</span><span>${fmt(D.ca0*d)}/an</span><span>Équipe</span><span>${D.st0?`toi + ${D.st0}`:'toi seul‧e'}</span></div>
+      <p>${D.win}</p>
+      <button class="${conf===k?'primary':'secondary'}" data-act="biz-create" data-d="${k}" ${late||used||er?'disabled':''} ${er?`title="${er}"`:''}>${conf===k?'Confirmer la création':'Créer'}</button>
+      ${er&&!late&&!used?`<span class="small warn">${er}</span>`:''}</article>`;}).join('');
   const D=conf&&DOMS[conf],need=D?D.cap*S.defl:0,own=D?Math.min(need,Math.max(0,S.cash)+S.liv):0;
   const sure=D?`<div class="idle"><span>Tu quittes ton poste pour lancer ${D.d} : ${fmt(own)} d’apport${need>own+.5?`, ${fmt(need-own)} prêtés par la banque`:''}. Au début, ta boîte te verse le minimum (${fmt(16800*S.defl/12)}/mois) : ton budget va se serrer. Il te restera ${fmt(Math.max(0,S.cash)+S.liv-own)} de côté.</span><button class="ghost sm" data-act="biz-create" data-d="">Annuler</button></div>`:'';
   return `<div class="g-boite emp">
@@ -3193,10 +3257,10 @@ function careerView(msg){
       <p class="small mut">En plus de l’inflation et du climat de l’emploi. ${rankOf()===0?'Au sortir de l’école, tu passes manager en quelques années (+8 %).':rankOf()<3?`Prochaine marche : ${RANKN()[rankOf()+1].toLowerCase()} (+25 %), si on te le propose.`:'Tu es au sommet de l’entreprise.'} Reconversion et licenciements arrivent avec la vie.</p>
       ${past.length?`<h4>Tes aventures</h4><ul class="plain small">${past.map(x=>`<li>${x.name} (${DOMS[x.dom].n.toLowerCase()}), ${x.born} → ${x.end} : ${x.txt}.</li>`).join('')}</ul>`:''}</section>
     <section class="card bz-new"><div class="ch"><h3>Créer ta boîte</h3></div>${msg}
-      <p class="small">Tu fixes ton salaire, tu embauches, tu lèves des fonds. Les bénéfices restent dans sa trésorerie et ta part compte dans ton patrimoine. Si elle fait faillite, tu retrouves un poste avec 10 % de salaire en moins. ${late?'<b>À ton âge, place à la transmission.</b>':used?'<b>Une seule création par chapitre de ta vie : attends le prochain.</b>':'Une création par chapitre de ta vie.'}</p>
+      <p class="small"><b>Aucun chiffre n’est écrit d’avance.</b> Ta croissance, ta marge et la valeur de ta boîte viennent de tes décisions : ton budget commercial, tes prix, tes embauches, les marchés que tu ouvres. Pas de plafond : quand ton marché sature, tu en ouvres un autre. Si ta boîte fait faillite, tu retrouves un poste avec 10 % de salaire en moins. ${late?'<b>À ton âge, place à la transmission.</b>':used?'<b>Une seule création par chapitre de ta vie : attends le prochain.</b>':'Une création par chapitre de ta vie.'}</p>
       ${sure}
-      <div class="tbl-wrap"><table class="inv dom"><thead><tr><th>Domaine</th><th class="n">Apport</th><th class="n">Croissance</th><th class="n">Marge</th><th class="n">Coup dur</th><th class="n">Valorisation</th><th></th></tr></thead><tbody>${rows}</tbody></table></div>
-      <p class="small mut">Croissance de départ, qui ralentit avec les années. La banque prête jusqu’aux deux tiers de l’apport.</p></section></div>`;
+      <div class="doms">${rows}</div>
+      <p class="small mut">La banque prête jusqu’aux deux tiers du projet, remboursés par ta boîte en 5 ans. Les coups durs (client perdu, litige, panne) arrivent plus souvent les premières années et en crise.</p></section></div>`;
 }
 // ----- départ : le logement -----
 function onbView(){
@@ -3737,7 +3801,7 @@ function onClick(ev_){
   const a=t.dataset.act,key=t.dataset.key;
   U.toast=null;
   // Annuler le dernier ordre du tour : on garde l'état d'avant chaque ordre (non sauvegardé, effacé à la fin de l'année).
-  const UNDO={buy:'l’achat',sell:'la vente',wd:'le retrait','pea-close':U.confirmClose&&'la clôture du PEA',place:'le placement',['rebal-ok']:'le rééquilibrage',['dos-buy']:'l’achat immobilier',['home-rent']:'le déménagement',['prop-sell']:U.confirmSell===+t.dataset.u&&'la vente du bien',reneg:'la renégociation',achat:'l’achat plaisir',['city-move']:U.cityConf===t.dataset.c&&'le déménagement',['biz-create']:U.bizConf===t.dataset.d&&'la création',['biz-pay']:'le changement de salaire',['biz-hire']:'la décision d’équipe',['biz-raise']:'la levée de fonds',['biz-div']:'le dividende',['biz-leave']:'le changement de poste',['biz-part']:'la cession de parts',bud:'le changement de budget',['biz-plan']:U.bizConf==='plan'&&'le plan social',['plan-set']:'le versement automatique',['plan-stop']:'l’arrêt du versement',['rent-lvl']:'le changement de loyer',['biz-sell']:U.bizConf==='sell'&&'la vente',['biz-close']:U.bizConf==='close'&&'la fermeture'}[a];
+  const UNDO={buy:'l’achat',sell:'la vente',wd:'le retrait','pea-close':U.confirmClose&&'la clôture du PEA',place:'le placement',['rebal-ok']:'le rééquilibrage',['dos-buy']:'l’achat immobilier',['home-rent']:'le déménagement',['prop-sell']:U.confirmSell===+t.dataset.u&&'la vente du bien',reneg:'la renégociation',achat:'l’achat plaisir',['city-move']:U.cityConf===t.dataset.c&&'le déménagement',['biz-create']:U.bizConf===t.dataset.d&&'la création',['biz-pay']:'le changement de salaire',['biz-hire']:'la décision d’équipe',['biz-raise']:'la levée de fonds',['biz-div']:'le dividende',['biz-leave']:'le changement de poste',['biz-part']:'la cession de parts',bud:'le changement de budget',['biz-plan']:U.bizConf==='plan'&&'le plan social',['plan-set']:'le versement automatique',['plan-stop']:'l’arrêt du versement',['rent-lvl']:'le changement de loyer',['biz-sell']:U.bizConf==='sell'&&'la vente',['biz-exp']:U.bizConf==='exp'&&'l’ouverture',['biz-close']:U.bizConf==='close'&&'la fermeture'}[a];
   const snap=UNDO&&S&&S.phase==='turn'?JSON.stringify(S):null;
   if(['end','next','start','reset','replay','broken-new','july'].includes(a)){U.undo=null;U.undoS=null;U.bizMsg=null;U.bizConf=null;U.budEdit=false;}
   if(a!=='reset')U.confirmReset=false;
@@ -3826,6 +3890,7 @@ function onClick(ev_){
     case 'quiet-ok':U.quiet=null;U.fx=true;break;
     case 'biz-create':{const k=t.dataset.d;U.bizMsg=null;if(!k||U.bizConf!==k){U.bizConf=k||null;break;}U.bizConf=null;const er=bizCreate(k);U.bizMsg=er?{err:1,t:er}:{t:`${S.biz.name} est née. À toi de jouer : ton salaire, ton équipe, ta trésorerie.`};if(!er)sfx('bell');break;}
     case 'biz-pay':{const er=bizPay(t.dataset.v);U.bizMsg=er?{err:1,t:er}:{t:`Ton salaire : ${S.revenu?fmt(S.revenu/12)+' par mois':'rien'} cette année.`};break;}
+    case 'biz-exp':{U.bizMsg=null;if(U.bizConf!=='exp'){U.bizConf='exp';break;}U.bizConf=null;const er=bizExpand();U.bizMsg=er?{err:1,t:er}:{t:`C’est parti : ${DOMS[S.biz.dom].ex.l.toLowerCase()}. Plus de marché, plus de charges : à toi de le remplir.`};if(!er)sfx('bell');break;}
     case 'biz-hire':{const k=+t.dataset.v,er=bizHire(k);U.bizMsg=er?{err:1,t:er}:{t:k>0?'Une embauche : plus de capacité, plus de charges.':'Un départ : trois mois de salaire versés.'};break;}
     case 'biz-raise':{const a=raiseAmt(),er=bizRaise();U.bizMsg=er?{err:1,t:er}:{t:`Levée réussie : ${fmt(a)} en trésorerie, ta part passe à ${pc0(S.biz.share)}.`};break;}
     case 'biz-div':{const c0=S.cash,er=bizDiv();U.bizMsg=er?{err:1,t:er}:{t:`Dividende versé : ${fmt(S.cash-c0)} net d’impôt sur ton compte.`};break;}

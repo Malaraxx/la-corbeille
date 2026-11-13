@@ -1,5 +1,13 @@
 # Journal des versions
 
+## 3.15.0 (14 novembre 2026) : ta boîte sans plafond
+- **Créer ta boîte** : le tableau aux chiffres fixés d'avance (croissance, marge, coup dur, valorisation) est remplacé par cinq fiches : projet, apport minimum, chiffre et équipe de départ, ce qui fait gagner dans le métier, niveau de risque.
+- **Croissance** : elle ne baisse plus avec l'âge de la boîte, mais à mesure qu'elle prend son marché (`bizMkt`, `bizRoom`). Le marché se mesure en euros de 2026 (`B.dl`).
+- **Grandir** (`bizExpand`) : ouvrir un nouveau marché (pays, ville, restaurant, agence). La trésorerie paie un tiers, la banque prête le reste sur 5 ans ; frais fixes et parfois équipe en plus ; chaque ouverture coûte 25 % de plus. Confirmation en deux clics.
+- **Valorisation calculée** : multiple du métier × croissance des trois dernières années × marge (× produit pour le logiciel et l'e-commerce), avec le détail affiché dans « Ma boîte ». La levée de fonds vaut 25 % de la valorisation.
+- Budget : commercial jusqu'à 25 % du CA, prix de −10 % à +15 %.
+- Équilibrage (graine 11) : entrepreneur / salarié ×1,14 (90e centile ×2,01), 34 % de faillites.
+
 ## Saison 4 (en construction, dossier `saison4/`, 9 novembre 2026)
 - **Étape 0, corrections** (rapport du 9 novembre) :
   - plus de dette sans limite : ventes forcées de tes placements, crédit plafonné (6 mois de revenus), puis dossier de surendettement sur 7 ans à 0 % ; le pire moment mesuré passe de −1,3 M€ à −45 000 € ;
