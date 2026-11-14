@@ -21,9 +21,9 @@ export function build(src) {
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="description" content="La Corbeille, Saison 4 : une vie de 20 ans à la retraite. Études, boulot ou boîte, placements, immobilier, fiscalité 2026.">
+<meta name="description" content="La Corbeille, Saison 4 : crée ta marque à 22 ans et gère-la trimestre après trimestre, stock, trésorerie, équipe, avec ta vie autour.">
 <meta property="og:title" content="La Corbeille · Saison 4">
-<meta property="og:description" content="Tu as 20 ans. Bâtis ton patrimoine sans rater ta vie.">
+<meta property="og:description" content="Tu as 22 ans et une idée de marque. Fais-la grandir sans rater ta vie.">
 <meta property="og:type" content="website">
 ${head}
 </head>

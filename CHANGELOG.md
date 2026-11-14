@@ -1,5 +1,14 @@
 # Journal des versions
 
+## Saison 4 · étape A : le moteur trimestriel (14 novembre 2026, dossier `saison4/`)
+- **Cahier des charges v3** (`saison4/CAHIER_DES_CHARGES_SAISON4_V3.md`) : la gestion d'entreprise au trimestre remplace la v2 là où elles diffèrent.
+- **Départ à 22 ans**, sans études : profil de départ (école de commerce avec prêt étudiant de 15 000 €, alternance, école d'ingénieurs, autodidacte), sept villes (Toulouse et Nantes en plus), secteur (Commerce ouvert, les trois autres annoncés), produit (vêtements, cosmétiques, café), nom et financement (épargne, prêt d'honneur à 0 % jusqu'à 10 000 €, prêt bancaire). Format Standard : 20 ans, 80 trimestres.
+- **Moteur trimestriel** : `BIZ` séparé du perso avec `bizCash()` (`BIZ.cash = Σ BIZ.flow`), demande par zone (prix, qualité, notoriété, adéquation, concurrence, saison, conjoncture), ventes plafonnées par le stock et la capacité, notoriété en racine carrée qui s'use, stock par lots avec fournisseurs France, Europe, Asie (minimum, délai, paiement, retard), ruptures, soldes, décote, BFR, découvert autorisé, faillite expliquée et rebond, équipe par rôle et complexité, valorisation calculée (EBE retraité × multiple détaillé). Tous les paramètres dans `SECTORS`.
+- **Écrans** : tableau de bord (6 chiffres, courbe sur 8 trimestres, alertes), décisions préremplies avec « Garder mes réglages » et un prévisionnel en fourchette, résultat animé et « Pourquoi ? », clôture « Que fais-tu du résultat ? » (prime, dividende, IS) puis récap et bilan de l'année.
+- **Supprimé** : les études, les anciens domaines (e-commerce, food truck, startup, rénovation, agence, coach, indépendants) et toute croissance, marge ou valorisation fixées d'avance. Les parties d'essai v2 sont closes.
+- **Sources vérifiées** : IS 15 % jusqu'à 42 500 € (A16250), prêt d'honneur (Bpifrance Création, Initiative France), délais de paiement de 60 jours (L441-10). Valeurs prudentes marquées `TODO` : coûts employeur, coût du président, découvert, frais fixes, multiple, droits de douane.
+- **Équilibrage** (`balance:s4`, 6 bots × 300 parties) : raisonnable 391 k€ médians, 40 % de faillites ; agressif 75 % ; auto ×0,56 ; idiot ≤ 0. Seule la meilleure partie (3,65 M€) reste sous les 10 M€ visés, en attendant les zones de l'étape B.
+
 ## 3.15.0 (14 novembre 2026) : ta boîte sans plafond
 - **Créer ta boîte** : le tableau aux chiffres fixés d'avance (croissance, marge, coup dur, valorisation) est remplacé par cinq fiches : projet, apport minimum, chiffre et équipe de départ, ce qui fait gagner dans le métier, niveau de risque.
 - **Croissance** : elle ne baisse plus avec l'âge de la boîte, mais à mesure qu'elle prend son marché (`bizMkt`, `bizRoom`). Le marché se mesure en euros de 2026 (`B.dl`).

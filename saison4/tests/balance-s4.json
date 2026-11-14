@@ -1,0 +1,137 @@
+{
+ "date": "2026-11-14",
+ "seed": 11,
+ "n": 300,
+ "sector": "commerce",
+ "format": "standard",
+ "bots": [
+  {
+   "bot": "raisonnable",
+   "med": 391164.6782272145,
+   "p10": -2149.091231542212,
+   "p95": 1870594.389950761,
+   "best": 3093592.2794735855,
+   "fail": 0.39666666666666667,
+   "alive": 0.85,
+   "min": -22141.63906476952,
+   "ca": 529200
+  },
+  {
+   "bot": "agressif",
+   "med": 2506.9798525072665,
+   "p10": -5040.459625801949,
+   "p95": 346326.48135598446,
+   "best": 593885.9187099176,
+   "fail": 0.75,
+   "alive": 0.59,
+   "min": -22412.065143424312,
+   "ca": 486864.0000000001
+  },
+  {
+   "bot": "premium",
+   "med": 438702.87000368483,
+   "p10": -5328.918668983283,
+   "p95": 2117053.8500621733,
+   "best": 3653317.67426723,
+   "fail": 0.44333333333333336,
+   "alive": 0.7133333333333334,
+   "min": -25261.350432179723,
+   "ca": 455450.6880000001
+  },
+  {
+   "bot": "radin",
+   "med": -207.6799667049511,
+   "p10": -6695.020403578181,
+   "p95": 107812.26432980645,
+   "best": 227286.36181955657,
+   "fail": 0.8533333333333334,
+   "alive": 0.4066666666666667,
+   "min": -25847.968518166956,
+   "ca": 94832.36352
+  },
+  {
+   "bot": "auto",
+   "med": 219955.1379630905,
+   "p10": -2747.722849025979,
+   "p95": 1521994.64258853,
+   "best": 2826818.8644852987,
+   "fail": 0.4633333333333333,
+   "alive": 0.82,
+   "min": -22859.161107380394,
+   "ca": 413952
+  },
+  {
+   "bot": "idiot",
+   "med": -2608.0492788638594,
+   "p10": -7135.966256509856,
+   "p95": 3118.2173223092773,
+   "best": 9214.659303455714,
+   "fail": 0.9866666666666667,
+   "alive": 0.043333333333333335,
+   "min": -36202.09720679698,
+   "ca": 115729.05922560004
+  }
+ ],
+ "targets": [
+  {
+   "label": "Médiane raisonnable / médiane idiot",
+   "target": "≥ ×3",
+   "value": "×391164,68",
+   "ok": true
+  },
+  {
+   "label": "Aucun bot ne domine partout : meilleur par conjoncture (calme / ≥ 2 krachs) · par produit (café / cosmétiques / vêtements)",
+   "target": "change",
+   "value": "premium / premium · raisonnable / premium / auto",
+   "ok": true
+  },
+  {
+   "label": "auto / raisonnable",
+   "target": "×0,5 à ×0,8",
+   "value": "×0,56",
+   "ok": true
+  },
+  {
+   "label": "Écart de médiane entre secteurs (raisonnable)",
+   "target": "≤ ×1,5",
+   "value": "un seul secteur (étape A)",
+   "ok": null
+  },
+  {
+   "label": "Faillite au moins une fois (raisonnable)",
+   "target": "20 à 40 %",
+   "value": "40 %",
+   "ok": true
+  },
+  {
+   "label": "Faillite (agressif)",
+   "target": "50 à 75 %",
+   "value": "75 %",
+   "ok": true
+  },
+  {
+   "label": "Patrimoine médian à la fin, euros de 2026 (raisonnable)",
+   "target": "250 à 700 k€",
+   "value": "391 k€",
+   "ok": true
+  },
+  {
+   "label": "Top 5 % SaaS / médiane SaaS",
+   "target": "≥ ×5",
+   "value": "SaaS à l’étape E",
+   "ok": null
+  },
+  {
+   "label": "Pire partie (pire moment)",
+   "target": "≥ −50 k€",
+   "value": "-36 k€",
+   "ok": true
+  },
+  {
+   "label": "Meilleure partie sur 1800, sans NaN",
+   "target": "> 10 M€",
+   "value": "3,65 M€",
+   "ok": false
+  }
+ ]
+}
